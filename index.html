@@ -16,17 +16,33 @@
         font-family: 'Cairo', san-serif;
       }
       section {
-        max-width: 600px;
+        max-width: 620px;
         padding: 1em 2.5em;
+      }
+      a,
+      a:link,
+      a:visited {
+        color: #fc8200;
+        font-weight: bold;
+      }
+      .muted {
+        opacity: 0.5;
+      }
+      ol, ul {
+        margin: 0;
+        padding: 0;
       }
     </style>
   </head>
   <body>
     <section>
-      <p>
-        <strong>Avand</strong> (/avɒnd/, Farsi)<br>
-        <em>The vascular structure of a tree, which delivers nutrients to its leaves.</em>
-      </p>
+      <div style="margin-bottom: 1em">
+        <strong>Avand</strong> <span class="muted">/avɒnd/, Farsi</span>
+        <ol class="muted">
+          <li>The vascular structure of a tree, which delivers nutrients to its leafs.</li>
+          <li>A Bay Area DJ specializing in electronic dance music</li>
+        </ol>
+      </div>
 
       <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1150705075&color=%239a9a92&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true"></iframe>
 
@@ -38,6 +54,10 @@
 
       <p>
         <a href="https://soundcloud.com/avand">More on SoundCloud</a>
+      </p>
+
+      <p>
+        DJ? Check out <a href="https://github.com/avand/trackquisition">Trackquisition</a>
       </p>
   </body>
 </html>
