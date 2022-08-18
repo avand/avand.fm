@@ -4,7 +4,7 @@ body {
   padding-top: 3.2em;
 }
 section {
-  padding: 1em 2.5em;
+  padding: 1em 2em;
 }
 ol, ul {
   margin: 0;
@@ -23,7 +23,7 @@ header li {
   flex: 1;
   text-align: center;
   font-weight: bold;
-  padding: 0.8em 0.6em;
+  padding: 0.8em 0;
 }
 header li a {
   color: black !important;
