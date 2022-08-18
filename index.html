@@ -50,6 +50,8 @@
       <source src="three-of-cups-sizzle-reel.mp4" type="video/mp4">
     </video>
 
+    <audio src="the-walk.mp3" id="the-walk-mp3" loop></audio>
+
     <div id="vignette" class="full-screen">
     </div>
 
@@ -72,7 +74,9 @@
           Avand uses his name as inspiration for <span class="no-break">his music.</span>
         </p>
         <p>
-          <a href="https://soundcloud.com/avand/burning-man-2021-sunset-at-camp-granada" class="button" target="_blank">Listen now</a>
+          <a href="https://soundcloud.com/avand/burning-man-2021-sunset-at-camp-granada" class="button" target="_blank">
+            🔊&nbsp;&nbsp;Turn it up
+          </a>
         </p>
         <p class="muted" style="font-size: 1.4em">
           <a href="https://instagram.com/avand.fm" class="ss-icon ss-social-circle" title="IG: @avandstagram">Instagram</a>
@@ -83,7 +87,24 @@
     </div>
 
     <script>
-      document.querySelector('#three-of-cups-video').playbackRate = 0.8;
+      document.querySelector('#three-of-cups-sizzle-reel').playbackRate = 0.8;
+
+      let initialButtonText;
+      let secondaryButtonText = '🔇&nbsp;&nbsp;Shhhhh'
+      document.querySelector('.button').addEventListener('click', function(e) {
+        e.preventDefault();
+        let button = e.target;
+        let audio = document.querySelector('#the-walk-mp3');
+
+        if (!initialButtonText) initialButtonText = e.target.innerText;
+        if (e.target.innerHTML.includes('🔊')) {
+          audio.play();
+          button.innerHTML = secondaryButtonText;
+        } else {
+          audio.pause();
+          button.innerHTML = initialButtonText;
+        }
+      })
     </script>
 
     <script src="webfonts/ss-social.js" type="text/javascript"></script>
