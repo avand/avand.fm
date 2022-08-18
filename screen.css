@@ -15,6 +15,14 @@ a:link
 a:visited {
   color: inherit;
 }
+header {
+  background-color: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(1em);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
 header ol {
   display: flex;
   list-style: none;
@@ -54,15 +62,6 @@ header li span {
 
 .copy-max-width {
   max-width: 600px;
-}
-
-header {
-  background-color: rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(1em);
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
 }
 
 a.link,
