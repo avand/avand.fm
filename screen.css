@@ -70,3 +70,21 @@ a.link:visited {
   color: #9207c3;
   font-weight: bold;
 }
+
+.button {
+  padding: .1em .6em;
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(1em);
+  border-radius: .5em;
+  text-decoration: none;
+  box-shadow: 0 .2em .8em black;
+  transition: box-shadow 200ms;
+}
+
+.button:active {
+  box-shadow: 0 .1em .2em black;
+}
+
+.no-break {
+  white-space: nowrap;
+}
