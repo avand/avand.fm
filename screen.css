@@ -16,7 +16,8 @@ a:visited {
   color: inherit;
 }
 header {
-  background-color: rgba(255, 255, 255, 0.6);
+  color: white;
+  background-color: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(1em);
   position: absolute;
   top: 0;
@@ -34,17 +35,18 @@ header li {
   padding: 0.8em 0;
 }
 header li a {
-  color: black !important;
+  color: white !important;
   text-decoration: none;
-  border-bottom: 2px dotted rgba(0, 0, 0, 0.4);
+  border-bottom: 2px dotted rgba(255, 255, 255, 0.6);
 }
 header li a:hover {
   border-bottom-style: solid;
+  border-bottom-color: white;
 }
 header li a,
 header li span {
   display: inline-block;
-  padding: 0.1em 0.2em;
+  padding: 0.0em 0.2em;
 }
 
 .full-screen {
@@ -57,7 +59,11 @@ header li span {
 }
 
 .muted {
-  opacity: 0.7;
+  opacity: 0.9;
+}
+
+.highlight {
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
 .copy-max-width {
