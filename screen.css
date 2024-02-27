@@ -1,18 +1,19 @@
 body {
-  font-family: 'Cairo', san-serif;
+  font-family: "Cairo", san-serif;
   margin: 0;
   padding-top: 3.2em;
 }
 section {
   padding: 1em 2em;
+  margin: 0 auto;
 }
-ol, ul {
+ol,
+ul {
   margin: 0;
   padding: 0;
 }
 a,
-a:link
-a:visited {
+a:link a:visited {
   color: inherit;
 }
 header {
@@ -46,7 +47,7 @@ header li a:hover {
 header li a,
 header li span {
   display: inline-block;
-  padding: 0.0em 0.2em;
+  padding: 0em 0.2em;
 }
 
 .full-screen {
@@ -78,17 +79,17 @@ a.link:visited {
 }
 
 .button {
-  padding: .1em .6em;
+  padding: 0.1em 0.6em;
   background: rgba(0, 0, 0, 0.9);
   backdrop-filter: blur(1em);
-  border-radius: .5em;
+  border-radius: 0.5em;
   text-decoration: none;
-  box-shadow: 0 .2em .8em black;
+  box-shadow: 0 0.2em 0.8em black;
   transition: box-shadow 200ms;
 }
 
 .button:active {
-  box-shadow: 0 .1em .2em black;
+  box-shadow: 0 0.1em 0.2em black;
 }
 
 .no-break {
