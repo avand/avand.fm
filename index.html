@@ -1,65 +1,85 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
   <head>
-    <meta charset="utf-8">
-    <meta property="og:image" content="https://i1.sndcdn.com/avatars-sEMHILuJm4kkDz0a-CUQegw-t500x500.jpg">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8" />
+    <meta
+      property="og:image"
+      content="https://i1.sndcdn.com/avatars-sEMHILuJm4kkDz0a-CUQegw-t500x500.jpg"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>avand.fm / home</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cairo&display=swap"
+      rel="stylesheet"
+    />
 
-    <link href="screen.css" rel="stylesheet">
+    <link href="screen.css" rel="stylesheet" />
     <link href="webfonts/ss-social-circle.css" rel="stylesheet" />
 
     <style media="screen">
-    #avand-intro {
-      display: flex;
-      align-items: center;
-      text-align: center;
-      justify-content: center;
-      color: white;
-      padding: 0 1em;
-      box-sizing: border-box;
-      text-shadow: 0 1px 2px black;
-      font-size: 1.2em;
-    }
-    #avand-intro p:first-child {
-      font-size: 2em;
-    }
+      #avand-intro {
+        display: flex;
+        align-items: center;
+        text-align: center;
+        justify-content: center;
+        color: white;
+        padding: 0 1em;
+        box-sizing: border-box;
+        text-shadow: 0 1px 2px black;
+        font-size: 1.2em;
+      }
+      #avand-intro p:first-child {
+        font-size: 2em;
+      }
 
-    #three-of-cups-sizzle-reel {
-      object-fit: cover;
-    }
+      #three-of-cups-sizzle-reel {
+        object-fit: cover;
+      }
 
-    #vignette {
-      box-shadow: inset 0 0 10em rgba(0, 0, 0, 1);
-      pointer-events: none;
-    }
+      #vignette {
+        box-shadow: inset 0 0 10em rgba(0, 0, 0, 1);
+        pointer-events: none;
+      }
 
-    #three-of-cups-sizzle-reel { z-index: 1; }
-    #avand-intro               { z-index: 2; }
-    #vignette                  { z-index: 3; }
-    header                     { z-index: 4; }
-  </style>
+      #three-of-cups-sizzle-reel {
+        z-index: 1;
+      }
+      #avand-intro {
+        z-index: 2;
+      }
+      #vignette {
+        z-index: 3;
+      }
+      header {
+        z-index: 4;
+      }
+    </style>
   </head>
   <body>
-    <video autoplay muted loop playsinline id="three-of-cups-sizzle-reel" poster="three-of-cups-sizzle-reel-thumbnail.png" class="full-screen">
-      <source src="three-of-cups-sizzle-reel.mp4" type="video/mp4">
+    <video
+      autoplay
+      muted
+      loop
+      playsinline
+      id="three-of-cups-sizzle-reel"
+      poster="three-of-cups-sizzle-reel-thumbnail.png"
+      class="full-screen"
+    >
+      <source src="three-of-cups-sizzle-reel.mp4" type="video/mp4" />
     </video>
 
     <audio src="the-walk.mp3" id="the-walk-mp3" loop></audio>
 
-    <div id="vignette" class="full-screen">
-    </div>
+    <div id="vignette" class="full-screen"></div>
 
     <header>
       <ol>
         <li><span>Home</span></li>
         <li><a href="sets.html">Sets</a></li>
-        <li><a href="parties.html">Parties</a></li>
         <li><a href="about.html">About</a></li>
         <li><a href="booking.html">Booking</a></li>
       </ol>
@@ -67,44 +87,68 @@
 
     <div id="avand-intro" class="full-screen">
       <div>
-        <p><strong style="display: block; transform: scale(1, 0.9);">AVAND</strong></p>
+        <p>
+          <strong style="display: block; transform: scale(1, 0.9)"
+            >AVAND</strong
+          >
+        </p>
         <p class="highlight copy-max-width">
-          In Farsi, “avand” means the vascular structure of a tree, which delivers
-          nutrients to its leaves. As an Iranian-American DJ, based in California,
-          Avand uses his name as inspiration for <span class="no-break">his music.</span>
+          In Farsi, “avand” means the vascular structure of a tree, which
+          delivers nutrients to its leaves. As an Iranian-American DJ, based in
+          California, Avand uses his name as inspiration for
+          <span class="no-break">his music.</span>
         </p>
         <p>
-          <a href="https://soundcloud.com/avand/burning-man-2021-sunset-at-camp-granada" class="button" target="_blank">
+          <a
+            href="https://soundcloud.com/avand/burning-man-2021-sunset-at-camp-granada"
+            class="button"
+            target="_blank"
+          >
             🔊&nbsp;&nbsp;Turn it up
           </a>
         </p>
         <p class="muted" style="font-size: 1.4em">
-          <a href="https://instagram.com/avand.fm" class="ss-icon ss-social-circle" title="IG: @avandstagram">Instagram</a>
-          <a href="https://soundcloud.com/avand" class="ss-icon ss-social-circle" title="SoundCloud: @avand">SoundCloud</a>
-          <a href="https://open.spotify.com/user/amiriav?si=3b0578505bcb4093" class="ss-icon ss-social-circle" title="Spotify: @amiriav">Spotify</a>
+          <a
+            href="https://instagram.com/avand.fm"
+            class="ss-icon ss-social-circle"
+            title="IG: @avandstagram"
+            >Instagram</a
+          >
+          <a
+            href="https://soundcloud.com/avand"
+            class="ss-icon ss-social-circle"
+            title="SoundCloud: @avand"
+            >SoundCloud</a
+          >
+          <a
+            href="https://open.spotify.com/user/amiriav?si=3b0578505bcb4093"
+            class="ss-icon ss-social-circle"
+            title="Spotify: @amiriav"
+            >Spotify</a
+          >
         </p>
       </div>
     </div>
 
     <script>
-      document.querySelector('#three-of-cups-sizzle-reel').playbackRate = 0.8;
+      document.querySelector("#three-of-cups-sizzle-reel").playbackRate = 0.8;
 
       let initialButtonText;
-      let secondaryButtonText = '🔇&nbsp;&nbsp;Shhhhh'
-      document.querySelector('.button').addEventListener('click', function(e) {
+      let secondaryButtonText = "🔇&nbsp;&nbsp;Shhhhh";
+      document.querySelector(".button").addEventListener("click", function (e) {
         e.preventDefault();
         let button = e.target;
-        let audio = document.querySelector('#the-walk-mp3');
+        let audio = document.querySelector("#the-walk-mp3");
 
         if (!initialButtonText) initialButtonText = e.target.innerText;
-        if (e.target.innerHTML.includes('🔊')) {
+        if (e.target.innerHTML.includes("🔊")) {
           audio.play();
           button.innerHTML = secondaryButtonText;
         } else {
           audio.pause();
           button.innerHTML = initialButtonText;
         }
-      })
+      });
     </script>
 
     <script src="webfonts/ss-social.js" type="text/javascript"></script>
@@ -112,10 +156,12 @@
     <!-- Begin SlickText Tag -->
     <script defer src="https://cdn.slicktext.com/scripts/stag.min.js"></script>
     <script>
-    window.sTagConfig = window.sTagConfig || [];
-    function sTag(){sTagConfig.push(arguments);}
-    sTag("ut", "7979ba7e9da5d344e602e2b144b56ccc");
+      window.sTagConfig = window.sTagConfig || [];
+      function sTag() {
+        sTagConfig.push(arguments);
+      }
+      sTag("ut", "7979ba7e9da5d344e602e2b144b56ccc");
     </script>
     <!-- End SlickText Tag -->
-    </body>
+  </body>
 </html>
