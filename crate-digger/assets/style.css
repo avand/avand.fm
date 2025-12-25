@@ -269,6 +269,7 @@ a {
   background: linear-gradient(135deg, rgba(57, 255, 136, 0.22), rgba(155, 92, 255, 0.18)) !important;
   font-family: inherit !important;
   font-weight: bold !important;
+  transition: all 0.12s ease !important;
 }
 .formkit-submit:hover {
   transform: scale(1.02);
