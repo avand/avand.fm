@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Crate Digger — Stop ctrl-f'ing around</title>
+  <meta name="description" content="Crate Digger is a DJ utility that uses Spotify as your shopping list and syncs with your local rekordbox library so you never buy the same track twice." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div>
+          <b>Crate Digger</b>
+        </div>
+      </div>
+      <div class="cta">
+        <a class="btn primary" href="#early">Get early access</a>
+      </div>
+    </div>
+
+    <section class="hero">
+      <div>
+        <h1>Stop ⌘ F’ing around!</h1>
+      </div>
+
+      <div class="muted">
+        Buy your Spotify tracks quickly without dupes.
+      </div>
+
+      <div class="stage">
+        <img class="mockup" src="assets/prototype.png" alt="Crate Digger prototype UI showing Spotify playlists matched against rekordbox library." />
+      </div>
+    </section>
+
+    <section id="how" class="section">
+      <div style="text-align: center;">
+        <h2>What Crate Digger is</h2>
+        <p>
+          Crate Digger treats <b>Spotify as your music shopping list</b>. Use Spotify to aggregate tracks you discover through movies, radio, friends, Shazam, etc.
+          Use Crate Digger to cross-reference those tracks against your local library to tell you what you already own. For tracks you don't own yet, Crate Digger
+          provides <b>one‑click links</b> out to purchase sources.
+        </p>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <b><span class="num">1</span>Connect Spotify</b>
+          <p>Browse your playlists inside Crate Digger. Track counts and cover art included.</p>
+        </div>
+        <div class="step">
+          <b><span class="num">2</span>Connect your local library</b>
+          <p>Crate Digger scans your library so it can tell you what tracks you already own.</p>
+        </div>
+        <div class="step">
+          <b><span class="num">3</span>Buy what you’re missing</b>
+          <p>Quickly link out to your favorite music store to buy the tracks you’re missing.</p>
+        </div>
+      </div>
+    </section>
+
+
+    <section id="early" class="section">
+      <div class="ctaBlock">
+        <div>
+          <h3>Join the early list</h3>
+          <p>Be first to try it. Get occasional progress updates. No spam.</p>
+        </div>
+        <form onsubmit="return window.CD_earlyAccess(event)">
+          <input id="email" type="email" placeholder="you@domain.com" required />
+          <button class="btn primary" type="submit">Request access</button>
+        </form>
+        <div class="fine" id="msg" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="tag"><span class="glow"></span> Local-first • DJ-focused • Ownership clarity</div>
+      <div>© <span id="yr"></span> Crate Digger</div>
+    </footer>
+  </div>
+
+  <script>
+    document.getElementById('yr').textContent = new Date().getFullYear();
+    window.CD_earlyAccess = async function(e) {
+      e.preventDefault();
+      const el = document.getElementById('email');
+      const msg = document.getElementById('msg');
+      const button = e.target.querySelector('button[type="submit"]');
+      const email = (el.value || '').trim();
+
+      if (!email) {
+        return false;
+      }
+
+      // Disable button during submission
+      const originalButtonText = button.textContent;
+      button.disabled = true;
+      button.textContent = 'Submitting...';
+      msg.textContent = '';
+      msg.style.color = '';
+
+      try {
+        // TODO: Replace '/api/subscribe' with your backend endpoint URL
+        // Examples:
+        // - Netlify: '/.netlify/functions/subscribe'
+        // - Vercel: '/api/subscribe'
+        // See api-subscribe-example.js for backend implementation
+        const response = await fetch('/api/subscribe', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email
+          }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          msg.textContent = "You're on the list! Check your email to confirm.";
+          msg.style.color = "rgba(233,233,243,.75)";
+          el.value = "";
+        } else {
+          throw new Error(data.error || 'Something went wrong');
+        }
+      } catch (error) {
+        msg.textContent = error.message || "Something went wrong. Please try again.";
+        msg.style.color = "rgba(255, 100, 100, 0.8)";
+      } finally {
+        button.disabled = false;
+        button.textContent = originalButtonText;
+      }
+
+      return false;
+    }
+  </script>
+</body>
+
+</html>
