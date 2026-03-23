@@ -108,6 +108,10 @@
       pointer-events: none;
     }
 
+    .hero>* {
+      position: relative;
+    }
+
     .hero-label {
       font-size: 0.85em;
       font-weight: 700;
@@ -123,13 +127,15 @@
       line-height: 1.1;
       margin-bottom: 0.3em;
       position: relative;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
     }
 
     .hero .subtitle {
       font-size: clamp(1.1em, 2.5vw, 1.35em);
-      color: var(--text-muted);
+      color: var(--text);
       max-width: 580px;
       margin-bottom: 2em;
+      text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
     }
 
     .hero-details {
@@ -209,8 +215,8 @@
     }
 
     .topic-card svg {
-      width: 32px;
-      height: 32px;
+      width: 48px;
+      height: 48px;
       stroke: var(--accent);
       fill: none;
       stroke-width: 1.5;
@@ -393,9 +399,10 @@
       }
 
       .hero-details {
-        flex-direction: column;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
         gap: 0.5em;
-        align-items: center;
+        justify-items: center;
       }
 
       section {
@@ -423,12 +430,12 @@
 
   <!-- Hero -->
   <div class="hero">
-    <div class="hero-label">Summer 2026 &middot; First Cohort</div>
-    <h1>Headroom</h1>
+    <div class="hero-label">Summer 2026: Cohort #1</div>
+    <h1>HEADROOM</h1>
     <p class="subtitle">
-      Advanced DJ systems training for serious performers.<br />
-      Master the tech so you can confidently step into any booth
-      and find your flow amongst the chaos.
+      Advanced DJ training for serious performers. Master the tech
+      so you can confidently step into any booth and find your flow
+      amongst the chaos.
     </p>
     <div class="hero-details">
       <span>8 weeks</span>
@@ -444,34 +451,16 @@
     <h2>What you'll learn</h2>
     <p class="section-lead">
       This course covers the full technical stack behind
-      DJing&mdash;from the physics of sound to the logistics of a mobile rig.
-      Here's a sample of what we'll work through together.
+      DJing&mdash;from the being comfortable and confident
+      in DJ booths to setting up your own sound systems
+      and everything in between.
+    </p>
+
+    <p class="section-lead">
+      Here’s a glimpse into the curriculum:
     </p>
 
     <div class="topics-grid">
-      <div class="topic-card">
-        <svg viewBox="0 0 32 32">
-          <path d="M2 16h3l3-10 4 20 4-14 4 8 3-4h7" />
-        </svg>
-        <h3>Signal &amp; Sound</h3>
-        <p>
-          How audio actually moves through cables and air. Balanced vs.
-          unbalanced signals, gain staging, spectral analysis,
-          normalizing track levels, and active EQ'ing.
-        </p>
-      </div>
-      <div class="topic-card">
-        <svg viewBox="0 0 32 32">
-          <path d="M8 4v6m0 0a4 4 0 0 0 0 8v0m0 0v10" />
-          <path d="M20 4v10m0 0a4 4 0 0 1 0 8v0m0 0v6" />
-        </svg>
-        <h3>Cables, Connectors &amp; Adapters</h3>
-        <p>
-          RCA, TS, TRS, XLR&mdash;when to use each, how to shop for
-          equipment, and how to avoid the adapter pitfalls that kill
-          your signal chain.
-        </p>
-      </div>
       <div class="topic-card">
         <svg viewBox="0 0 32 32">
           <rect x="4" y="6" width="14" height="20" rx="2" />
@@ -480,26 +469,89 @@
           <path d="M22 10c2 2 2 10 0 12" />
           <path d="M26 7c3.5 3.5 3.5 15 0 18" />
         </svg>
-        <h3>Speakers &amp; EQ</h3>
+        <h3>Signal &amp; Sound Quality</h3>
         <p>
-          How speakers convert electricity to air movement. High-pass
-          and low-pass filters, EQ strategy, and the difference between
-          colliding frequencies and spectral harmony.
+          Optimize how audio moves through cables and air. Learn
+          about balanced vs. unbalanced signals, gain staging,
+          equaliziation, normalization, and speaker placement.
+          Get the most out of any system and avoid common pitfalls.
         </p>
       </div>
       <div class="topic-card">
         <svg viewBox="0 0 32 32">
-          <rect x="3" y="8" width="26" height="16" rx="2" />
-          <line x1="9" y1="12" x2="9" y2="20" />
-          <line x1="14" y1="14" x2="14" y2="20" />
-          <line x1="19" y1="10" x2="19" y2="20" />
-          <line x1="24" y1="13" x2="24" y2="20" />
+          <!-- Pointed tip -->
+          <path d="M14.5 2l1.5-1 1.5 1v1h-3z" />
+          <!-- Tip bulge -->
+          <path d="M13.5 3q0-1 2.5-1t2.5 1q0 1.2-2.5 1.2T13.5 3z" />
+          <!-- Neck pinch -->
+          <rect x="14.5" y="4" width="3" height="1" />
+          <!-- Upper shaft + ring grooves -->
+          <rect x="13.5" y="5" width="5" height="3" rx="0.3" />
+          <!-- Insulator 1 (black ring) -->
+          <rect x="13.5" y="8" width="5" height="0.8" fill="currentColor" stroke="none" style="fill: var(--bg)" />
+          <!-- Mid shaft -->
+          <rect x="13.5" y="8.8" width="5" height="3" rx="0.3" />
+          <!-- Insulator 2 (black ring) -->
+          <rect x="13.5" y="11.8" width="5" height="0.8" fill="currentColor" stroke="none" style="fill: var(--bg)" />
+          <!-- Long sleeve shaft -->
+          <rect x="13.5" y="12.6" width="5" height="9" rx="0.3" />
+          <!-- Step out to barrel -->
+          <rect x="13" y="21.6" width="6" height="1.5" rx="0.3" />
+          <!-- Knurled barrel (widest part, bottom) -->
+          <rect x="11.5" y="23.1" width="9" height="6" rx="1" />
+          <!-- Knurling lines -->
+          <line x1="11.5" y1="24.5" x2="20.5" y2="24.5" stroke-width="0.4" />
+          <line x1="11.5" y1="26.1" x2="20.5" y2="26.1" stroke-width="0.4" />
+          <line x1="11.5" y1="27.7" x2="20.5" y2="27.7" stroke-width="0.4" />
+        </svg>
+        <h3>Cables, Connectors &amp; Power</h3>
+        <p>
+          Learn how and when to use RCA, TS, TRS, XLR, & banana plugs.
+          Understand how to sanely and safely provide power to all your
+          equipment without create a rat’s nest of wires.
+        </p>
+      </div>
+      <div class="topic-card">
+        <svg viewBox="0 0 32 32">
+          <path d="M2 16h3l3-10 4 20 4-14 4 8 3-4h7" />
+        </svg>
+        <h3>Spectral Balance</h3>
+        <p>
+          Take your sets to the next level by understanding how to
+          balance the frequencies in your mix to create a rich and
+          engaging dance floor sound. Learn the science how a mixer’s
+          EQ-related functions work so you can get the most from them.
+        </p>
+      </div>
+      <div class="topic-card">
+        <svg viewBox="0 0 32 32">
+          <!-- Wire -->
+          <line x1="16" y1="0" x2="16" y2="4" />
+          <!-- Ball outline -->
+          <circle cx="16" cy="16" r="11.5" />
+          <!-- Horizontal lines -->
+          <ellipse cx="16" cy="8" rx="8.5" ry="1.8" fill="none" />
+          <ellipse cx="16" cy="11" rx="10.5" ry="1.5" fill="none" />
+          <line x1="4.5" y1="14" x2="27.5" y2="14" />
+          <line x1="4.5" y1="18" x2="27.5" y2="18" />
+          <ellipse cx="16" cy="21" rx="10.5" ry="1.5" fill="none" />
+          <ellipse cx="16" cy="24" rx="8.5" ry="1.8" fill="none" />
+          <!-- Vertical curves -->
+          <line x1="16" y1="4.5" x2="16" y2="27.5" />
+          <ellipse cx="16" cy="16" rx="4" ry="11.5" fill="none" />
+          <ellipse cx="16" cy="16" rx="8" ry="11.5" fill="none" />
+          <!-- Sparkles -->
+          <path d="M3 5l1-2 1 2-1 2z" fill="var(--accent)" stroke="none" />
+          <path d="M28 8l0.7-1.4 0.7 1.4-0.7 1.4z" fill="var(--accent)" stroke="none" />
+          <path d="M2 22l0.7-1.4 0.7 1.4-0.7 1.4z" fill="var(--accent)" stroke="none" />
+          <path d="M29 24l0.5-1 0.5 1-0.5 1z" fill="var(--accent)" stroke="none" />
         </svg>
         <h3>Club Systems &amp; the DJ Booth</h3>
         <p>
-          Anatomy of a real club setup: DJ mixers vs. house mixers,
-          booth monitors, connecting to the house system,
-          and navigating shared decks with another DJ.
+          Familiarize yourself with the anatomy and etiquette of a
+          real club setup: DJ mixers vs. house mixers, booth monitors,
+          connecting your equipment to the house system, and navigating
+          shared decks with another DJ.
         </p>
       </div>
       <div class="topic-card">
@@ -514,9 +566,9 @@
         </svg>
         <h3>CDJs, Controllers &amp; All-in-Ones</h3>
         <p>
-          The differences between hardware platforms. USB vs. laptop
-          workflows, rekordbox, Traktor, and how to walk into any
-          booth and feel comfortable.
+          Understand the differences between hardware platforms and how
+          to pick the best platform for you: USB vs. laptop workflows,
+          portability tradeoffs, keyboard shortcuts, 2 vs. 4 decks.
         </p>
       </div>
       <div class="topic-card">
@@ -528,9 +580,11 @@
         </svg>
         <h3>Mobile Sound Systems</h3>
         <p>
-          Building and running your own rig&mdash;from art cars to
-          park hangs. Battery vs. generator, power requirements,
-          and practical field lessons.
+          Learn how to configure battery &amp; generator-powered
+          portable sound systems. Prepare yourself for weddings, park parties,
+          or art cars. and running your own rig&mdash;from art cars to
+          park hangs. Understand how to get the most sound for your money
+          without breaking your back.
         </p>
       </div>
       <div class="topic-card">
@@ -542,9 +596,10 @@
         </svg>
         <h3>Advanced Deck Techniques</h3>
         <p>
-          Loops, back-spins, slip mode, playing in reverse, using
-          more than two decks, and going back-to-back
-          with another DJ.
+          Expand beyond the basics. Learn to make loops and edit them
+          on the fly. Learn how and when to play in reverse, use slip mode,
+          utilize more than two decks, and how to go back-to-back with
+          another DJ.
         </p>
       </div>
       <div class="topic-card">
@@ -557,9 +612,10 @@
         </svg>
         <h3>Software, Backups &amp; Track Prep</h3>
         <p>
-          Library management, hot cue strategies, audio editing,
-          disaster recovery, virtual audio routing, and safe
-          software update practices.
+          Learn some advanced ways to organize your library, use hot cues,
+          and how to edit audio tracks for improved workflows. Also learn
+          to use virtual audio interfaces to record your sets and how to
+          navigate software updates and disaster recovery.
         </p>
       </div>
       <div class="topic-card">
@@ -572,9 +628,9 @@
         </svg>
         <h3>Workflow &amp; Practice</h3>
         <p>
-          Laptop-only DJing, ergonomic setups, using AI as a learning
-          tool, and building efficient habits that compound
-          over time.
+          Learn how to DJ purely from your laptop, how to improve your ergonomics,
+          and how to use AI to make your workflows more efficient. Weekly assignments
+          will help you build good habits and improve your skills over time.
         </p>
       </div>
     </div>
@@ -584,7 +640,7 @@
   <section>
     <h2>Your instructor</h2>
     <p class="section-lead">
-      I'm Avand&mdash;a DJ and software engineer who has spent over a decade
+      I’m Avand&mdash;a DJ and software engineer who has spent over a decade
       obsessing over how sound systems work so the music sounds exactly right.
     </p>
 
@@ -592,18 +648,17 @@
       <img class="instructor-photo" src="avand.jpg" alt="Avand" />
       <div>
         <p>
-          I've played everywhere from Burning Man art cars and mobile rigs I built
-          myself to nightclub residencies. I've used CDJs, controllers,
-          all-in-ones, Traktor, rekordbox, and laptop-only setups.
-          I don't have one "right way"&mdash;I have opinions
-          born from real experience across the full range of gear and contexts.
+          I’ve played everywhere from Burning Man art cars and mobile rigs that I set up
+          myself to nightclubs around the world. I’ve used CDJs, controllers,
+          all-in-ones, Traktor, rekordbox, and laptop-only setups. I don’t have one
+          ”right way”&mdash;I just have some well-formed opinions born from real-world
+          experience across the full range of gear and environments.
         </p>
         <p style="margin-top: 1em;">
-          Before this, I was an instructor at <a href="https://generalassemb.ly/" target="_blank" style="color: var(--text); text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 0.2em;">General Assembly</a> where I logged
+          I was an instructor at <a href="https://generalassemb.ly/" target="_blank" style="color: var(--text); text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 0.2em;">General Assembly</a>, where I logged
           700+ hours in front of students and designed my own curriculum from
-          scratch. Teaching is something I take as seriously as performing.
-          And as a software engineer, getting into the weeds of how things work
-          is just what I do.
+          scratch. I love to teach and share my experience with others. I’ve
+          also worked in software for long time so technical details are my jam.
         </p>
 
         <div class="credential-grid">
@@ -628,7 +683,7 @@
   <section>
     <h2>How it works</h2>
     <p class="section-lead">
-      A small, focused cohort with room for real questions and hands-on work.
+      This first cohort will be a small, focused group with room for real questions and hands-on work.
     </p>
 
     <div class="format-grid">
@@ -678,7 +733,7 @@
   </footer>
 
   <script>
-    (function () {
+    (function() {
       var size = 32;
       var frames = 36;
       var urls = [];
@@ -728,7 +783,7 @@
 
       var link = document.getElementById("favicon");
       var frame = 0;
-      setInterval(function () {
+      setInterval(function() {
         frame = (frame + 1) % frames;
         link.href = urls[frame];
       }, 1800 / frames);
