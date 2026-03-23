@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Headroom — Advanced DJ Systems Training</title>
+  <meta name="description" content="Headroom is an 8-week advanced DJ systems course for serious performers. Learn signal flow, gain structure, club setups, mobile rigs, and more." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/x-icon" href="../favicon.png" />
+
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #13131a;
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #e4e4eb;
+      --text-muted: #8a8a9a;
+      --accent: #9207c3;
+      --accent-glow: rgba(146, 7, 195, 0.3);
+      --warm: #c87533;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Cairo", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* --- Nav --- */
+
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.85);
+      backdrop-filter: blur(1em);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.8em 2em;
+    }
+
+    nav .brand {
+      font-weight: 700;
+      font-size: 1.1em;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    nav .brand a {
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    nav .cta-nav a {
+      color: var(--bg);
+      background: var(--text);
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.85em;
+      padding: 0.5em 1.4em;
+      border-radius: 2em;
+      transition: opacity 200ms;
+    }
+
+    nav .cta-nav a:hover {
+      opacity: 0.85;
+    }
+
+    /* --- Hero --- */
+
+    .hero {
+      min-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 8em 2em 4em;
+      position: relative;
+      overflow: hidden;
+      background:
+        linear-gradient(to bottom, rgba(10, 10, 15, 0.55) 0%, rgba(10, 10, 15, 0.85) 80%, var(--bg) 100%),
+        url('djvibe-studiox-urXtcqrAW18-unsplash.jpg') center / cover no-repeat;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      box-shadow: inset 0 0 8em 2em var(--bg);
+      pointer-events: none;
+    }
+
+    .hero-label {
+      font-size: 0.85em;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 1em;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.4em, 6vw, 4.5em);
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 0.3em;
+      position: relative;
+    }
+
+    .hero .subtitle {
+      font-size: clamp(1.1em, 2.5vw, 1.35em);
+      color: var(--text-muted);
+      max-width: 580px;
+      margin-bottom: 2em;
+    }
+
+    .hero-details {
+      display: flex;
+      gap: 2em;
+      flex-wrap: wrap;
+      justify-content: center;
+      font-size: 0.95em;
+      color: var(--text-muted);
+      margin-bottom: 2.5em;
+    }
+
+    .hero-details span {
+      display: flex;
+      align-items: center;
+      gap: 0.4em;
+    }
+
+    .btn-primary {
+      display: inline-block;
+      background: var(--accent);
+      color: white;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 1.1em;
+      padding: 0.75em 2.5em;
+      border-radius: 2em;
+      transition: box-shadow 200ms, transform 200ms;
+      box-shadow: 0 0 1.5em var(--accent-glow);
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 0 2.5em var(--accent-glow);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    /* --- Sections --- */
+
+    section {
+      padding: 5em 2em;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    h2 {
+      font-size: 2em;
+      font-weight: 700;
+      margin-bottom: 0.3em;
+    }
+
+    .section-lead {
+      color: var(--text-muted);
+      font-size: 1.1em;
+      max-width: 600px;
+      margin-bottom: 2.5em;
+    }
+
+    /* --- Topics Grid --- */
+
+    .topics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 0.75em;
+      overflow: hidden;
+    }
+
+    .topic-card {
+      background: var(--surface);
+      padding: 1.8em;
+    }
+
+    .topic-card svg {
+      width: 32px;
+      height: 32px;
+      stroke: var(--accent);
+      fill: none;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      margin-bottom: 0.6em;
+      display: block;
+    }
+
+    .topic-card h3 {
+      font-size: 1.1em;
+      font-weight: 700;
+      margin-bottom: 0.5em;
+    }
+
+    .topic-card p {
+      font-size: 0.9em;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* --- Instructor --- */
+
+    .instructor {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 2.5em;
+      align-items: start;
+    }
+
+    .instructor-photo {
+      width: 200px;
+      height: 200px;
+      border-radius: 0.5em;
+      object-fit: cover;
+    }
+
+    @media (max-width: 640px) {
+      .instructor {
+        grid-template-columns: 1fr;
+      }
+
+      .instructor-photo {
+        width: 140px;
+        height: 140px;
+      }
+    }
+
+    .credential-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1em;
+      margin-top: 1.5em;
+    }
+
+    .credential {
+      border: 1px solid var(--border);
+      border-radius: 0.5em;
+      padding: 1.2em;
+      background: var(--surface);
+    }
+
+    .credential .number {
+      font-size: 1.8em;
+      font-weight: 900;
+      line-height: 1;
+      margin-bottom: 0.15em;
+    }
+
+    .credential .label {
+      font-size: 0.85em;
+      color: var(--text-muted);
+    }
+
+    /* --- Format --- */
+
+    .format-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1.5em;
+    }
+
+    .format-item {
+      border-left: 2px solid var(--accent);
+      padding-left: 1.2em;
+    }
+
+    .format-item .value {
+      font-size: 1.3em;
+      font-weight: 700;
+    }
+
+    .format-item .desc {
+      font-size: 0.9em;
+      color: var(--text-muted);
+    }
+
+    /* --- Guarantee --- */
+
+    .guarantee {
+      text-align: center;
+      border: 1px solid var(--border);
+      border-radius: 0.75em;
+      padding: 3em 2em;
+      background: var(--surface);
+    }
+
+    .guarantee h2 {
+      font-size: 1.5em;
+    }
+
+    .guarantee p {
+      color: var(--text-muted);
+      max-width: 520px;
+      margin: 0.5em auto 0;
+    }
+
+    /* --- Final CTA --- */
+
+    .final-cta {
+      text-align: center;
+      padding: 8em 2em;
+      max-width: none;
+      margin: 0 auto;
+      position: relative;
+      background:
+        linear-gradient(to bottom, var(--bg) 0%, rgba(10, 10, 15, 0.5) 30%, rgba(10, 10, 15, 0.5) 70%, var(--bg) 100%),
+        url('djvibe-studiox-dt_UuLU_foM-unsplash.jpg') center bottom / cover no-repeat;
+    }
+
+    .final-cta::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      box-shadow: inset 0 0 8em 2em var(--bg);
+      pointer-events: none;
+    }
+
+    .final-cta h2 {
+      font-size: 2.4em;
+      margin-bottom: 0.3em;
+      position: relative;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+    }
+
+    .final-cta p {
+      color: var(--text);
+      margin-bottom: 2em;
+      font-size: 1.2em;
+      position: relative;
+      text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+      max-width: 540px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* --- Footer --- */
+
+    footer {
+      text-align: center;
+      padding: 2em;
+      color: var(--text-muted);
+      font-size: 0.85em;
+      border-top: 1px solid var(--border);
+    }
+
+    footer a {
+      color: var(--text-muted);
+    }
+
+    /* --- Responsive --- */
+
+    @media (max-width: 640px) {
+      nav {
+        padding: 0.6em 1.2em;
+      }
+
+      .hero {
+        padding: 7em 1.2em 3em;
+      }
+
+      .hero-details {
+        flex-direction: column;
+        gap: 0.5em;
+        align-items: center;
+      }
+
+      section {
+        padding: 3em 1.2em;
+      }
+
+      .credential-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .format-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav>
+    <div class="brand"><a href="../">avand.fm</a> / headroom</div>
+    <div class="cta-nav">
+      <a href="https://calendar.app.google/2dhPnZHUngrQUUoF7" target="_blank">Book a call</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-label">Summer 2026 &middot; First Cohort</div>
+    <h1>Headroom</h1>
+    <p class="subtitle">
+      Advanced DJ systems training for serious performers.<br />
+      Master the tech so you can confidently step into any booth
+      and find your flow amongst the chaos.
+    </p>
+    <div class="hero-details">
+      <span>8 weeks</span>
+      <span>2 hrs / week</span>
+      <span>8&ndash;12 students</span>
+      <span>$900</span>
+    </div>
+    <a class="btn-primary" href="https://calendar.app.google/2dhPnZHUngrQUUoF7" target="_blank">Book an intro call</a>
+  </div>
+
+  <!-- What You'll Learn -->
+  <section>
+    <h2>What you'll learn</h2>
+    <p class="section-lead">
+      This course covers the full technical stack behind
+      DJing&mdash;from the physics of sound to the logistics of a mobile rig.
+      Here's a sample of what we'll work through together.
+    </p>
+
+    <div class="topics-grid">
+      <div class="topic-card">
+        <svg viewBox="0 0 32 32">
+          <path d="M2 16h3l3-10 4 20 4-14 4 8 3-4h7" />
+        </svg>
+        <h3>Signal &amp; Sound</h3>
+        <p>
+          How audio actually moves through cables and air. Balanced vs.
+          unbalanced signals, gain staging, spectral analysis,
+          normalizing track levels, and active EQ'ing.
+        </p>
+      </div>
+      <div class="topic-card">
+        <svg viewBox="0 0 32 32">
+          <path d="M8 4v6m0 0a4 4 0 0 0 0 8v0m0 0v10" />
+          <path d="M20 4v10m0 0a4 4 0 0 1 0 8v0m0 0v6" />
+        </svg>
+        <h3>Cables, Connectors &amp; Adapters</h3>
+        <p>
+          RCA, TS, TRS, XLR&mdash;when to use each, how to shop for
+          equipment, and how to avoid the adapter pitfalls that kill
+          your signal chain.
+        </p>
+      </div>
+      <div class="topic-card">
+        <svg viewBox="0 0 32 32">
+          <rect x="4" y="6" width="14" height="20" rx="2" />
+          <path d="M11 20a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+          <circle cx="11" cy="11" r="1.5" />
+          <path d="M22 10c2 2 2 10 0 12" />
+          <path d="M26 7c3.5 3.5 3.5 15 0 18" />
+        </svg>
+        <h3>Speakers &amp; EQ</h3>
+        <p>
+          How speakers convert electricity to air movement. High-pass
+          and low-pass filters, EQ strategy, and the difference between
+          colliding frequencies and spectral harmony.
+        </p>
+      </div>
+      <div class="topic-card">
+        <svg viewBox="0 0 32 32">
+          <rect x="3" y="8" width="26" height="16" rx="2" />
+          <line x1="9" y1="12" x2="9" y2="20" />
+          <line x1="14" y1="14" x2="14" y2="20" />
+          <line x1="19" y1="10" x2="19" y2="20" />
+          <line x1="24" y1="13" x2="24" y2="20" />
+        </svg>
+        <h3>Club Systems &amp; the DJ Booth</h3>
+        <p>
+          Anatomy of a real club setup: DJ mixers vs. house mixers,
+          booth monitors, connecting to the house system,
+          and navigating shared decks with another DJ.
+        </p>
+      </div>
+      <div class="topic-card">
+        <svg viewBox="0 0 32 32">
+          <circle cx="16" cy="16" r="12" />
+          <circle cx="16" cy="16" r="4" />
+          <circle cx="16" cy="16" r="1" />
+          <line x1="16" y1="4" x2="16" y2="6" />
+          <line x1="16" y1="26" x2="16" y2="28" />
+          <line x1="4" y1="16" x2="6" y2="16" />
+          <line x1="26" y1="16" x2="28" y2="16" />
+        </svg>
+        <h3>CDJs, Controllers &amp; All-in-Ones</h3>
+        <p>
+          The differences between hardware platforms. USB vs. laptop
+          workflows, rekordbox, Traktor, and how to walk into any
+          booth and feel comfortable.
+        </p>
+      </div>
+      <div class="topic-card">
+        <svg viewBox="0 0 32 32">
+          <rect x="9" y="6" width="14" height="22" rx="2" />
+          <line x1="16" y1="10" x2="16" y2="18" />
+          <line x1="12" y1="14" x2="20" y2="14" />
+          <line x1="13" y1="24" x2="19" y2="24" />
+        </svg>
+        <h3>Mobile Sound Systems</h3>
+        <p>
+          Building and running your own rig&mdash;from art cars to
+          park hangs. Battery vs. generator, power requirements,
+          and practical field lessons.
+        </p>
+      </div>
+      <div class="topic-card">
+        <svg viewBox="0 0 32 32">
+          <path d="M16 6a10 10 0 0 1 0 20 10 10 0 0 1 0-20" />
+          <path d="M22 10l-6 6" />
+          <path d="M22 10h-5" />
+          <path d="M22 10v5" />
+        </svg>
+        <h3>Advanced Deck Techniques</h3>
+        <p>
+          Loops, back-spins, slip mode, playing in reverse, using
+          more than two decks, and going back-to-back
+          with another DJ.
+        </p>
+      </div>
+      <div class="topic-card">
+        <svg viewBox="0 0 32 32">
+          <rect x="4" y="4" width="24" height="18" rx="2" />
+          <line x1="4" y1="26" x2="28" y2="26" />
+          <line x1="12" y1="22" x2="12" y2="26" />
+          <line x1="20" y1="22" x2="20" y2="26" />
+          <path d="M10 11l3 3 5-6" />
+        </svg>
+        <h3>Software, Backups &amp; Track Prep</h3>
+        <p>
+          Library management, hot cue strategies, audio editing,
+          disaster recovery, virtual audio routing, and safe
+          software update practices.
+        </p>
+      </div>
+      <div class="topic-card">
+        <svg viewBox="0 0 32 32">
+          <path d="M4 24V10a2 2 0 0 1 2-2h20a2 2 0 0 1 2 2v14" />
+          <line x1="2" y1="24" x2="30" y2="24" />
+          <path d="M10 14h4" />
+          <path d="M18 14h4" />
+          <path d="M8 18h16" />
+        </svg>
+        <h3>Workflow &amp; Practice</h3>
+        <p>
+          Laptop-only DJing, ergonomic setups, using AI as a learning
+          tool, and building efficient habits that compound
+          over time.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Instructor -->
+  <section>
+    <h2>Your instructor</h2>
+    <p class="section-lead">
+      I'm Avand&mdash;a DJ and software engineer who has spent over a decade
+      obsessing over how sound systems work so the music sounds exactly right.
+    </p>
+
+    <div class="instructor">
+      <img class="instructor-photo" src="avand.jpg" alt="Avand" />
+      <div>
+        <p>
+          I've played everywhere from Burning Man art cars and mobile rigs I built
+          myself to nightclub residencies. I've used CDJs, controllers,
+          all-in-ones, Traktor, rekordbox, and laptop-only setups.
+          I don't have one "right way"&mdash;I have opinions
+          born from real experience across the full range of gear and contexts.
+        </p>
+        <p style="margin-top: 1em;">
+          Before this, I was an instructor at <a href="https://generalassemb.ly/" target="_blank" style="color: var(--text); text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 0.2em;">General Assembly</a> where I logged
+          700+ hours in front of students and designed my own curriculum from
+          scratch. Teaching is something I take as seriously as performing.
+          And as a software engineer, getting into the weeds of how things work
+          is just what I do.
+        </p>
+
+        <div class="credential-grid">
+          <div class="credential">
+            <div class="number">13 years</div>
+            <div class="label">DJ experience</div>
+          </div>
+          <div class="credential">
+            <div class="number">700+ hours</div>
+            <div class="label">in-class teaching & curriculum design</div>
+          </div>
+          <div class="credential">
+            <div class="number">20+ years</div>
+            <div class="label">software engineering</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Format -->
+  <section>
+    <h2>How it works</h2>
+    <p class="section-lead">
+      A small, focused cohort with room for real questions and hands-on work.
+    </p>
+
+    <div class="format-grid">
+      <div class="format-item">
+        <div class="value">8 weeks</div>
+        <div class="desc">One session per week, summer 2026, exact dates TBD</div>
+      </div>
+      <div class="format-item">
+        <div class="value">2 hrs / wk</div>
+        <div class="desc">Lectures, demos, and hands-on work—plus 1-2 hrs of takehome / wk</div>
+      </div>
+      <div class="format-item">
+        <div class="value">8&ndash;12 people</div>
+        <div class="desc">Small, focused, plenty of space for answering your specific questions</div>
+      </div>
+      <div class="format-item">
+        <div class="value">$900</div>
+        <div class="desc">Introductory price with a full, money-back guarantee</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Guarantee -->
+  <section>
+    <div class="guarantee">
+      <h2>Money-back guarantee</h2>
+      <p>
+        This is the first cohort, and while I’m confident it will be great,
+        there may also be some rough edges. If the course falls below your
+        expectations for any reason, I’ll refund up to 100% of your tuition.
+      </p>
+    </div>
+  </section>
+
+  <!-- Final CTA -->
+  <div class="final-cta" id="book">
+    <h2>Interested?</h2>
+    <p>
+      Book a quick intro call. We’ll talk about your experience level,
+      what you want to get out of the course, and whether it's a good fit.
+    </p>
+    <a class="btn-primary" href="https://calendar.app.google/2dhPnZHUngrQUUoF7" target="_blank">Book an intro call</a>
+  </div>
+
+  <footer>
+    <a href="../">avand.fm</a> &middot; Headroom &middot; 2026
+  </footer>
+</body>
+
+</html>
