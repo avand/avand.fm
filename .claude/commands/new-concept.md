@@ -22,7 +22,6 @@ Create a new entry in the Headroom DJ glossary at `headroom/concepts/` and regis
    - A page-specific `<style>` block (copy entry-header/entry-content/callout/related/final-cta styles from the gain-staging template — these aren't in the shared layout since they're specific to concept entry pages)
    - Breadcrumb: Headroom (`/headroom/`) → Concepts (`/headroom/concepts/`) → [Term] — use absolute paths, not relative
    - `<h1>` = the term name
-   - `part-of-speech` div (noun, verb, etc.)
    - `lead` paragraph = a one-sentence plain-English definition
    - Body content adapted from the source URL (if provided) per any adaptation instructions, or written from scratch (if no URL was provided). Either way, write in the Headroom voice: direct, technical but accessible, DJ-practitioner perspective. Cut studio-recording or live-sound-engineer content that isn't relevant to DJs. Use `<h2>` subheadings, `<p>`, `<ul>`, and `.callout` divs as appropriate.
    - Related terms links — only link to concept pages that actually exist yet (check `headroom/concepts/*/index.html`). Do not invent slugs for terms that haven't been written. If no existing entries are genuinely related, leave the `.related` section out of the new page entirely (it can be added later by step 6).
