@@ -1,10 +1,10 @@
 ---
 layout: headroom
-title: "Perceptual Coding — Headroom DJ Glossary"
-description: "Perceptual coding is a lossy compression method that discards audio details the human ear is unlikely to notice, used by formats like MP3 and AAC."
+title: "Pulse-Code Modulation (PCM) — Headroom DJ Glossary"
+description: "PCM is the standard method for representing analog audio as digital data — sampling amplitude at regular intervals with no compression. It's the format behind WAV, AIFF, and CD audio."
 section: Concepts
 section_url: /headroom/concepts/
-subsection: Perceptual Coding
+subsection: Pulse-Code Modulation (PCM)
 ---
 
 <style>
@@ -237,88 +237,74 @@ subsection: Perceptual Coding
     <span>/</span>
     <a href="/headroom/concepts/">Concepts</a>
     <span>/</span>
-    Perceptual Coding
+    Pulse-Code Modulation (PCM)
   </div>
-  <h1>Perceptual Coding</h1>
+  <h1>Pulse-Code Modulation (PCM)</h1>
   <div class="part-of-speech">noun</div>
   <p class="lead">
-    A lossy compression method that throws away audio details the human ear
-    is unlikely to notice, used by formats like MP3 and AAC to shrink file
-    size.
+    The standard method for turning analog sound into digital data —
+    measuring amplitude at regular intervals and storing every measurement,
+    with nothing thrown away.
   </p>
 </div>
 
 <div class="entry-content">
 
   <p>
-    Every lossy audio format is making a bet: which parts of a sound can it
-    delete without you noticing? Perceptual coding is how that bet gets made.
-    Instead of compressing audio data blindly, it leans on psychoacoustics —
-    research into what the human ear actually perceives — to find sound that's
-    masked by louder sound nearby, or that sits outside the range most people
-    can hear, and throws it out first. What's left is a smaller file that
-    still sounds close to the original, because the missing pieces were
-    chosen specifically to be the pieces you'd miss least.
+    PCM is how a microphone's continuous analog wave becomes a string of
+    numbers a computer can store and play back. Thousands of times per
+    second, it measures the wave's amplitude and records that value as a
+    number. Do that enough times per second, with enough precision per
+    measurement, and the string of numbers can be turned back into a wave
+    that's indistinguishable from the original to the human ear. No part of
+    the signal is judged, masked, or discarded — every sample gets kept.
   </p>
 
   <h2>Why it matters for DJs</h2>
 
   <p>
-    Every file format you play has already made these decisions for you, and
-    they're not all the same. A heavily compressed MP3 has thrown away far
-    more than a high-bitrate AAC or a lossless FLAC — and what gets thrown
-    away tends to be the same kind of material a DJ leans on hardest: transient
-    detail in hi-hats and percussion, low-level reverb tails, the texture
-    that makes a track feel "open" on a big system. On a phone speaker you'd
-    never hear the difference. On a club PA pushing real headroom, a
-    low-bitrate file can sound thin, harsh in the highs, or oddly flat compared
-    to the same track at a higher bitrate.
+    PCM is the baseline format underneath WAV, AIFF, and CD audio — the
+    files you'd reach for when you want the most faithful possible copy of a
+    track. It's the opposite approach from
+    <a href="/headroom/concepts/perceptual-coding/">perceptual coding</a>,
+    which deliberately throws away data it predicts you won't hear. A PCM
+    file keeps everything, which is exactly why it's bigger: there's no
+    psychoacoustic shortcut being taken, just a direct, uncompressed
+    representation of the wave.
   </p>
 
   <div class="callout">
     <p>
-      Rule of thumb: play the highest-quality file you can reasonably manage
-      — lossless (FLAC, WAV, AIFF) or high-bitrate AAC/MP3 (256–320 kbps).
-      The compression artifacts that are inaudible on earbuds get amplified,
-      literally, by a system with real headroom.
+      Two numbers define a PCM file's quality: sample rate (how often it
+      measures — 44.1 kHz for CD-quality audio) and bit depth (how precisely
+      each measurement is stored — 16-bit for CD, often 24-bit for
+      production masters). Higher numbers mean a more accurate digital
+      picture of the original wave, and a bigger file.
     </p>
   </div>
 
-  <h2>How it actually works</h2>
+  <h2>Where it shows up in a DJ's library</h2>
 
   <ul>
-    <li><strong>Masking</strong> — a loud sound at one frequency makes nearby quieter frequencies inaudible, even though they're technically present in the signal. Perceptual coders detect this and remove the masked content.</li>
-    <li><strong>Frequency range</strong> — content above and below the range most people can hear gets reduced or cut, since it costs data but adds little perceived value.</li>
-    <li><strong>Bitrate as a dial</strong> — a higher bitrate gives the encoder more "budget" to keep, so it discards less; a lower bitrate forces it to be more aggressive about what gets thrown away.</li>
+    <li><strong>WAV / AIFF</strong> — the two most common PCM container formats; functionally identical audio data, different file wrappers (WAV is Windows-native, AIFF is Apple-native, both play everywhere now).</li>
+    <li><strong>CD audio</strong> — Red Book CDs store PCM at 44.1 kHz / 16-bit, which became the de facto standard for "CD quality."</li>
+    <li><strong>FLAC / ALAC</strong> — not PCM themselves, but lossless wrappers around PCM data — they compress the file size without throwing away any of the original samples, then decompress back to identical PCM on playback.</li>
   </ul>
-
-  <h2>Common formats that use it</h2>
-
-  <ul>
-    <li><strong>MP3</strong> — one of the earliest and still most common perceptual codecs; quality scales heavily with bitrate.</li>
-    <li><strong>AAC</strong> — used by Apple Music and most streaming services; generally more efficient than MP3 at the same bitrate.</li>
-    <li><strong>Opus</strong> — a newer codec built for both music and speech, used in some streaming and call applications.</li>
-  </ul>
-
-  <p>
-    Lossless formats like FLAC and WAV skip this process entirely — they
-    compress (or don't) without discarding anything, which is why they're
-    larger but preserve every bit of the original recording.
-  </p>
 
   <h2>In the context of Headroom</h2>
 
   <p>
-    File format choice comes up in Week 1 (Track Prep) — knowing why a
-    lossless rip sounds different from a low-bitrate download on a club
-    system changes how you build and curate your library before you ever
-    touch the booth.
+    File format choice comes up in Week 1 (Track Prep) alongside
+    perceptual coding — understanding that PCM is the uncompressed source
+    everything else gets derived from helps explain why a lossless rip and a
+    low-bitrate MP3 of the same track can sound noticeably different on a
+    real system.
   </p>
 
   <div class="related">
     <h3>Related terms</h3>
     <div class="related-list">
-      <a href="/headroom/concepts/pulse-code-modulation/">Pulse-Code Modulation (PCM)</a>
+      <a href="/headroom/concepts/perceptual-coding/">Perceptual Coding</a>
     </div>
   </div>
 
