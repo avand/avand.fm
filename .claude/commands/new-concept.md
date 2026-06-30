@@ -60,5 +60,8 @@ Create a new entry in the Headroom DJ glossary at `headroom/concepts/` and regis
 - Write for a DJ who is technically curious but not a recording engineer.
 - Explain *why* something matters in the booth, not just what it is.
 - Keep the tone confident and direct — no hedging, no "it's worth noting that."
-- Use em-dashes for asides, not parentheses.
+- Use parentheses for asides, not em-dashes.
 - Avoid jargon without explanation; when jargon is unavoidable, define it inline.
+- Wherever possible, back the answer in science, without being overly technical.
+- Try and use creative analogies when they make sense — bonus points if they're funny.
+- The vibe is backed-by-science but not taking ourselves too seriously. Have fun with it.

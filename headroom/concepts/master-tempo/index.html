@@ -1,0 +1,310 @@
+---
+layout: headroom
+title: "Master Tempo — Headroom DJ Glossary"
+description: "Master tempo is a feature that lets you change a track's playback speed without changing its pitch, decoupling tempo from key."
+section: Concepts
+section_url: /headroom/concepts/
+subsection: Master Tempo
+---
+
+<style>
+  .entry-header {
+    padding: 8em 2em 3em;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  .breadcrumb {
+    font-size: 0.8em;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 1.2em;
+  }
+
+  .breadcrumb a {
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .breadcrumb a:hover {
+    color: var(--text);
+  }
+
+  .breadcrumb span {
+    margin: 0 0.5em;
+    opacity: 0.4;
+  }
+
+  .entry-header h1 {
+    font-size: clamp(2em, 5vw, 3.2em);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 0.4em;
+  }
+
+  .entry-header .part-of-speech {
+    font-size: 0.9em;
+    font-style: italic;
+    color: var(--text-muted);
+    margin-bottom: 1em;
+  }
+
+  .entry-header .lead {
+    font-size: 1.15em;
+    color: var(--text-muted);
+    max-width: 600px;
+  }
+
+  .entry-content {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 2em 5em;
+  }
+
+  .entry-content h2 {
+    font-size: 1.4em;
+    font-weight: 700;
+    margin: 2.5em 0 0.6em;
+  }
+
+  .entry-content p {
+    color: var(--text-muted);
+    margin-bottom: 1em;
+    font-size: 1.02em;
+  }
+
+  .entry-content p a {
+    color: var(--text);
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 0.2em;
+  }
+
+  .entry-content ul,
+  .entry-content ol {
+    list-style: none;
+    margin-bottom: 1em;
+  }
+
+  .entry-content ul li,
+  .entry-content ol li {
+    position: relative;
+    padding-left: 1.4em;
+    color: var(--text-muted);
+    font-size: 1em;
+    margin-bottom: 0.35em;
+  }
+
+  .entry-content ul li::before {
+    content: "\25B8";
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+  }
+
+  .entry-content ol {
+    counter-reset: ol-counter;
+  }
+
+  .entry-content ol li {
+    counter-increment: ol-counter;
+  }
+
+  .entry-content ol li::before {
+    content: counter(ol-counter) ".";
+    position: absolute;
+    left: 0;
+    color: var(--warm);
+    font-weight: 700;
+    font-size: 0.85em;
+  }
+
+  .callout {
+    border-left: 3px solid var(--accent);
+    padding: 1em 1.4em;
+    background: var(--surface);
+    border-radius: 0 0.4em 0.4em 0;
+    margin: 1.5em 0;
+  }
+
+  .callout p {
+    margin: 0;
+    font-size: 0.97em;
+  }
+
+  .related {
+    border-top: 1px solid var(--border);
+    padding-top: 2em;
+    margin-top: 3em;
+  }
+
+  .related h3 {
+    font-size: 0.8em;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 1em;
+  }
+
+  .related-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6em;
+  }
+
+  .related-list a {
+    color: var(--text);
+    text-decoration: none;
+    font-size: 0.9em;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    border-radius: 2em;
+    padding: 0.35em 1em;
+    background: var(--surface);
+    transition: border-color 200ms;
+  }
+
+  .related-list a:hover {
+    border-color: var(--accent);
+  }
+
+  .final-cta {
+    text-align: center;
+    padding: 6em 2em;
+    position: relative;
+    background:
+      linear-gradient(to bottom, var(--bg) 0%, rgba(10, 10, 15, 0.5) 30%, rgba(10, 10, 15, 0.5) 70%, var(--bg) 100%),
+      url('/headroom/djvibe-studiox-dt_UuLU_foM-unsplash.jpg') center bottom / cover no-repeat;
+  }
+
+  .final-cta::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    box-shadow: inset 0 0 8em 2em var(--bg);
+    pointer-events: none;
+  }
+
+  .final-cta h2 {
+    font-size: 2em;
+    margin-bottom: 0.4em;
+    position: relative;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  }
+
+  .final-cta p {
+    color: var(--text-muted);
+    font-size: 1.1em;
+    position: relative;
+    max-width: 500px;
+    margin: 0 auto 2em;
+  }
+
+  .btn-primary {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1em;
+    padding: 0.75em 2.5em;
+    border-radius: 2em;
+    transition: box-shadow 200ms, transform 200ms;
+    box-shadow: 0 0 1.5em var(--accent-glow);
+    position: relative;
+  }
+
+  .btn-primary:hover {
+    box-shadow: 0 0 2.5em var(--accent-glow);
+    transform: translateY(-1px);
+  }
+
+  @media (max-width: 640px) {
+    .entry-header,
+    .entry-content {
+      padding-left: 1.2em;
+      padding-right: 1.2em;
+    }
+  }
+</style>
+
+<div class="entry-header">
+  <div class="breadcrumb">
+    <a href="/headroom/">Headroom</a>
+    <span>/</span>
+    <a href="/headroom/concepts/">Concepts</a>
+    <span>/</span>
+    Master Tempo
+  </div>
+  <h1>Master Tempo</h1>
+  <div class="part-of-speech">noun</div>
+  <p class="lead">
+    A feature that lets you speed up or slow down a track without raising
+    or lowering its pitch — tempo and key decoupled from each other.
+  </p>
+</div>
+
+<div class="entry-content">
+
+  <p>
+    On a turntable with no pitch correction, speeding up a record always
+    raises its pitch — push the tempo fader up and the track gets faster
+    and higher, like a tape sped up. Master tempo (sometimes called "key
+    lock" or "pitch lock") breaks that link. It lets you change playback
+    speed on its own, while a separate process re-synthesizes the audio to
+    keep the original pitch intact.
+  </p>
+
+  <h2>Why it matters for DJs</h2>
+
+  <p>
+    Master tempo is what makes large tempo jumps usable in a set. Beatmatching
+    a 122 BPM house track into a 140 BPM track without it means the slower
+    track gets pitched up so far it sounds like a different key entirely —
+    vocals turn chipmunked, basslines lose their weight. With master tempo
+    engaged, you can push that same tempo range and the track stays in its
+    original key, so the harmonic relationship between songs stays
+    predictable instead of accidental.
+  </p>
+
+  <div class="callout">
+    <p>
+      Master tempo isn't free — it works by digitally stretching or
+      compressing the audio in time, which is more processing than a simple
+      speed change. Pushed to extremes (very large tempo shifts), you'll
+      start to hear artifacts: a slightly grainy or "smeared" quality,
+      especially on vocals and cymbals. Small-to-moderate tempo changes are
+      usually transparent; big ones aren't free of cost.
+    </p>
+  </div>
+
+  <h2>Where you'll find the control</h2>
+
+  <ul>
+    <li><strong>CDJs and standalone players</strong> — almost always a dedicated "Master Tempo" or "Key Lock" button near the pitch fader.</li>
+    <li><strong>DJ software</strong> (Serato, rekordbox, Engine DJ) — typically a toggle per deck, sometimes with a separate "keylock quality" setting that trades CPU load for audio fidelity.</li>
+    <li><strong>Turntables</strong> — generally don't have it natively; true vinyl pitch changes always shift key, which is part of why all-vinyl tempo-matching across wide BPM ranges is harder.</li>
+  </ul>
+
+  <h2>In the context of Headroom</h2>
+
+  <p>
+    Master tempo comes up in Week 4 (Beatmatching and Mixing) — once you're
+    blending across genres or BPM ranges, knowing when to lean on it (and
+    when its artifacts start working against you) is part of building a set
+    that holds together instead of just lining up on the grid.
+  </p>
+
+</div>
+
+<div class="final-cta">
+  <h2>Want to go deeper?</h2>
+  <p>
+    Headroom is an 8-week course covering the technical foundations every
+    serious DJ should know — signal flow, equipment, mixing, and more.
+  </p>
+  <a class="btn-primary" href="/headroom/#book">Learn about the course</a>
+</div>
