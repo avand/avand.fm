@@ -1,10 +1,10 @@
 ---
 layout: headroom
-title: "Unity Gain — Headroom DJ Glossary"
-description: "Unity gain is the setting at which a stage in the audio chain passes a signal through without boosting or cutting it — output level equals input level."
+title: "TRS — Headroom DJ Glossary"
+description: "TRS is a quarter-inch (or 3.5mm) connector with three contacts on the tip, used for balanced mono connections or unbalanced stereo signals like headphones."
 section: Concepts
 section_url: /headroom/concepts/
-subsection: Unity Gain
+subsection: TRS
 ---
 
 <style>
@@ -230,80 +230,75 @@ subsection: Unity Gain
     <span>/</span>
     <a href="/headroom/concepts/">Concepts</a>
     <span>/</span>
-    Unity Gain
+    TRS
   </div>
-  <h1>Unity Gain</h1>
+  <h1>TRS</h1>
   <p class="lead">
-    The point in a signal chain where a stage's output level equals its
-    input level — no boost, no cut, signal passes through unchanged.
+    Short for Tip-Ring-Sleeve: a quarter-inch (or 3.5mm) plug with three
+    metal contacts instead of two, doing double duty as either a balanced
+    mono cable or an unbalanced stereo one.
   </p>
 </div>
 
 <div class="entry-content">
 
   <p>
-    Every gain stage in your rig — a channel trim, an EQ, a fader, an amp —
-    has a setting where it neither adds level nor takes it away. That setting
-    is unity gain. A signal arriving at 0 dB leaves at 0 dB. It's the
-    "neutral" position, the baseline every other adjustment gets measured
-    against.
+    Look closely at a quarter-inch plug and you'll see thin black bands
+    separating the metal into segments. Two bands means three contacts:
+    tip, ring, and sleeve (hence TRS). What those three contacts actually
+    carry depends entirely on what's plugged into the other end, which is
+    the slightly confusing part.
   </p>
 
-  <h2>Why it matters for DJs</h2>
+  <h2>Two completely different jobs, same connector</h2>
 
-  <p>
-    Unity gain gives you a known starting point. If every stage in your chain
-    defaults to unity, you know exactly where the level changes are happening
-    when something sounds off — because you made them on purpose, not because
-    a forgotten knob was left cranked from the last set. Without that
-    reference point, troubleshooting a noisy or distorted signal turns into
-    guesswork: is it the trim, the EQ, the fader, the booth output? Starting
-    everything at unity means you only have to look at what you actually
-    touched.
-  </p>
+  <ul>
+    <li><strong>Balanced mono</strong>: tip and ring carry the same signal (one inverted), sleeve is ground, exactly like an XLR's three pins squeezed into a smaller plug. This is what a <a href="/headroom/concepts/balanced-vs-unbalanced/">balanced</a> TRS connection on a mixer insert or line input is doing.</li>
+    <li><strong>Unbalanced stereo</strong>: tip carries the left channel, ring carries the right channel, sleeve is the shared ground. This is exactly what your headphone jack is doing, and it has nothing to do with noise cancellation at all.</li>
+  </ul>
 
   <div class="callout">
     <p>
-      A practical test: if a fader, knob, or EQ band is at unity, removing
-      that stage from the chain entirely should not change the volume.
-      That's the signal passing through unchanged — neither helped nor hurt.
+      A balanced TRS connection and a stereo headphone connection use the
+      exact same physical plug and carry completely different kinds of
+      signal. The cable doesn't know or care which job it's doing; that's
+      entirely decided by what's wired up on each end.
     </p>
   </div>
+
+  <h2>How to tell it apart from TS</h2>
+
+  <p>
+    A standard quarter-inch instrument cable (TS, Tip-Sleeve) has only one
+    black band, meaning two contacts instead of three. TS is unbalanced
+    mono, full stop, no second job. If you're holding a quarter-inch plug
+    and trying to figure out what it does, count the bands: one band is
+    TS (simple, unbalanced), two bands is TRS (could be balanced mono or
+    stereo, context-dependent).
+  </p>
 
   <h2>Where you'll find it in a DJ rig</h2>
 
   <ul>
-    <li><strong>EQ bands</strong> — most mixer EQs are flat (unity) at the 12 o'clock position. Turning a band up or down boosts or cuts that frequency relative to unity.</li>
-    <li><strong>Channel fader</strong> — often marked with a line or notch partway up the throw. Below it, you're cutting; at it, the channel passes its gained signal through unchanged.</li>
-    <li><strong>Master output / booth gain</strong> — typically left at unity so the signal hitting the amp matches what the mixer's master meter shows, with no surprise boost or cut between mixer and amp.</li>
+    <li><strong>Headphones</strong> (stereo, unbalanced, the most common TRS use case you'll touch every set).</li>
+    <li><strong>Balanced line inputs and inserts</strong> on some mixers and outboard gear.</li>
+    <li><strong>Booth monitor outputs</strong> on certain mixers, depending on the manufacturer's design.</li>
   </ul>
-
-  <h2>Unity gain vs. gain staging</h2>
-
-  <p>
-    They work together. <a href="/headroom/concepts/gain-staging/">Gain staging</a>
-    is the overall discipline of managing levels through the whole chain;
-    unity gain is the specific reference point you return each stage to once
-    it's not actively doing work. Set your trim so the track hits the mixer
-    at a healthy level, leave the EQ flat unless you're shaping the sound on
-    purpose, and keep the master near unity — that's gain staging built
-    around a unity baseline.
-  </p>
 
   <h2>In the context of Headroom</h2>
 
   <p>
-    Unity gain comes up alongside <a href="/headroom/#curriculum">Week 2 (Signal Flow)</a>
-    and Week 6 (Mixing) — once you can point to where a stage sits relative
-    to unity, EQ and gain decisions stop being guesswork and start being
-    intentional.
+    TRS comes up in Week 3 (Signal Flow and Setup) alongside
+    <a href="/headroom/concepts/balanced-vs-unbalanced/">balanced vs.
+    unbalanced</a> wiring, mostly to clear up the genuinely confusing part:
+    the same plug shape doing two unrelated jobs depending on context.
   </p>
 
   <div class="related">
     <h3>Related terms</h3>
     <div class="related-list">
-      <a href="/headroom/concepts/gain-staging/">Gain Staging</a>
-      <a href="/headroom/concepts/noise-floor/">Noise Floor</a>
+      <a href="/headroom/concepts/balanced-vs-unbalanced/">Balanced vs. Unbalanced</a>
+      <a href="/headroom/concepts/xlr/">XLR</a>
     </div>
   </div>
 

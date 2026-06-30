@@ -1,10 +1,10 @@
 ---
 layout: headroom
-title: "Unity Gain — Headroom DJ Glossary"
-description: "Unity gain is the setting at which a stage in the audio chain passes a signal through without boosting or cutting it — output level equals input level."
+title: "Common-Mode Rejection — Headroom DJ Glossary"
+description: "Common-mode rejection is the trick balanced cables use to cancel out noise: any interference picked up gets added equally to both signal copies, then subtracted away on arrival."
 section: Concepts
 section_url: /headroom/concepts/
-subsection: Unity Gain
+subsection: Common-Mode Rejection
 ---
 
 <style>
@@ -230,80 +230,83 @@ subsection: Unity Gain
     <span>/</span>
     <a href="/headroom/concepts/">Concepts</a>
     <span>/</span>
-    Unity Gain
+    Common-Mode Rejection
   </div>
-  <h1>Unity Gain</h1>
+  <h1>Common-Mode Rejection</h1>
   <p class="lead">
-    The point in a signal chain where a stage's output level equals its
-    input level — no boost, no cut, signal passes through unchanged.
+    The science behind why balanced cables don't hum: noise picked up
+    along the way gets cancelled out automatically, instead of riding
+    along with your signal to the speakers.
   </p>
 </div>
 
 <div class="entry-content">
 
   <p>
-    Every gain stage in your rig — a channel trim, an EQ, a fader, an amp —
-    has a setting where it neither adds level nor takes it away. That setting
-    is unity gain. A signal arriving at 0 dB leaves at 0 dB. It's the
-    "neutral" position, the baseline every other adjustment gets measured
-    against.
+    Picture two identical twins walking down a noisy street side by side.
+    Every car horn, every shout, every burst of static hits them both
+    equally. Now imagine you only care about the difference between what
+    the twins say, not what they each individually heard. Subtract one
+    twin's experience from the other's and all that shared street noise
+    cancels out, leaving only the part where they actually disagreed. That's
+    common-mode rejection in a sentence: noise that arrives equally on both
+    signal paths gets thrown away, and only the difference (the part that
+    actually matters) survives.
   </p>
 
-  <h2>Why it matters for DJs</h2>
+  <h2>How it actually works</h2>
 
   <p>
-    Unity gain gives you a known starting point. If every stage in your chain
-    defaults to unity, you know exactly where the level changes are happening
-    when something sounds off — because you made them on purpose, not because
-    a forgotten knob was left cranked from the last set. Without that
-    reference point, troubleshooting a noisy or distorted signal turns into
-    guesswork: is it the trim, the EQ, the fader, the booth output? Starting
-    everything at unity means you only have to look at what you actually
-    touched.
+    A <a href="/headroom/concepts/balanced-vs-unbalanced/">balanced cable</a>
+    sends your audio signal twice through two separate wires (called hot and
+    cold). The cold copy is deliberately flipped in polarity before it
+    travels. Any interference the cable picks up along its run (electrical
+    hum, radio noise, whatever) gets induced into both wires equally and in
+    the same direction, since they're sitting right next to each other. At
+    the receiving end, a differencing circuit flips the cold signal back and
+    subtracts it from the hot signal. The original audio, which was
+    intentionally inverted, comes back out doubled and intact. The noise,
+    which was never inverted in the first place, cancels itself out in the
+    subtraction.
   </p>
 
   <div class="callout">
     <p>
-      A practical test: if a fader, knob, or EQ band is at unity, removing
-      that stage from the chain entirely should not change the volume.
-      That's the signal passing through unchanged — neither helped nor hurt.
+      The technical term for "noise that hits both wires equally" is
+      common-mode noise (mode here just means "the way the signal is riding
+      on the wires," and common means it's identical on both). Common-mode
+      rejection is just the act of getting rid of it.
     </p>
   </div>
 
-  <h2>Where you'll find it in a DJ rig</h2>
-
-  <ul>
-    <li><strong>EQ bands</strong> — most mixer EQs are flat (unity) at the 12 o'clock position. Turning a band up or down boosts or cuts that frequency relative to unity.</li>
-    <li><strong>Channel fader</strong> — often marked with a line or notch partway up the throw. Below it, you're cutting; at it, the channel passes its gained signal through unchanged.</li>
-    <li><strong>Master output / booth gain</strong> — typically left at unity so the signal hitting the amp matches what the mixer's master meter shows, with no surprise boost or cut between mixer and amp.</li>
-  </ul>
-
-  <h2>Unity gain vs. gain staging</h2>
+  <h2>Why it matters for DJs</h2>
 
   <p>
-    They work together. <a href="/headroom/concepts/gain-staging/">Gain staging</a>
-    is the overall discipline of managing levels through the whole chain;
-    unity gain is the specific reference point you return each stage to once
-    it's not actively doing work. Set your trim so the track hits the mixer
-    at a healthy level, leave the EQ flat unless you're shaping the sound on
-    purpose, and keep the master near unity — that's gain staging built
-    around a unity baseline.
+    This is the actual physics behind the advice "use balanced cables for
+    long runs." It's not superstition or gear-snobbery: a balanced
+    connection has a built-in noise-cancellation system, and an unbalanced
+    one doesn't. The longer the cable, or the closer it runs past lighting
+    rigs and power cables, the more common-mode noise it picks up, and the
+    more that rejection capability actually earns its keep.
   </p>
 
   <h2>In the context of Headroom</h2>
 
   <p>
-    Unity gain comes up alongside <a href="/headroom/#curriculum">Week 2 (Signal Flow)</a>
-    and Week 6 (Mixing) — once you can point to where a stage sits relative
-    to unity, EQ and gain decisions stop being guesswork and start being
-    intentional.
+    Common-mode rejection comes up in Week 3 (Signal Flow and Setup) right
+    alongside <a href="/headroom/concepts/balanced-vs-unbalanced/">balanced
+    vs. unbalanced</a> wiring and
+    <a href="/headroom/concepts/ground-loop/">ground loops</a>. Once you
+    understand the mechanism, "balanced cables are quieter" stops being a
+    rule you follow and becomes a rule you understand.
   </p>
 
   <div class="related">
     <h3>Related terms</h3>
     <div class="related-list">
-      <a href="/headroom/concepts/gain-staging/">Gain Staging</a>
-      <a href="/headroom/concepts/noise-floor/">Noise Floor</a>
+      <a href="/headroom/concepts/balanced-vs-unbalanced/">Balanced vs. Unbalanced</a>
+      <a href="/headroom/concepts/ground-loop/">Ground Loop</a>
+      <a href="/headroom/concepts/xlr/">XLR</a>
     </div>
   </div>
 

@@ -1,10 +1,10 @@
 ---
 layout: headroom
-title: "Unity Gain — Headroom DJ Glossary"
-description: "Unity gain is the setting at which a stage in the audio chain passes a signal through without boosting or cutting it — output level equals input level."
+title: "Noise Floor — Headroom DJ Glossary"
+description: "The noise floor is the baseline level of background hiss and hum present in any audio system, even with no signal playing."
 section: Concepts
 section_url: /headroom/concepts/
-subsection: Unity Gain
+subsection: Noise Floor
 ---
 
 <style>
@@ -230,80 +230,74 @@ subsection: Unity Gain
     <span>/</span>
     <a href="/headroom/concepts/">Concepts</a>
     <span>/</span>
-    Unity Gain
+    Noise Floor
   </div>
-  <h1>Unity Gain</h1>
+  <h1>Noise Floor</h1>
   <p class="lead">
-    The point in a signal chain where a stage's output level equals its
-    input level — no boost, no cut, signal passes through unchanged.
+    The quiet hiss and hum that's always there in any audio system, even
+    when nothing's playing. Every signal has to rise above it to actually
+    be heard.
   </p>
 </div>
 
 <div class="entry-content">
 
   <p>
-    Every gain stage in your rig — a channel trim, an EQ, a fader, an amp —
-    has a setting where it neither adds level nor takes it away. That setting
-    is unity gain. A signal arriving at 0 dB leaves at 0 dB. It's the
-    "neutral" position, the baseline every other adjustment gets measured
-    against.
+    Nothing electronic is perfectly silent. Resistors generate a little
+    thermal noise just from being warm. Power supplies leak a little hum.
+    Cables pick up a little stray interference. Add it all up and every
+    audio system has a baseline level of hiss sitting underneath everything
+    else, present whether you're playing a track or not. That baseline is
+    the noise floor, and it's not a flaw you can engineer away completely
+    (it's closer to a law of physics you manage around).
   </p>
 
   <h2>Why it matters for DJs</h2>
 
   <p>
-    Unity gain gives you a known starting point. If every stage in your chain
-    defaults to unity, you know exactly where the level changes are happening
-    when something sounds off — because you made them on purpose, not because
-    a forgotten knob was left cranked from the last set. Without that
-    reference point, troubleshooting a noisy or distorted signal turns into
-    guesswork: is it the trim, the EQ, the fader, the booth output? Starting
-    everything at unity means you only have to look at what you actually
-    touched.
+    The noise floor sets the bottom edge of how quiet your system can get
+    before everything is just hiss. <a href="/headroom/concepts/gain-staging/">
+    Gain staging</a> exists largely to keep your signal as far above that
+    floor as possible at every stage, since any time you have to boost a
+    weak signal later in the chain, you're boosting the noise floor right
+    along with it. A track that was recorded quiet and then cranked at the
+    mixer doesn't just get louder, it gets louder and hissier, because
+    you've dragged the noise floor up with it.
   </p>
 
   <div class="callout">
     <p>
-      A practical test: if a fader, knob, or EQ band is at unity, removing
-      that stage from the chain entirely should not change the volume.
-      That's the signal passing through unchanged — neither helped nor hurt.
+      The distance between your loudest signal and the noise floor is
+      called dynamic range (or, from the other direction, signal-to-noise
+      ratio). Bigger gap, cleaner-sounding system. This is the actual
+      number gear specs are bragging about when they list a high
+      signal-to-noise ratio.
     </p>
   </div>
 
-  <h2>Where you'll find it in a DJ rig</h2>
+  <h2>Where it shows up</h2>
 
   <ul>
-    <li><strong>EQ bands</strong> — most mixer EQs are flat (unity) at the 12 o'clock position. Turning a band up or down boosts or cuts that frequency relative to unity.</li>
-    <li><strong>Channel fader</strong> — often marked with a line or notch partway up the throw. Below it, you're cutting; at it, the channel passes its gained signal through unchanged.</li>
-    <li><strong>Master output / booth gain</strong> — typically left at unity so the signal hitting the amp matches what the mixer's master meter shows, with no surprise boost or cut between mixer and amp.</li>
+    <li><strong>Cheap or long unbalanced cables</strong> raise the effective noise floor by adding interference on top of the gear's own baseline hiss.</li>
+    <li><strong>Underpowered or noisy power supplies</strong> can audibly raise a system's noise floor, especially in budget gear.</li>
+    <li><strong>Over-gained channels</strong> push a quiet track's relatively higher noise floor up to an audible level alongside the music.</li>
   </ul>
-
-  <h2>Unity gain vs. gain staging</h2>
-
-  <p>
-    They work together. <a href="/headroom/concepts/gain-staging/">Gain staging</a>
-    is the overall discipline of managing levels through the whole chain;
-    unity gain is the specific reference point you return each stage to once
-    it's not actively doing work. Set your trim so the track hits the mixer
-    at a healthy level, leave the EQ flat unless you're shaping the sound on
-    purpose, and keep the master near unity — that's gain staging built
-    around a unity baseline.
-  </p>
 
   <h2>In the context of Headroom</h2>
 
   <p>
-    Unity gain comes up alongside <a href="/headroom/#curriculum">Week 2 (Signal Flow)</a>
-    and Week 6 (Mixing) — once you can point to where a stage sits relative
-    to unity, EQ and gain decisions stop being guesswork and start being
-    intentional.
+    Noise floor comes up in Week 2 (Signal Flow) right alongside
+    <a href="/headroom/concepts/gain-staging/">gain staging</a>, since
+    understanding where the floor sits is half the reason gain staging
+    matters in the first place: you're not just avoiding clipping at the
+    top, you're staying clear of the noise at the bottom too.
   </p>
 
   <div class="related">
     <h3>Related terms</h3>
     <div class="related-list">
       <a href="/headroom/concepts/gain-staging/">Gain Staging</a>
-      <a href="/headroom/concepts/noise-floor/">Noise Floor</a>
+      <a href="/headroom/concepts/unity-gain/">Unity Gain</a>
     </div>
   </div>
 

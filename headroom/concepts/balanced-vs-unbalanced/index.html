@@ -1,10 +1,10 @@
 ---
 layout: headroom
-title: "Unity Gain — Headroom DJ Glossary"
-description: "Unity gain is the setting at which a stage in the audio chain passes a signal through without boosting or cutting it — output level equals input level."
+title: "Balanced vs. Unbalanced — Headroom DJ Glossary"
+description: "Balanced cables carry audio as a pair of inverted signals that cancel out noise picked up along the way; unbalanced cables carry one signal with no such protection."
 section: Concepts
 section_url: /headroom/concepts/
-subsection: Unity Gain
+subsection: Balanced vs. Unbalanced
 ---
 
 <style>
@@ -230,80 +230,82 @@ subsection: Unity Gain
     <span>/</span>
     <a href="/headroom/concepts/">Concepts</a>
     <span>/</span>
-    Unity Gain
+    Balanced vs. Unbalanced
   </div>
-  <h1>Unity Gain</h1>
+  <h1>Balanced vs. Unbalanced</h1>
   <p class="lead">
-    The point in a signal chain where a stage's output level equals its
-    input level — no boost, no cut, signal passes through unchanged.
+    Two ways of wiring an audio cable: balanced sends the signal twice
+    (once flipped upside down) so noise can be cancelled out later,
+    unbalanced sends it once and hopes for the best.
   </p>
 </div>
 
 <div class="entry-content">
 
   <p>
-    Every gain stage in your rig — a channel trim, an EQ, a fader, an amp —
-    has a setting where it neither adds level nor takes it away. That setting
-    is unity gain. A signal arriving at 0 dB leaves at 0 dB. It's the
-    "neutral" position, the baseline every other adjustment gets measured
-    against.
+    An unbalanced cable (think: a standard <a href="/headroom/concepts/rca/">RCA</a> cable) carries one wire for
+    signal and one for ground. Simple, cheap, and fine for short runs. The
+    problem is that any electrical noise the cable picks up along the way
+    (from power cables, lighting rigs, fluorescent ballasts, whatever's
+    nearby) gets added directly to your signal, with nothing to stop it.
   </p>
 
-  <h2>Why it matters for DJs</h2>
-
   <p>
-    Unity gain gives you a known starting point. If every stage in your chain
-    defaults to unity, you know exactly where the level changes are happening
-    when something sounds off — because you made them on purpose, not because
-    a forgotten knob was left cranked from the last set. Without that
-    reference point, troubleshooting a noisy or distorted signal turns into
-    guesswork: is it the trim, the EQ, the fader, the booth output? Starting
-    everything at unity means you only have to look at what you actually
-    touched.
+    A balanced cable (<a href="/headroom/concepts/xlr/">XLR</a>, or <a href="/headroom/concepts/trs/">TRS</a> with three conductors) carries the signal
+    twice: once normal, once flipped in polarity (positive and negative
+    swapped). At the receiving end, a circuit flips that second copy back
+    and adds it to the first. Here's the clever part: any noise picked up
+    along the cable gets added equally to both copies in the same polarity,
+    so when you flip and recombine them, the noise cancels itself out while
+    the original signal doubles in strength. The cable is basically tattling
+    on its own interference, then correcting for it.
   </p>
 
   <div class="callout">
     <p>
-      A practical test: if a fader, knob, or EQ band is at unity, removing
-      that stage from the chain entirely should not change the volume.
-      That's the signal passing through unchanged — neither helped nor hurt.
+      This trick (called <a href="/headroom/concepts/common-mode-rejection/">common-mode rejection</a>) is why balanced cables can
+      run 50, 100, even 300 feet without picking up audible hum, while an
+      unbalanced cable starts getting noisy after a few feet near the wrong
+      gear.
     </p>
   </div>
 
-  <h2>Where you'll find it in a DJ rig</h2>
-
-  <ul>
-    <li><strong>EQ bands</strong> — most mixer EQs are flat (unity) at the 12 o'clock position. Turning a band up or down boosts or cuts that frequency relative to unity.</li>
-    <li><strong>Channel fader</strong> — often marked with a line or notch partway up the throw. Below it, you're cutting; at it, the channel passes its gained signal through unchanged.</li>
-    <li><strong>Master output / booth gain</strong> — typically left at unity so the signal hitting the amp matches what the mixer's master meter shows, with no surprise boost or cut between mixer and amp.</li>
-  </ul>
-
-  <h2>Unity gain vs. gain staging</h2>
+  <h2>Why it matters for DJs</h2>
 
   <p>
-    They work together. <a href="/headroom/concepts/gain-staging/">Gain staging</a>
-    is the overall discipline of managing levels through the whole chain;
-    unity gain is the specific reference point you return each stage to once
-    it's not actively doing work. Set your trim so the track hits the mixer
-    at a healthy level, leave the EQ flat unless you're shaping the sound on
-    purpose, and keep the master near unity — that's gain staging built
-    around a unity baseline.
+    Most consumer gear (turntables, some controllers, home stereo equipment)
+    uses unbalanced RCA connections, while club mixers, booth outputs, and
+    most XLR-equipped speakers run balanced. Knowing which is which matters
+    most when you're running a long cable to the booth amp or across a
+    stage: balanced for any long run, unbalanced only for short, low-risk
+    connections (gear sitting right next to each other).
   </p>
+
+  <h2>How to spot the difference</h2>
+
+  <ul>
+    <li><strong>RCA</strong> (the red and white plugs) is always unbalanced.</li>
+    <li><strong>XLR</strong> (the three-pin locking connector) is always balanced.</li>
+    <li><strong>1/4" TRS</strong> (three contacts on the plug tip) is usually balanced; <strong>1/4" TS</strong> (two contacts) is unbalanced, same physical size but a different job.</li>
+  </ul>
 
   <h2>In the context of Headroom</h2>
 
   <p>
-    Unity gain comes up alongside <a href="/headroom/#curriculum">Week 2 (Signal Flow)</a>
-    and Week 6 (Mixing) — once you can point to where a stage sits relative
-    to unity, EQ and gain decisions stop being guesswork and start being
-    intentional.
+    Balanced versus unbalanced comes up in Week 3 (Signal Flow and Setup)
+    right alongside <a href="/headroom/concepts/ground-loop/">ground loops</a>,
+    since switching to a balanced connection is one of the most reliable
+    fixes for hum on a long cable run.
   </p>
 
   <div class="related">
     <h3>Related terms</h3>
     <div class="related-list">
-      <a href="/headroom/concepts/gain-staging/">Gain Staging</a>
-      <a href="/headroom/concepts/noise-floor/">Noise Floor</a>
+      <a href="/headroom/concepts/ground-loop/">Ground Loop</a>
+      <a href="/headroom/concepts/common-mode-rejection/">Common-Mode Rejection</a>
+      <a href="/headroom/concepts/rca/">RCA</a>
+      <a href="/headroom/concepts/xlr/">XLR</a>
+      <a href="/headroom/concepts/trs/">TRS</a>
     </div>
   </div>
 
