@@ -1,0 +1,327 @@
+---
+layout: headroom
+title: "Perceptual Coding — Headroom DJ Glossary"
+description: "Perceptual coding is a lossy compression method that discards audio details the human ear is unlikely to notice, used by formats like MP3 and AAC."
+section: Concepts
+section_url: /headroom/concepts/
+subsection: Perceptual Coding
+---
+
+<style>
+  .entry-header {
+    padding: 8em 2em 3em;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  .breadcrumb {
+    font-size: 0.8em;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 1.2em;
+  }
+
+  .breadcrumb a {
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .breadcrumb a:hover {
+    color: var(--text);
+  }
+
+  .breadcrumb span {
+    margin: 0 0.5em;
+    opacity: 0.4;
+  }
+
+  .entry-header h1 {
+    font-size: clamp(2em, 5vw, 3.2em);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 0.4em;
+  }
+
+  .entry-header .part-of-speech {
+    font-size: 0.9em;
+    font-style: italic;
+    color: var(--text-muted);
+    margin-bottom: 1em;
+  }
+
+  .entry-header .lead {
+    font-size: 1.15em;
+    color: var(--text-muted);
+    max-width: 600px;
+  }
+
+  .entry-content {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 2em 5em;
+  }
+
+  .entry-content h2 {
+    font-size: 1.4em;
+    font-weight: 700;
+    margin: 2.5em 0 0.6em;
+  }
+
+  .entry-content p {
+    color: var(--text-muted);
+    margin-bottom: 1em;
+    font-size: 1.02em;
+  }
+
+  .entry-content p a {
+    color: var(--text);
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 0.2em;
+  }
+
+  .entry-content ul,
+  .entry-content ol {
+    list-style: none;
+    margin-bottom: 1em;
+  }
+
+  .entry-content ul li,
+  .entry-content ol li {
+    position: relative;
+    padding-left: 1.4em;
+    color: var(--text-muted);
+    font-size: 1em;
+    margin-bottom: 0.35em;
+  }
+
+  .entry-content ul li::before {
+    content: "\25B8";
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+  }
+
+  .entry-content ol {
+    counter-reset: ol-counter;
+  }
+
+  .entry-content ol li {
+    counter-increment: ol-counter;
+  }
+
+  .entry-content ol li::before {
+    content: counter(ol-counter) ".";
+    position: absolute;
+    left: 0;
+    color: var(--warm);
+    font-weight: 700;
+    font-size: 0.85em;
+  }
+
+  .callout {
+    border-left: 3px solid var(--accent);
+    padding: 1em 1.4em;
+    background: var(--surface);
+    border-radius: 0 0.4em 0.4em 0;
+    margin: 1.5em 0;
+  }
+
+  .callout p {
+    margin: 0;
+    font-size: 0.97em;
+  }
+
+  .related {
+    border-top: 1px solid var(--border);
+    padding-top: 2em;
+    margin-top: 3em;
+  }
+
+  .related h3 {
+    font-size: 0.8em;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 1em;
+  }
+
+  .related-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6em;
+  }
+
+  .related-list a {
+    color: var(--text);
+    text-decoration: none;
+    font-size: 0.9em;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    border-radius: 2em;
+    padding: 0.35em 1em;
+    background: var(--surface);
+    transition: border-color 200ms;
+  }
+
+  .related-list a:hover {
+    border-color: var(--accent);
+  }
+
+  .final-cta {
+    text-align: center;
+    padding: 6em 2em;
+    position: relative;
+    background:
+      linear-gradient(to bottom, var(--bg) 0%, rgba(10, 10, 15, 0.5) 30%, rgba(10, 10, 15, 0.5) 70%, var(--bg) 100%),
+      url('/headroom/djvibe-studiox-dt_UuLU_foM-unsplash.jpg') center bottom / cover no-repeat;
+  }
+
+  .final-cta::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    box-shadow: inset 0 0 8em 2em var(--bg);
+    pointer-events: none;
+  }
+
+  .final-cta h2 {
+    font-size: 2em;
+    margin-bottom: 0.4em;
+    position: relative;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  }
+
+  .final-cta p {
+    color: var(--text-muted);
+    font-size: 1.1em;
+    position: relative;
+    max-width: 500px;
+    margin: 0 auto 2em;
+  }
+
+  .btn-primary {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1em;
+    padding: 0.75em 2.5em;
+    border-radius: 2em;
+    transition: box-shadow 200ms, transform 200ms;
+    box-shadow: 0 0 1.5em var(--accent-glow);
+    position: relative;
+  }
+
+  .btn-primary:hover {
+    box-shadow: 0 0 2.5em var(--accent-glow);
+    transform: translateY(-1px);
+  }
+
+  @media (max-width: 640px) {
+    .entry-header,
+    .entry-content {
+      padding-left: 1.2em;
+      padding-right: 1.2em;
+    }
+  }
+</style>
+
+<div class="entry-header">
+  <div class="breadcrumb">
+    <a href="/headroom/">Headroom</a>
+    <span>/</span>
+    <a href="/headroom/concepts/">Concepts</a>
+    <span>/</span>
+    Perceptual Coding
+  </div>
+  <h1>Perceptual Coding</h1>
+  <div class="part-of-speech">noun</div>
+  <p class="lead">
+    A lossy compression method that throws away audio details the human ear
+    is unlikely to notice, used by formats like MP3 and AAC to shrink file
+    size.
+  </p>
+</div>
+
+<div class="entry-content">
+
+  <p>
+    Every lossy audio format is making a bet: which parts of a sound can it
+    delete without you noticing? Perceptual coding is how that bet gets made.
+    Instead of compressing audio data blindly, it leans on psychoacoustics —
+    research into what the human ear actually perceives — to find sound that's
+    masked by louder sound nearby, or that sits outside the range most people
+    can hear, and throws it out first. What's left is a smaller file that
+    still sounds close to the original, because the missing pieces were
+    chosen specifically to be the pieces you'd miss least.
+  </p>
+
+  <h2>Why it matters for DJs</h2>
+
+  <p>
+    Every file format you play has already made these decisions for you, and
+    they're not all the same. A heavily compressed MP3 has thrown away far
+    more than a high-bitrate AAC or a lossless FLAC — and what gets thrown
+    away tends to be the same kind of material a DJ leans on hardest: transient
+    detail in hi-hats and percussion, low-level reverb tails, the texture
+    that makes a track feel "open" on a big system. On a phone speaker you'd
+    never hear the difference. On a club PA pushing real headroom, a
+    low-bitrate file can sound thin, harsh in the highs, or oddly flat compared
+    to the same track at a higher bitrate.
+  </p>
+
+  <div class="callout">
+    <p>
+      Rule of thumb: play the highest-quality file you can reasonably manage
+      — lossless (FLAC, WAV, AIFF) or high-bitrate AAC/MP3 (256–320 kbps).
+      The compression artifacts that are inaudible on earbuds get amplified,
+      literally, by a system with real headroom.
+    </p>
+  </div>
+
+  <h2>How it actually works</h2>
+
+  <ul>
+    <li><strong>Masking</strong> — a loud sound at one frequency makes nearby quieter frequencies inaudible, even though they're technically present in the signal. Perceptual coders detect this and remove the masked content.</li>
+    <li><strong>Frequency range</strong> — content above and below the range most people can hear gets reduced or cut, since it costs data but adds little perceived value.</li>
+    <li><strong>Bitrate as a dial</strong> — a higher bitrate gives the encoder more "budget" to keep, so it discards less; a lower bitrate forces it to be more aggressive about what gets thrown away.</li>
+  </ul>
+
+  <h2>Common formats that use it</h2>
+
+  <ul>
+    <li><strong>MP3</strong> — one of the earliest and still most common perceptual codecs; quality scales heavily with bitrate.</li>
+    <li><strong>AAC</strong> — used by Apple Music and most streaming services; generally more efficient than MP3 at the same bitrate.</li>
+    <li><strong>Opus</strong> — a newer codec built for both music and speech, used in some streaming and call applications.</li>
+  </ul>
+
+  <p>
+    Lossless formats like FLAC and WAV skip this process entirely — they
+    compress (or don't) without discarding anything, which is why they're
+    larger but preserve every bit of the original recording.
+  </p>
+
+  <h2>In the context of Headroom</h2>
+
+  <p>
+    File format choice comes up in Week 1 (Track Prep) — knowing why a
+    lossless rip sounds different from a low-bitrate download on a club
+    system changes how you build and curate your library before you ever
+    touch the booth.
+  </p>
+
+</div>
+
+<div class="final-cta">
+  <h2>Want to go deeper?</h2>
+  <p>
+    Headroom is an 8-week course covering the technical foundations every
+    serious DJ should know — signal flow, equipment, mixing, and more.
+  </p>
+  <a class="btn-primary" href="/headroom/#book">Learn about the course</a>
+</div>

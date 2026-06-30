@@ -1,994 +1,817 @@
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
+---
+layout: headroom
+title: "Headroom — Advanced DJ Training for Serious Performers"
+description: "Advanced DJ systems training for serious performers. Master the tech so you can confidently step into any booth and find your flow amongst the chaos."
+og_image: og-image.jpg
+---
 
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Headroom — Advanced DJ Training for Serious Performers</title>
-  <meta name="description" content="Advanced DJ systems training for serious performers. Master the tech so you can confidently step into any booth and find your flow amongst the chaos." />
-  <meta property="og:image" content="og-image.jpg" />
+<style>
+  /* --- Hero --- */
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet" />
-  <link rel="icon" type="image/png" href="favicon.svg" id="favicon" />
-  <!-- Fathom Analytics -->
-  <script src="https://cdn.usefathom.com/script.js" data-site="ITRXNPNT" defer></script>
+  .hero {
+    min-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 8em 2em 4em;
+    position: relative;
+    overflow: hidden;
+    background:
+      linear-gradient(to bottom, rgba(10, 10, 15, 0.55) 0%, rgba(10, 10, 15, 0.85) 80%, var(--bg) 100%),
+      url('djvibe-studiox-urXtcqrAW18-unsplash.jpg') center / cover no-repeat;
+  }
 
-  <style>
-    :root {
-      --bg: #0a0a0f;
-      --surface: #13131a;
-      --border: rgba(255, 255, 255, 0.08);
-      --text: #e4e4eb;
-      --text-muted: #8a8a9a;
-      --accent: #9207c3;
-      --accent-glow: rgba(146, 7, 195, 0.3);
-      --warm: #ff6116;
-    }
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    box-shadow: inset 0 0 8em 2em var(--bg);
+    pointer-events: none;
+  }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+  .hero > * {
+    position: relative;
+  }
 
-    body {
-      font-family: "Cairo", sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
-    }
+  .hero-label {
+    font-size: 0.85em;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 1em;
+  }
 
-    /* --- Nav --- */
+  .hero h1 {
+    font-size: clamp(2.4em, 6vw, 4.5em);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 0.3em;
+    position: relative;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  }
 
-    nav {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 100;
-      background: rgba(10, 10, 15, 0.85);
-      backdrop-filter: blur(1em);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.8em 2em;
-    }
+  .hero .subtitle {
+    font-size: clamp(1.1em, 2.5vw, 1.35em);
+    color: var(--text);
+    max-width: 580px;
+    margin-bottom: 2em;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+  }
 
-    nav .brand {
-      font-weight: 700;
-      font-size: 1.1em;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
+  .hero-details {
+    display: flex;
+    gap: 2em;
+    flex-wrap: wrap;
+    justify-content: center;
+    font-size: 0.95em;
+    color: var(--text-muted);
+    margin-bottom: 2.5em;
+  }
 
-    nav .brand a {
-      color: var(--text);
-      text-decoration: none;
-    }
+  .hero-details span {
+    display: flex;
+    align-items: center;
+    gap: 0.4em;
+  }
 
-    nav .cta-nav a {
-      color: var(--bg);
-      background: var(--text);
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 0.85em;
-      padding: 0.5em 1.4em;
-      border-radius: 2em;
-      transition: opacity 200ms;
-    }
+  .btn-primary {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1.1em;
+    padding: 0.75em 2.5em;
+    border-radius: 2em;
+    transition: box-shadow 200ms, transform 200ms;
+    box-shadow: 0 0 1.5em var(--accent-glow);
+  }
 
-    nav .cta-nav a:hover {
-      opacity: 0.85;
-    }
+  .btn-primary:hover {
+    box-shadow: 0 0 2.5em var(--accent-glow);
+    transform: translateY(-1px);
+  }
 
-    /* --- Hero --- */
+  .btn-primary:active {
+    transform: translateY(0);
+  }
 
+  /* --- Sections --- */
+
+  section {
+    padding: 5em 2em;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  h2 {
+    font-size: 2em;
+    font-weight: 700;
+    margin-bottom: 0.3em;
+  }
+
+  .section-lead {
+    color: var(--text-muted);
+    font-size: 1.1em;
+    max-width: 600px;
+    margin-bottom: 2.5em;
+  }
+
+  /* --- Curriculum Timeline --- */
+
+  .timeline {
+    position: relative;
+    margin-top: 1em;
+  }
+
+  .timeline::before {
+    content: "";
+    position: absolute;
+    left: 24px;
+    top: 14px;
+    bottom: 14px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--accent), var(--warm));
+    opacity: 0.5;
+  }
+
+  .module {
+    position: relative;
+    display: grid;
+    grid-template-columns: 50px 1fr;
+    gap: 1.6em;
+    padding-bottom: 3em;
+  }
+
+  .module:last-child {
+    padding-bottom: 0;
+  }
+
+  .module-icon {
+    position: relative;
+    z-index: 1;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 2px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 1.2em var(--accent-glow);
+  }
+
+  .module-icon svg {
+    width: 26px;
+    height: 26px;
+    stroke: var(--accent);
+    fill: none;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .module-head {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.7em;
+    margin-bottom: 0.45em;
+  }
+
+  .module-week {
+    font-size: 0.72em;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--warm);
+    white-space: nowrap;
+  }
+
+  .module-body h3 {
+    font-size: 1.55em;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .module-outcome {
+    font-size: 1.08em;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.55em;
+  }
+
+  .module-desc {
+    color: var(--text-muted);
+    font-size: 1em;
+    margin-bottom: 0.9em;
+  }
+
+  .module-points {
+    list-style: none;
+    display: grid;
+    gap: 0.35em;
+  }
+
+  .module-points li {
+    position: relative;
+    padding-left: 1.4em;
+    color: var(--text-muted);
+    font-size: 0.95em;
+  }
+
+  .module-points li::before {
+    content: "\25B8";
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+  }
+
+  .module-points li.optional {
+    font-style: italic;
+  }
+
+  .module-points li.optional::before {
+    content: "+";
+    color: var(--warm);
+  }
+
+  /* --- Instructor --- */
+
+  .instructor {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 2.5em;
+    align-items: start;
+  }
+
+  .instructor-photo {
+    width: 200px;
+    height: 200px;
+    border-radius: 0.5em;
+    object-fit: cover;
+  }
+
+  .credential-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1em;
+    margin-top: 1.5em;
+  }
+
+  .credential {
+    border: 1px solid var(--border);
+    border-radius: 0.5em;
+    padding: 1.2em;
+    background: var(--surface);
+  }
+
+  .credential .number {
+    font-size: 1.8em;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 0.15em;
+  }
+
+  .credential .label {
+    font-size: 0.85em;
+    color: var(--text-muted);
+  }
+
+  /* --- Format --- */
+
+  .format-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5em;
+  }
+
+  .format-item {
+    border-left: 2px solid var(--accent);
+    padding-left: 1.2em;
+  }
+
+  .format-item .value {
+    font-size: 1.3em;
+    font-weight: 700;
+  }
+
+  .format-item .desc {
+    font-size: 0.9em;
+    color: var(--text-muted);
+  }
+
+  /* --- Guarantee --- */
+
+  .guarantee {
+    text-align: center;
+    border: 1px solid var(--border);
+    border-radius: 0.75em;
+    padding: 3em 2em;
+    background: var(--surface);
+  }
+
+  .guarantee h2 {
+    font-size: 1.5em;
+  }
+
+  .guarantee p {
+    color: var(--text-muted);
+    max-width: 520px;
+    margin: 0.5em auto 0;
+  }
+
+  /* --- Final CTA --- */
+
+  .final-cta {
+    text-align: center;
+    padding: 8em 2em;
+    position: relative;
+    background:
+      linear-gradient(to bottom, var(--bg) 0%, rgba(10, 10, 15, 0.5) 30%, rgba(10, 10, 15, 0.5) 70%, var(--bg) 100%),
+      url('djvibe-studiox-dt_UuLU_foM-unsplash.jpg') center bottom / cover no-repeat;
+  }
+
+  .final-cta::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    box-shadow: inset 0 0 8em 2em var(--bg);
+    pointer-events: none;
+  }
+
+  .final-cta h2 {
+    font-size: 2.4em;
+    margin-bottom: 0.3em;
+    position: relative;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  }
+
+  .final-cta p {
+    color: var(--text);
+    margin-bottom: 2em;
+    font-size: 1.2em;
+    position: relative;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+    max-width: 540px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* --- Responsive --- */
+
+  @media (max-width: 640px) {
     .hero {
-      min-height: 90vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      padding: 8em 2em 4em;
-      position: relative;
-      overflow: hidden;
-      background:
-        linear-gradient(to bottom, rgba(10, 10, 15, 0.55) 0%, rgba(10, 10, 15, 0.85) 80%, var(--bg) 100%),
-        url('djvibe-studiox-urXtcqrAW18-unsplash.jpg') center / cover no-repeat;
-    }
-
-    .hero::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      box-shadow: inset 0 0 8em 2em var(--bg);
-      pointer-events: none;
-    }
-
-    .hero>* {
-      position: relative;
-    }
-
-    .hero-label {
-      font-size: 0.85em;
-      font-weight: 700;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 1em;
-    }
-
-    .hero h1 {
-      font-size: clamp(2.4em, 6vw, 4.5em);
-      font-weight: 900;
-      line-height: 1.1;
-      margin-bottom: 0.3em;
-      position: relative;
-      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
-    }
-
-    .hero .subtitle {
-      font-size: clamp(1.1em, 2.5vw, 1.35em);
-      color: var(--text);
-      max-width: 580px;
-      margin-bottom: 2em;
-      text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+      padding: 7em 1.2em 3em;
     }
 
     .hero-details {
-      display: flex;
-      gap: 2em;
-      flex-wrap: wrap;
-      justify-content: center;
-      font-size: 0.95em;
-      color: var(--text-muted);
-      margin-bottom: 2.5em;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5em;
+      justify-items: center;
     }
-
-    .hero-details span {
-      display: flex;
-      align-items: center;
-      gap: 0.4em;
-    }
-
-    .btn-primary {
-      display: inline-block;
-      background: var(--accent);
-      color: white;
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 1.1em;
-      padding: 0.75em 2.5em;
-      border-radius: 2em;
-      transition: box-shadow 200ms, transform 200ms;
-      box-shadow: 0 0 1.5em var(--accent-glow);
-    }
-
-    .btn-primary:hover {
-      box-shadow: 0 0 2.5em var(--accent-glow);
-      transform: translateY(-1px);
-    }
-
-    .btn-primary:active {
-      transform: translateY(0);
-    }
-
-    /* --- Sections --- */
 
     section {
-      padding: 5em 2em;
-      max-width: 960px;
-      margin: 0 auto;
-    }
-
-    h2 {
-      font-size: 2em;
-      font-weight: 700;
-      margin-bottom: 0.3em;
-    }
-
-    .section-lead {
-      color: var(--text-muted);
-      font-size: 1.1em;
-      max-width: 600px;
-      margin-bottom: 2.5em;
-    }
-
-    /* --- Curriculum Timeline --- */
-
-    .timeline {
-      position: relative;
-      margin-top: 1em;
-    }
-
-    .timeline::before {
-      content: "";
-      position: absolute;
-      left: 24px;
-      top: 14px;
-      bottom: 14px;
-      width: 2px;
-      background: linear-gradient(to bottom, var(--accent), var(--warm));
-      opacity: 0.5;
+      padding: 3em 1.2em;
     }
 
     .module {
-      position: relative;
-      display: grid;
-      grid-template-columns: 50px 1fr;
-      gap: 1.6em;
-      padding-bottom: 3em;
-    }
-
-    .module:last-child {
-      padding-bottom: 0;
-    }
-
-    .module-icon {
-      position: relative;
-      z-index: 1;
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: var(--surface);
-      border: 2px solid var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 0 1.2em var(--accent-glow);
-    }
-
-    .module-icon svg {
-      width: 26px;
-      height: 26px;
-      stroke: var(--accent);
-      fill: none;
-      stroke-width: 1.5;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-
-    .module-head {
-      display: flex;
-      align-items: baseline;
-      flex-wrap: wrap;
-      gap: 0.7em;
-      margin-bottom: 0.45em;
-    }
-
-    .module-week {
-      font-size: 0.72em;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--warm);
-      white-space: nowrap;
+      gap: 1em;
     }
 
     .module-body h3 {
-      font-size: 1.55em;
-      font-weight: 700;
-      line-height: 1.2;
+      font-size: 1.3em;
     }
-
-    .module-outcome {
-      font-size: 1.08em;
-      font-weight: 600;
-      color: var(--text);
-      margin-bottom: 0.55em;
-    }
-
-    .module-desc {
-      color: var(--text-muted);
-      font-size: 1em;
-      margin-bottom: 0.9em;
-    }
-
-    .module-points {
-      list-style: none;
-      display: grid;
-      gap: 0.35em;
-    }
-
-    .module-points li {
-      position: relative;
-      padding-left: 1.4em;
-      color: var(--text-muted);
-      font-size: 0.95em;
-    }
-
-    .module-points li::before {
-      content: "\25B8";
-      position: absolute;
-      left: 0;
-      color: var(--accent);
-    }
-
-    .module-points li.optional {
-      font-style: italic;
-    }
-
-    .module-points li.optional::before {
-      content: "+";
-      color: var(--warm);
-    }
-
-    @media (max-width: 640px) {
-      .module {
-        gap: 1em;
-      }
-
-      .module-body h3 {
-        font-size: 1.3em;
-      }
-    }
-
-    /* --- Instructor --- */
 
     .instructor {
-      display: grid;
-      grid-template-columns: 200px 1fr;
-      gap: 2.5em;
-      align-items: start;
+      grid-template-columns: 1fr;
     }
 
     .instructor-photo {
-      width: 200px;
-      height: 200px;
-      border-radius: 0.5em;
-      object-fit: cover;
-    }
-
-    @media (max-width: 640px) {
-      .instructor {
-        grid-template-columns: 1fr;
-      }
-
-      .instructor-photo {
-        width: 140px;
-        height: 140px;
-      }
+      width: 140px;
+      height: 140px;
     }
 
     .credential-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1em;
-      margin-top: 1.5em;
+      grid-template-columns: 1fr;
     }
-
-    .credential {
-      border: 1px solid var(--border);
-      border-radius: 0.5em;
-      padding: 1.2em;
-      background: var(--surface);
-    }
-
-    .credential .number {
-      font-size: 1.8em;
-      font-weight: 900;
-      line-height: 1;
-      margin-bottom: 0.15em;
-    }
-
-    .credential .label {
-      font-size: 0.85em;
-      color: var(--text-muted);
-    }
-
-    /* --- Format --- */
 
     .format-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 1.5em;
+      grid-template-columns: 1fr;
     }
+  }
+</style>
 
-    .format-item {
-      border-left: 2px solid var(--accent);
-      padding-left: 1.2em;
-    }
-
-    .format-item .value {
-      font-size: 1.3em;
-      font-weight: 700;
-    }
-
-    .format-item .desc {
-      font-size: 0.9em;
-      color: var(--text-muted);
-    }
-
-    /* --- Guarantee --- */
-
-    .guarantee {
-      text-align: center;
-      border: 1px solid var(--border);
-      border-radius: 0.75em;
-      padding: 3em 2em;
-      background: var(--surface);
-    }
-
-    .guarantee h2 {
-      font-size: 1.5em;
-    }
-
-    .guarantee p {
-      color: var(--text-muted);
-      max-width: 520px;
-      margin: 0.5em auto 0;
-    }
-
-    /* --- Final CTA --- */
-
-    .final-cta {
-      text-align: center;
-      padding: 8em 2em;
-      max-width: none;
-      margin: 0 auto;
-      position: relative;
-      background:
-        linear-gradient(to bottom, var(--bg) 0%, rgba(10, 10, 15, 0.5) 30%, rgba(10, 10, 15, 0.5) 70%, var(--bg) 100%),
-        url('djvibe-studiox-dt_UuLU_foM-unsplash.jpg') center bottom / cover no-repeat;
-    }
-
-    .final-cta::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      box-shadow: inset 0 0 8em 2em var(--bg);
-      pointer-events: none;
-    }
-
-    .final-cta h2 {
-      font-size: 2.4em;
-      margin-bottom: 0.3em;
-      position: relative;
-      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
-    }
-
-    .final-cta p {
-      color: var(--text);
-      margin-bottom: 2em;
-      font-size: 1.2em;
-      position: relative;
-      text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
-      max-width: 540px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    /* --- Footer --- */
-
-    footer {
-      text-align: center;
-      padding: 2em;
-      color: var(--text-muted);
-      font-size: 0.85em;
-      border-top: 1px solid var(--border);
-    }
-
-    footer a {
-      color: var(--text-muted);
-    }
-
-    /* --- Responsive --- */
-
-    @media (max-width: 640px) {
-      nav {
-        padding: 0.6em 1.2em;
-      }
-
-      .hero {
-        padding: 7em 1.2em 3em;
-      }
-
-      .hero-details {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0.5em;
-        justify-items: center;
-      }
-
-      section {
-        padding: 3em 1.2em;
-      }
-
-      .credential-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .format-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
-</head>
-
-<body>
-  <nav>
-    <div class="brand"><a href="../">avand.fm</a> / headroom</div>
-    <div class="cta-nav">
-      <a href="https://calendar.app.google/2dhPnZHUngrQUUoF7" target="_blank">Book a call</a>
-    </div>
-  </nav>
-
-  <!-- Hero -->
-  <div class="hero">
-    <div class="hero-label">Fall 2026: Cohort #1</div>
-    <h1>HEADROOM</h1>
-    <p class="subtitle">
-      Advanced DJ training for serious performers. Master the tech
-      so you can confidently step into any booth and find your flow
-      amongst the chaos.
-    </p>
-    <div class="hero-details">
-      <span>8 weeks</span>
-      <span>2 hrs / week</span>
-      <span>10&ndash;15 students</span>
-      <span><s style="color: var(--text-muted); text-decoration-thickness: 1px;">$1,800</s> $900</span>
-    </div>
-    <a class="btn-primary" href="https://calendar.app.google/2dhPnZHUngrQUUoF7" target="_blank">Book an intro call</a>
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-label">Fall 2026: Cohort #1</div>
+  <h1>HEADROOM</h1>
+  <p class="subtitle">
+    Advanced DJ training for serious performers. Master the tech
+    so you can confidently step into any booth and find your flow
+    amongst the chaos.
+  </p>
+  <div class="hero-details">
+    <span>8 weeks</span>
+    <span>2 hrs / week</span>
+    <span>10&ndash;15 students</span>
+    <span><s style="color: var(--text-muted); text-decoration-thickness: 1px;">$1,800</s> $900</span>
   </div>
+  <a class="btn-primary" href="https://calendar.app.google/2dhPnZHUngrQUUoF7" target="_blank">Book an intro call</a>
+</div>
 
-  <!-- The Curriculum -->
-  <section>
-    <h2>The curriculum</h2>
-    <p class="section-lead">
-      At the white-hot center of every world-class set is a relaxed,
-      composed DJ. Headroom distills decades of experience into eight
-      focused modules&mdash;one per week&mdash;covering the technical
-      foundations, preparation techniques, and relational dynamics that
-      turn capable DJs into confident performers.
-    </p>
+<!-- The Curriculum -->
+<section id="curriculum">
+  <h2>The curriculum</h2>
+  <p class="section-lead">
+    At the white-hot center of every world-class set is a relaxed,
+    composed DJ. Headroom distills decades of experience into eight
+    focused modules&mdash;one per week&mdash;covering the technical
+    foundations, preparation techniques, and relational dynamics that
+    turn capable DJs into confident performers.
+  </p>
 
-    <div class="timeline">
+  <div class="timeline">
 
-      <!-- Week 1: Sound -->
-      <div class="module">
-        <div class="module-icon">
-          <svg viewBox="0 0 32 32">
-            <path d="M4 12h4l6-5v18l-6-5H4z" />
-            <path d="M20 11a6 6 0 0 1 0 10" />
-            <path d="M24 8a11 11 0 0 1 0 16" />
-          </svg>
-        </div>
-        <div class="module-body">
-          <div class="module-head">
-            <span class="module-week">Week 1</span>
-            <h3>Sound</h3>
-          </div>
-          <p class="module-outcome">
-            Understand what sound actually is and how it exists in the physical world.
-          </p>
-          <p class="module-desc">
-            Build the mental framework behind everything else in the course.
-            Sound as a physical phenomenon&mdash;energy moving through a medium
-            as a pressure wave&mdash;and how the body hears and feels it. Then
-            follow sound through the full audio chain: from a vibrating object,
-            to an electrical signal, to a loudspeaker, and ultimately to the
-            listener's body.
-          </p>
-          <ul class="module-points">
-            <li>How sound is created, transmitted, perceived, recorded, and reproduced</li>
-            <li>How frequency, amplitude, and wavelength shape pitch, loudness, and sensation</li>
-            <li>The 20 Hz&ndash;20 kHz spectrum&mdash;what's felt vs. heard, and why systems split into lows, mids, and highs</li>
-          </ul>
-        </div>
+    <!-- Week 1: Sound -->
+    <div class="module">
+      <div class="module-icon">
+        <svg viewBox="0 0 32 32">
+          <path d="M4 12h4l6-5v18l-6-5H4z" />
+          <path d="M20 11a6 6 0 0 1 0 10" />
+          <path d="M24 8a11 11 0 0 1 0 16" />
+        </svg>
       </div>
-
-      <!-- Week 2: Signal Flow -->
-      <div class="module">
-        <div class="module-icon">
-          <svg viewBox="0 0 32 32">
-            <circle cx="6" cy="16" r="2.5" />
-            <path d="M8.5 16h4" />
-            <rect x="12.5" y="11" width="9" height="10" rx="1.5" />
-            <path d="M21.5 16h5" />
-            <path d="M23.5 13.5l3 2.5-3 2.5" />
-          </svg>
+      <div class="module-body">
+        <div class="module-head">
+          <span class="module-week">Week 1</span>
+          <h3>Sound</h3>
         </div>
-        <div class="module-body">
-          <div class="module-head">
-            <span class="module-week">Week 2</span>
-            <h3>Signal Flow</h3>
-          </div>
-          <p class="module-outcome">
-            Trace an audio signal through a system and know what each piece of gear is doing to it.
-          </p>
-          <p class="module-desc">
-            How audio is represented, transmitted, processed, and reproduced
-            across modern systems. Why signal format and signal level make the
-            difference between a vibey dance floor and a shouting match. Once you
-            see audio as information moving through a chain of devices,
-            troubleshooting and unfamiliar setups stop being intimidating.
-          </p>
-          <ul class="module-points">
-            <li>Analog vs. digital, balanced vs. unbalanced, mono vs. stereo</li>
-            <li>Line-, mic-, and speaker-level signals</li>
-            <li>What's really happening when a signal is gained, clipped, EQ'd, filtered, routed, and mixed</li>
-            <li>Identify, trace, and diagram signal flow through any DJ, studio, or live rig</li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- Week 3: Equipment -->
-      <div class="module">
-        <div class="module-icon">
-          <svg viewBox="0 0 32 32">
-            <circle cx="16" cy="16" r="12" />
-            <circle cx="16" cy="16" r="4" />
-            <circle cx="16" cy="16" r="1" />
-            <line x1="16" y1="4" x2="16" y2="6" />
-            <line x1="16" y1="26" x2="16" y2="28" />
-            <line x1="4" y1="16" x2="6" y2="16" />
-            <line x1="26" y1="16" x2="28" y2="16" />
-          </svg>
-        </div>
-        <div class="module-body">
-          <div class="module-head">
-            <span class="module-week">Week 3</span>
-            <h3>Equipment</h3>
-          </div>
-          <p class="module-outcome">
-            Reason about unfamiliar gear, understand its role, and feel comfortable on it without prior experience.
-          </p>
-          <p class="module-desc">
-            The specific gear you'll meet in the booth&mdash;from approachable
-            controllers to intimidating standalone players&mdash;and the real
-            tradeoffs between laptop-only, controller, all-in-one, and CDJ
-            workflows. When and why to add a mixer, how to set a proper booth
-            reference, and how DIY rigs scale from a travel kit to a
-            block-party system that still fits in a car.
-          </p>
-          <ul class="module-points">
-            <li>Players, mixers, and configuring a proper booth</li>
-            <li>Stereo fields, crossovers, dynamic range, and detail across system types</li>
-            <li>Thinking modularly and staying adaptable on any setup</li>
-            <li>Building the adapter-and-cable go-bag you never gig without</li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- Week 4: Music -->
-      <div class="module">
-        <div class="module-icon">
-          <svg viewBox="0 0 32 32">
-            <path d="M12 22V7l11-2v13" />
-            <circle cx="9" cy="22" r="3" />
-            <circle cx="20" cy="18" r="3" />
-          </svg>
-        </div>
-        <div class="module-body">
-          <div class="module-head">
-            <span class="module-week">Week 4</span>
-            <h3>Music</h3>
-          </div>
-          <p class="module-outcome">
-            Understand how music is structured, composed, and organized&mdash;and how it's stored in digital files.
-          </p>
-          <p class="module-desc">
-            The defining characteristics of a song: notes into bars, bars into
-            phrases, phrases into structure, and how different genres are
-            composed and blended for variety. Then the fundamentals of digital
-            files and why quality matters on big systems, which expose details
-            you'll never hear on headphones or a car stereo.
-          </p>
-          <ul class="module-points">
-            <li>Song structure and how genres are built and mixed</li>
-            <li>Pitch, tempo, and Master Tempo&mdash;and whether the beat-sync controversy is warranted</li>
-            <li>File formats and encoders: what compression loses&mdash;transients, reverb tails, spatial detail</li>
-            <li>ID3 tags for portability, less data loss, and a smoother workflow</li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- Week 5: Workflow -->
-      <div class="module">
-        <div class="module-icon">
-          <svg viewBox="0 0 32 32">
-            <rect x="7" y="5" width="18" height="22" rx="2" />
-            <path d="M11 12l2 2 4-4" />
-            <line x1="19" y1="11" x2="23" y2="11" />
-            <path d="M11 20l2 2 4-4" />
-            <line x1="19" y1="19" x2="23" y2="19" />
-          </svg>
-        </div>
-        <div class="module-body">
-          <div class="module-head">
-            <span class="module-week">Week 5</span>
-            <h3>Workflow</h3>
-          </div>
-          <p class="module-outcome">
-            Build systems that create confidence, reduce cognitive load, and induce flow during a set.
-          </p>
-          <p class="module-desc">
-            Turn a messy library into a performance instrument. File-system
-            hygiene so you always know where your music and metadata live, track
-            prep that unlocks ease behind the decks, and smart playlists that let
-            you improvise or play prepared. Finish with a "pre-flight
-            checklist"&mdash;like a pilot's&mdash;so you're locked in the moment
-            you press play.
-          </p>
-          <ul class="module-points">
-            <li>File hygiene and a library that travels between ecosystems</li>
-            <li>Track prep&mdash;beat grids, hot cues, and tools like Platinum Notes and Mixed In Key</li>
-            <li>Smart playlists by tempo, key, lyrics, vibe, tag, and acoustic similarity</li>
-            <li>A pre-flight checklist so you're locked in from the first track</li>
-            <li class="optional">Optional add-on: AI workflows that auto-acquire newly discovered music</li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- Week 6: Mixing -->
-      <div class="module">
-        <div class="module-icon">
-          <svg viewBox="0 0 32 32">
-            <line x1="9" y1="5" x2="9" y2="27" />
-            <rect x="6" y="10" width="6" height="5" rx="1" />
-            <line x1="16" y1="5" x2="16" y2="27" />
-            <rect x="13" y="17" width="6" height="5" rx="1" />
-            <line x1="23" y1="5" x2="23" y2="27" />
-            <rect x="20" y="13" width="6" height="5" rx="1" />
-          </svg>
-        </div>
-        <div class="module-body">
-          <div class="module-head">
-            <span class="module-week">Week 6</span>
-            <h3>Mixing</h3>
-          </div>
-          <p class="module-outcome">
-            Create clean, intentional transitions across genres and tempos, build and hold energy, and get the most out of any system.
-          </p>
-          <p class="module-desc">
-            You already know how to mix&mdash;now go deeper. Phrase matching,
-            EQ-based mixing, and effects, all studied through the lens of
-            deliberately titrating energy on the dance floor. When to reach for
-            more than two decks to preserve the sounds holding the room, and the
-            sound-engineering basics that make every mix cleaner.
-          </p>
-          <ul class="module-points">
-            <li>Phrase-, EQ-, and effects-based mixing</li>
-            <li>Multi-deck techniques for continuity and energy</li>
-            <li>Reliable transitions across broader genres and tempo ranges</li>
-            <li>Gain staging, EQing for a room, and using your headphones to mix better</li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- Week 7: Relating -->
-      <div class="module">
-        <div class="module-icon">
-          <svg viewBox="0 0 32 32">
-            <circle cx="11" cy="11" r="4" />
-            <circle cx="21" cy="11" r="4" />
-            <path d="M4 26c0-3.9 3.1-7 7-7s7 3.1 7 7" />
-            <path d="M16 20.2c1.4-0.8 3.1-1.2 5-1.2 3.9 0 7 3.1 7 7" />
-          </svg>
-        </div>
-        <div class="module-body">
-          <div class="module-head">
-            <span class="module-week">Week 7</span>
-            <h3>Relating</h3>
-          </div>
-          <p class="module-outcome">
-            Develop the awareness, communication, and etiquette to navigate high-stakes, shared performance spaces with confidence and ease.
-          </p>
-          <p class="module-desc">
-            The most overlooked DJ skill is working with people. Treat equipment
-            like an extension of someone's body, apply the principles of consent
-            to the decks for smoother hand-offs, and build the reputation that
-            gets you invited back. Then turn to the crowd&mdash;meeting an
-            audience where it is and earning the trust to take it on a journey.
-          </p>
-          <ul class="module-points">
-            <li>Smooth hand-offs and booth etiquette between DJs</li>
-            <li>Being easy to work with&mdash;and getting invited to play more</li>
-            <li>"Playing what I want" vs. "playing what they want," authentically</li>
-            <li>Reading the room and earning a crowd's trust</li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- Week 8: Real-World Systems -->
-      <div class="module">
-        <div class="module-icon">
-          <svg viewBox="0 0 32 32">
-            <circle cx="16" cy="18" r="9" />
-            <line x1="16" y1="6" x2="16" y2="9" />
-            <line x1="7" y1="18" x2="25" y2="18" />
-            <line x1="9.5" y1="12" x2="22.5" y2="12" />
-            <line x1="9.5" y1="24" x2="22.5" y2="24" />
-            <line x1="16" y1="9" x2="16" y2="27" />
-            <path d="M11 10.5c-2 4-2 11 0 15" />
-            <path d="M21 10.5c2 4 2 11 0 15" />
-          </svg>
-        </div>
-        <div class="module-body">
-          <div class="module-head">
-            <span class="module-week">Week 8</span>
-            <h3>Real-World Systems</h3>
-          </div>
-          <p class="module-outcome">
-            Confidently operate in real-world environments.
-          </p>
-          <p class="module-desc">
-            Bring it all together and take it into the world&mdash;clubs,
-            festivals, renegade stages, and house parties, each with its own
-            advantages and pitfalls. What to show up with, how to work with the
-            system that's already there, and how to stay connected to a
-            dancefloor you can't always hear or feel.
-          </p>
-          <ul class="module-points">
-            <li>Clubs and festivals&mdash;essential gear and working with house systems</li>
-            <li>House parties and renegades&mdash;power distribution, batteries, and generators without blow-ups</li>
-            <li>Staying connected to a crowd you can't necessarily hear</li>
-            <li>The basics of recording and live-streaming your sets</li>
-          </ul>
-        </div>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- Instructor -->
-  <section>
-    <h2>Your instructor</h2>
-    <p class="section-lead">
-      I’m Avand&mdash;a DJ and software engineer who has spent over a decade
-      obsessing over how sound systems work so the music sounds exactly right.
-    </p>
-
-    <div class="instructor">
-      <img class="instructor-photo" src="avand.jpg" alt="Avand" />
-      <div>
-        <p>
-          I’ve played everywhere from Burning Man art cars and mobile rigs that I set up
-          myself to nightclubs around the world. I’ve used CDJs, controllers,
-          all-in-ones, Traktor, rekordbox, and laptop-only setups. I don’t have one
-          ”right way”&mdash;I just have some well-formed opinions born from real-world
-          experience across the full range of gear and environments.
+        <p class="module-outcome">
+          Understand what sound actually is and how it exists in the physical world.
         </p>
-        <p style="margin-top: 1em;">
-          I was an instructor at <a href="https://generalassemb.ly/" target="_blank" style="color: var(--text); text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 0.2em;">General Assembly</a>, where I logged
-          700+ hours in front of students and designed my own curriculum from
-          scratch. I love to teach and share my experience with others. I’ve
-          also worked in software for long time so technical details are my jam.
+        <p class="module-desc">
+          Build the mental framework behind everything else in the course.
+          Sound as a physical phenomenon&mdash;energy moving through a medium
+          as a pressure wave&mdash;and how the body hears and feels it. Then
+          follow sound through the full audio chain: from a vibrating object,
+          to an electrical signal, to a loudspeaker, and ultimately to the
+          listener's body.
         </p>
+        <ul class="module-points">
+          <li>How sound is created, transmitted, perceived, recorded, and reproduced</li>
+          <li>How frequency, amplitude, and wavelength shape pitch, loudness, and sensation</li>
+          <li>The 20 Hz&ndash;20 kHz spectrum&mdash;what's felt vs. heard, and why systems split into lows, mids, and highs</li>
+        </ul>
+      </div>
+    </div>
 
-        <div class="credential-grid">
-          <div class="credential">
-            <div class="number">13 years</div>
-            <div class="label">DJ experience</div>
-          </div>
-          <div class="credential">
-            <div class="number">700+ hours</div>
-            <div class="label">in-class teaching & curriculum design</div>
-          </div>
-          <div class="credential">
-            <div class="number">20+ years</div>
-            <div class="label">software engineering</div>
-          </div>
+    <!-- Week 2: Signal Flow -->
+    <div class="module">
+      <div class="module-icon">
+        <svg viewBox="0 0 32 32">
+          <circle cx="6" cy="16" r="2.5" />
+          <path d="M8.5 16h4" />
+          <rect x="12.5" y="11" width="9" height="10" rx="1.5" />
+          <path d="M21.5 16h5" />
+          <path d="M23.5 13.5l3 2.5-3 2.5" />
+        </svg>
+      </div>
+      <div class="module-body">
+        <div class="module-head">
+          <span class="module-week">Week 2</span>
+          <h3>Signal Flow</h3>
         </div>
+        <p class="module-outcome">
+          Trace an audio signal through a system and know what each piece of gear is doing to it.
+        </p>
+        <p class="module-desc">
+          How audio is represented, transmitted, processed, and reproduced
+          across modern systems. Why signal format and signal level make the
+          difference between a vibey dance floor and a shouting match. Once you
+          see audio as information moving through a chain of devices,
+          troubleshooting and unfamiliar setups stop being intimidating.
+        </p>
+        <ul class="module-points">
+          <li>Analog vs. digital, balanced vs. unbalanced, mono vs. stereo</li>
+          <li>Line-, mic-, and speaker-level signals</li>
+          <li>What's really happening when a signal is gained, clipped, EQ'd, filtered, routed, and mixed</li>
+          <li>Identify, trace, and diagram signal flow through any DJ, studio, or live rig</li>
+        </ul>
       </div>
     </div>
-  </section>
 
-  <!-- Format -->
-  <section>
-    <h2>How it works</h2>
-    <p class="section-lead">
-      This first cohort will be a small, focused group with room for real questions and hands-on work.
-    </p>
-
-    <div class="format-grid">
-      <div class="format-item">
-        <div class="value">8 weeks</div>
-        <div class="desc">Thursdays 6&ndash;8 PM MT &middot; Oct 1&ndash;Nov 19, 2026</div>
+    <!-- Week 3: Equipment -->
+    <div class="module">
+      <div class="module-icon">
+        <svg viewBox="0 0 32 32">
+          <circle cx="16" cy="16" r="12" />
+          <circle cx="16" cy="16" r="4" />
+          <circle cx="16" cy="16" r="1" />
+          <line x1="16" y1="4" x2="16" y2="6" />
+          <line x1="16" y1="26" x2="16" y2="28" />
+          <line x1="4" y1="16" x2="6" y2="16" />
+          <line x1="26" y1="16" x2="28" y2="16" />
+        </svg>
       </div>
-      <div class="format-item">
-        <div class="value">2 hrs / wk</div>
-        <div class="desc">Lectures, demos, and hands-on work, plus ~30 min of homework each week</div>
-      </div>
-      <div class="format-item">
-        <div class="value">10&ndash;15 people</div>
-        <div class="desc">Small, focused, plenty of space for answering your specific questions</div>
-      </div>
-      <div class="format-item">
-        <div class="value"><s style="color: var(--text-muted); font-weight: 400; text-decoration-thickness: 1px;">$1,800</s> $900</div>
-        <div class="desc">Introductory price with a full, money-back guarantee</div>
+      <div class="module-body">
+        <div class="module-head">
+          <span class="module-week">Week 3</span>
+          <h3>Equipment</h3>
+        </div>
+        <p class="module-outcome">
+          Reason about unfamiliar gear, understand its role, and feel comfortable on it without prior experience.
+        </p>
+        <p class="module-desc">
+          The specific gear you'll meet in the booth&mdash;from approachable
+          controllers to intimidating standalone players&mdash;and the real
+          tradeoffs between laptop-only, controller, all-in-one, and CDJ
+          workflows. When and why to add a mixer, how to set a proper booth
+          reference, and how DIY rigs scale from a travel kit to a
+          block-party system that still fits in a car.
+        </p>
+        <ul class="module-points">
+          <li>Players, mixers, and configuring a proper booth</li>
+          <li>Stereo fields, crossovers, dynamic range, and detail across system types</li>
+          <li>Thinking modularly and staying adaptable on any setup</li>
+          <li>Building the adapter-and-cable go-bag you never gig without</li>
+        </ul>
       </div>
     </div>
-  </section>
 
-  <!-- Guarantee -->
-  <section>
-    <div class="guarantee">
-      <h2>Money-back guarantee</h2>
+    <!-- Week 4: Music -->
+    <div class="module">
+      <div class="module-icon">
+        <svg viewBox="0 0 32 32">
+          <path d="M12 22V7l11-2v13" />
+          <circle cx="9" cy="22" r="3" />
+          <circle cx="20" cy="18" r="3" />
+        </svg>
+      </div>
+      <div class="module-body">
+        <div class="module-head">
+          <span class="module-week">Week 4</span>
+          <h3>Music</h3>
+        </div>
+        <p class="module-outcome">
+          Understand how music is structured, composed, and organized&mdash;and how it's stored in digital files.
+        </p>
+        <p class="module-desc">
+          The defining characteristics of a song: notes into bars, bars into
+          phrases, phrases into structure, and how different genres are
+          composed and blended for variety. Then the fundamentals of digital
+          files and why quality matters on big systems, which expose details
+          you'll never hear on headphones or a car stereo.
+        </p>
+        <ul class="module-points">
+          <li>Song structure and how genres are built and mixed</li>
+          <li>Pitch, tempo, and Master Tempo&mdash;and whether the beat-sync controversy is warranted</li>
+          <li>File formats and encoders: what compression loses&mdash;transients, reverb tails, spatial detail</li>
+          <li>ID3 tags for portability, less data loss, and a smoother workflow</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Week 5: Workflow -->
+    <div class="module">
+      <div class="module-icon">
+        <svg viewBox="0 0 32 32">
+          <rect x="7" y="5" width="18" height="22" rx="2" />
+          <path d="M11 12l2 2 4-4" />
+          <line x1="19" y1="11" x2="23" y2="11" />
+          <path d="M11 20l2 2 4-4" />
+          <line x1="19" y1="19" x2="23" y2="19" />
+        </svg>
+      </div>
+      <div class="module-body">
+        <div class="module-head">
+          <span class="module-week">Week 5</span>
+          <h3>Workflow</h3>
+        </div>
+        <p class="module-outcome">
+          Build systems that create confidence, reduce cognitive load, and induce flow during a set.
+        </p>
+        <p class="module-desc">
+          Turn a messy library into a performance instrument. File-system
+          hygiene so you always know where your music and metadata live, track
+          prep that unlocks ease behind the decks, and smart playlists that let
+          you improvise or play prepared. Finish with a "pre-flight
+          checklist"&mdash;like a pilot's&mdash;so you're locked in the moment
+          you press play.
+        </p>
+        <ul class="module-points">
+          <li>File hygiene and a library that travels between ecosystems</li>
+          <li>Track prep&mdash;beat grids, hot cues, and tools like Platinum Notes and Mixed In Key</li>
+          <li>Smart playlists by tempo, key, lyrics, vibe, tag, and acoustic similarity</li>
+          <li>A pre-flight checklist so you're locked in from the first track</li>
+          <li class="optional">Optional add-on: AI workflows that auto-acquire newly discovered music</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Week 6: Mixing -->
+    <div class="module">
+      <div class="module-icon">
+        <svg viewBox="0 0 32 32">
+          <line x1="9" y1="5" x2="9" y2="27" />
+          <rect x="6" y="10" width="6" height="5" rx="1" />
+          <line x1="16" y1="5" x2="16" y2="27" />
+          <rect x="13" y="17" width="6" height="5" rx="1" />
+          <line x1="23" y1="5" x2="23" y2="27" />
+          <rect x="20" y="13" width="6" height="5" rx="1" />
+        </svg>
+      </div>
+      <div class="module-body">
+        <div class="module-head">
+          <span class="module-week">Week 6</span>
+          <h3>Mixing</h3>
+        </div>
+        <p class="module-outcome">
+          Create clean, intentional transitions across genres and tempos, build and hold energy, and get the most out of any system.
+        </p>
+        <p class="module-desc">
+          You already know how to mix&mdash;now go deeper. Phrase matching,
+          EQ-based mixing, and effects, all studied through the lens of
+          deliberately titrating energy on the dance floor. When to reach for
+          more than two decks to preserve the sounds holding the room, and the
+          sound-engineering basics that make every mix cleaner.
+        </p>
+        <ul class="module-points">
+          <li>Phrase-, EQ-, and effects-based mixing</li>
+          <li>Multi-deck techniques for continuity and energy</li>
+          <li>Reliable transitions across broader genres and tempo ranges</li>
+          <li><a href="/headroom/concepts/gain-staging/" style="color: inherit; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 0.2em;">Gain staging</a>, EQing for a room, and using your headphones to mix better</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Week 7: Relating -->
+    <div class="module">
+      <div class="module-icon">
+        <svg viewBox="0 0 32 32">
+          <circle cx="11" cy="11" r="4" />
+          <circle cx="21" cy="11" r="4" />
+          <path d="M4 26c0-3.9 3.1-7 7-7s7 3.1 7 7" />
+          <path d="M16 20.2c1.4-0.8 3.1-1.2 5-1.2 3.9 0 7 3.1 7 7" />
+        </svg>
+      </div>
+      <div class="module-body">
+        <div class="module-head">
+          <span class="module-week">Week 7</span>
+          <h3>Relating</h3>
+        </div>
+        <p class="module-outcome">
+          Develop the awareness, communication, and etiquette to navigate high-stakes, shared performance spaces with confidence and ease.
+        </p>
+        <p class="module-desc">
+          The most overlooked DJ skill is working with people. Treat equipment
+          like an extension of someone's body, apply the principles of consent
+          to the decks for smoother hand-offs, and build the reputation that
+          gets you invited back. Then turn to the crowd&mdash;meeting an
+          audience where it is and earning the trust to take it on a journey.
+        </p>
+        <ul class="module-points">
+          <li>Smooth hand-offs and booth etiquette between DJs</li>
+          <li>Being easy to work with&mdash;and getting invited to play more</li>
+          <li>"Playing what I want" vs. "playing what they want," authentically</li>
+          <li>Reading the room and earning a crowd's trust</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Week 8: Real-World Systems -->
+    <div class="module">
+      <div class="module-icon">
+        <svg viewBox="0 0 32 32">
+          <circle cx="16" cy="18" r="9" />
+          <line x1="16" y1="6" x2="16" y2="9" />
+          <line x1="7" y1="18" x2="25" y2="18" />
+          <line x1="9.5" y1="12" x2="22.5" y2="12" />
+          <line x1="9.5" y1="24" x2="22.5" y2="24" />
+          <line x1="16" y1="9" x2="16" y2="27" />
+          <path d="M11 10.5c-2 4-2 11 0 15" />
+          <path d="M21 10.5c2 4 2 11 0 15" />
+        </svg>
+      </div>
+      <div class="module-body">
+        <div class="module-head">
+          <span class="module-week">Week 8</span>
+          <h3>Real-World Systems</h3>
+        </div>
+        <p class="module-outcome">
+          Confidently operate in real-world environments.
+        </p>
+        <p class="module-desc">
+          Bring it all together and take it into the world&mdash;clubs,
+          festivals, renegade stages, and house parties, each with its own
+          advantages and pitfalls. What to show up with, how to work with the
+          system that's already there, and how to stay connected to a
+          dancefloor you can't always hear or feel.
+        </p>
+        <ul class="module-points">
+          <li>Clubs and festivals&mdash;essential gear and working with house systems</li>
+          <li>House parties and renegades&mdash;power distribution, batteries, and generators without blow-ups</li>
+          <li>Staying connected to a crowd you can't necessarily hear</li>
+          <li>The basics of recording and live-streaming your sets</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Instructor -->
+<section>
+  <h2>Your instructor</h2>
+  <p class="section-lead">
+    I'm Avand&mdash;a DJ and software engineer who has spent over a decade
+    obsessing over how sound systems work so the music sounds exactly right.
+  </p>
+
+  <div class="instructor">
+    <img class="instructor-photo" src="avand.jpg" alt="Avand" />
+    <div>
       <p>
-        This is the first cohort, and while I’m confident it will be great,
-        there may also be some rough edges. If the course falls below your
-        expectations for any reason, I’ll refund up to 100% of your tuition.
+        I've played everywhere from Burning Man art cars and mobile rigs that I set up
+        myself to nightclubs around the world. I've used CDJs, controllers,
+        all-in-ones, Traktor, rekordbox, and laptop-only setups. I don't have one
+        "right way"&mdash;I just have some well-formed opinions born from real-world
+        experience across the full range of gear and environments.
       </p>
+      <p style="margin-top: 1em;">
+        I was an instructor at <a href="https://generalassemb.ly/" target="_blank" style="color: var(--text); text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 0.2em;">General Assembly</a>, where I logged
+        700+ hours in front of students and designed my own curriculum from
+        scratch. I love to teach and share my experience with others. I've
+        also worked in software for long time so technical details are my jam.
+      </p>
+
+      <div class="credential-grid">
+        <div class="credential">
+          <div class="number">13 years</div>
+          <div class="label">DJ experience</div>
+        </div>
+        <div class="credential">
+          <div class="number">700+ hours</div>
+          <div class="label">in-class teaching & curriculum design</div>
+        </div>
+        <div class="credential">
+          <div class="number">20+ years</div>
+          <div class="label">software engineering</div>
+        </div>
+      </div>
     </div>
-  </section>
-
-  <!-- Final CTA -->
-  <div class="final-cta" id="book">
-    <h2>Interested?</h2>
-    <p>
-      Book a quick intro call. We’ll talk about your experience level,
-      what you want to get out of the course, and whether it's a good fit.
-    </p>
-    <a class="btn-primary" href="https://calendar.app.google/2dhPnZHUngrQUUoF7" target="_blank">Book an intro call</a>
   </div>
+</section>
 
-  <footer>
-    <a href="../">avand.fm</a> &middot; Headroom &middot; 2026
-  </footer>
+<!-- Format -->
+<section>
+  <h2>How it works</h2>
+  <p class="section-lead">
+    This first cohort will be a small, focused group with room for real questions and hands-on work.
+  </p>
 
-  <script>
-    (function() {
-      var size = 32;
-      var frames = 36;
-      var urls = [];
-      var canvas = document.createElement("canvas");
-      canvas.width = size;
-      canvas.height = size;
-      var ctx = canvas.getContext("2d");
-      var cx = size / 2;
-      var cy = size / 2;
+  <div class="format-grid">
+    <div class="format-item">
+      <div class="value">8 weeks</div>
+      <div class="desc">Thursdays 6&ndash;8 PM MT &middot; Oct 1&ndash;Nov 19, 2026</div>
+    </div>
+    <div class="format-item">
+      <div class="value">2 hrs / wk</div>
+      <div class="desc">Lectures, demos, and hands-on work, plus ~30 min of homework each week</div>
+    </div>
+    <div class="format-item">
+      <div class="value">10&ndash;15 people</div>
+      <div class="desc">Small, focused, plenty of space for answering your specific questions</div>
+    </div>
+    <div class="format-item">
+      <div class="value"><s style="color: var(--text-muted); font-weight: 400; text-decoration-thickness: 1px;">$1,800</s> $900</div>
+      <div class="desc">Introductory price with a full, money-back guarantee</div>
+    </div>
+  </div>
+</section>
 
-      for (var i = 0; i < frames; i++) {
-        ctx.clearRect(0, 0, size, size);
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate((i / frames) * Math.PI * 2);
-        ctx.translate(-cx, -cy);
+<!-- Guarantee -->
+<section>
+  <div class="guarantee">
+    <h2>Money-back guarantee</h2>
+    <p>
+      This is the first cohort, and while I'm confident it will be great,
+      there may also be some rough edges. If the course falls below your
+      expectations for any reason, I'll refund up to 100% of your tuition.
+    </p>
+  </div>
+</section>
 
-        // Vinyl
-        ctx.beginPath();
-        ctx.arc(cx, cy, 16, 0, Math.PI * 2);
-        ctx.fillStyle = "#111";
-        ctx.fill();
-
-        // Label
-        ctx.beginPath();
-        ctx.arc(cx, cy, 8, 0, Math.PI * 2);
-        ctx.fillStyle = "#ff6116";
-        ctx.fill();
-
-        // Label arc (like text on a record)
-        ctx.beginPath();
-        ctx.arc(cx, cy, 5.5, -0.8, 0.8);
-        ctx.strokeStyle = "white";
-        ctx.lineWidth = 2;
-        ctx.lineCap = "round";
-        ctx.stroke();
-
-        // Spindle hole
-        ctx.beginPath();
-        ctx.arc(cx, cy, 1.2, 0, Math.PI * 2);
-        ctx.fillStyle = "#ccc";
-        ctx.fill();
-
-        ctx.restore();
-        urls.push(canvas.toDataURL("image/png"));
-      }
-
-      var link = document.getElementById("favicon");
-      var frame = 0;
-      setInterval(function() {
-        frame = (frame + 1) % frames;
-        link.href = urls[frame];
-      }, 1800 / frames);
-    })();
-  </script>
-</body>
-
-</html>
+<!-- Final CTA -->
+<div class="final-cta" id="book">
+  <h2>Interested?</h2>
+  <p>
+    Book a quick intro call. We'll talk about your experience level,
+    what you want to get out of the course, and whether it's a good fit.
+  </p>
+  <a class="btn-primary" href="https://calendar.app.google/2dhPnZHUngrQUUoF7" target="_blank">Book an intro call</a>
+</div>

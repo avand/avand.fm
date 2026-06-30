@@ -1,0 +1,239 @@
+---
+layout: headroom
+title: "DJ Glossary — Headroom"
+description: '"Explain it to me like I''m 5"-style definitions of terms and concepts that every DJ should know.'
+section: Concepts
+---
+
+<style>
+  .page-header {
+    padding: 8em 2em 3em;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  .breadcrumb {
+    font-size: 0.8em;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 1.2em;
+  }
+
+  .breadcrumb a {
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .breadcrumb a:hover {
+    color: var(--text);
+  }
+
+  .breadcrumb span {
+    margin: 0 0.5em;
+    opacity: 0.4;
+  }
+
+  .page-header h1 {
+    font-size: clamp(2em, 5vw, 3em);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 0.4em;
+  }
+
+  .page-header .lead {
+    font-size: 1.1em;
+    color: var(--text-muted);
+    max-width: 560px;
+  }
+
+  .glossary {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 2em 6em;
+  }
+
+  .letter-group {
+    margin-bottom: 3em;
+  }
+
+  .letter-heading {
+    font-size: 0.75em;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--warm);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.5em;
+    margin-bottom: 1em;
+  }
+
+  .entry-list {
+    list-style: none;
+    display: grid;
+    gap: 0.15em;
+  }
+
+  .entry-list li a {
+    display: flex;
+    align-items: baseline;
+    gap: 1em;
+    padding: 0.65em 0;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 150ms;
+  }
+
+  .entry-list li a:hover {
+    border-bottom-color: var(--border);
+  }
+
+  .entry-list li a:hover .entry-name {
+    color: var(--text);
+  }
+
+  .entry-name {
+    font-weight: 700;
+    font-size: 1.05em;
+    color: var(--text);
+    white-space: nowrap;
+    transition: color 150ms;
+  }
+
+  .entry-desc {
+    font-size: 0.92em;
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .final-cta {
+    text-align: center;
+    padding: 6em 2em;
+    position: relative;
+    background:
+      linear-gradient(to bottom, var(--bg) 0%, rgba(10, 10, 15, 0.5) 30%, rgba(10, 10, 15, 0.5) 70%, var(--bg) 100%),
+      url('/headroom/djvibe-studiox-dt_UuLU_foM-unsplash.jpg') center bottom / cover no-repeat;
+  }
+
+  .final-cta::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    box-shadow: inset 0 0 8em 2em var(--bg);
+    pointer-events: none;
+  }
+
+  .final-cta h2 {
+    font-size: 2em;
+    margin-bottom: 0.4em;
+    position: relative;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  }
+
+  .final-cta p {
+    color: var(--text-muted);
+    font-size: 1.1em;
+    position: relative;
+    max-width: 500px;
+    margin: 0 auto 2em;
+  }
+
+  .btn-primary {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1em;
+    padding: 0.75em 2.5em;
+    border-radius: 2em;
+    transition: box-shadow 200ms, transform 200ms;
+    box-shadow: 0 0 1.5em var(--accent-glow);
+    position: relative;
+  }
+
+  .btn-primary:hover {
+    box-shadow: 0 0 2.5em var(--accent-glow);
+    transform: translateY(-1px);
+  }
+
+  @media (max-width: 640px) {
+    .page-header,
+    .glossary {
+      padding-left: 1.2em;
+      padding-right: 1.2em;
+    }
+
+    .entry-desc {
+      display: none;
+    }
+  }
+</style>
+
+<div class="page-header">
+  <div class="breadcrumb">
+    <a href="/headroom/">Headroom</a>
+    <span>/</span>
+    Concepts
+  </div>
+  <h1>DJ Glossary</h1>
+  <p class="lead">
+    "Explain it to me like I'm 5"-style definitions of terms and
+    concepts that every DJ should know.
+  </p>
+</div>
+
+<div class="glossary">
+
+  <!-- G -->
+  <div class="letter-group">
+    <div class="letter-heading">G</div>
+    <ul class="entry-list">
+      <li>
+        <a href="gain-staging/">
+          <span class="entry-name">Gain Staging</span>
+          <span class="entry-desc">Setting signal levels at each point in the chain to stay clean and distortion-free</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- P -->
+  <div class="letter-group">
+    <div class="letter-heading">P</div>
+    <ul class="entry-list">
+      <li>
+        <a href="perceptual-coding/">
+          <span class="entry-name">Perceptual Coding</span>
+          <span class="entry-desc">Lossy compression that discards audio detail the ear is unlikely to notice</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- U -->
+  <div class="letter-group">
+    <div class="letter-heading">U</div>
+    <ul class="entry-list">
+      <li>
+        <a href="unity-gain/">
+          <span class="entry-name">Unity Gain</span>
+          <span class="entry-desc">The setting where a stage's output level equals its input — no boost, no cut</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+</div>
+
+<div class="final-cta">
+  <h2>Want to go deeper?</h2>
+  <p>
+    Headroom is an 8-week course covering the technical foundations every
+    serious DJ should know — signal flow, equipment, mixing, and more.
+  </p>
+  <a class="btn-primary" href="/headroom/#book">Learn about the course</a>
+</div>

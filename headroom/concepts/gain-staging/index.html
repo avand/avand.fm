@@ -1,0 +1,327 @@
+---
+layout: headroom
+title: "Gain Staging — Headroom DJ Glossary"
+description: "Gain staging is the practice of setting and managing signal levels at each point in the audio chain to maximize clarity and minimize noise and distortion."
+section: Concepts
+section_url: /headroom/concepts/
+subsection: Gain Staging
+---
+
+<style>
+  .entry-header {
+    padding: 8em 2em 3em;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  .breadcrumb {
+    font-size: 0.8em;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 1.2em;
+  }
+
+  .breadcrumb a {
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .breadcrumb a:hover {
+    color: var(--text);
+  }
+
+  .breadcrumb span {
+    margin: 0 0.5em;
+    opacity: 0.4;
+  }
+
+  .entry-header h1 {
+    font-size: clamp(2em, 5vw, 3.2em);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 0.4em;
+  }
+
+  .entry-header .part-of-speech {
+    font-size: 0.9em;
+    font-style: italic;
+    color: var(--text-muted);
+    margin-bottom: 1em;
+  }
+
+  .entry-header .lead {
+    font-size: 1.15em;
+    color: var(--text-muted);
+    max-width: 600px;
+  }
+
+  .entry-content {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 2em 5em;
+  }
+
+  .entry-content h2 {
+    font-size: 1.4em;
+    font-weight: 700;
+    margin: 2.5em 0 0.6em;
+  }
+
+  .entry-content p {
+    color: var(--text-muted);
+    margin-bottom: 1em;
+    font-size: 1.02em;
+  }
+
+  .entry-content p a {
+    color: var(--text);
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 0.2em;
+  }
+
+  .entry-content ul,
+  .entry-content ol {
+    list-style: none;
+    margin-bottom: 1em;
+  }
+
+  .entry-content ul li,
+  .entry-content ol li {
+    position: relative;
+    padding-left: 1.4em;
+    color: var(--text-muted);
+    font-size: 1em;
+    margin-bottom: 0.35em;
+  }
+
+  .entry-content ul li::before {
+    content: "\25B8";
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+  }
+
+  .entry-content ol {
+    counter-reset: ol-counter;
+  }
+
+  .entry-content ol li {
+    counter-increment: ol-counter;
+  }
+
+  .entry-content ol li::before {
+    content: counter(ol-counter) ".";
+    position: absolute;
+    left: 0;
+    color: var(--warm);
+    font-weight: 700;
+    font-size: 0.85em;
+  }
+
+  .callout {
+    border-left: 3px solid var(--accent);
+    padding: 1em 1.4em;
+    background: var(--surface);
+    border-radius: 0 0.4em 0.4em 0;
+    margin: 1.5em 0;
+  }
+
+  .callout p {
+    margin: 0;
+    font-size: 0.97em;
+  }
+
+  .related {
+    border-top: 1px solid var(--border);
+    padding-top: 2em;
+    margin-top: 3em;
+  }
+
+  .related h3 {
+    font-size: 0.8em;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 1em;
+  }
+
+  .related-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6em;
+  }
+
+  .related-list a {
+    color: var(--text);
+    text-decoration: none;
+    font-size: 0.9em;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    border-radius: 2em;
+    padding: 0.35em 1em;
+    background: var(--surface);
+    transition: border-color 200ms;
+  }
+
+  .related-list a:hover {
+    border-color: var(--accent);
+  }
+
+  .final-cta {
+    text-align: center;
+    padding: 6em 2em;
+    position: relative;
+    background:
+      linear-gradient(to bottom, var(--bg) 0%, rgba(10, 10, 15, 0.5) 30%, rgba(10, 10, 15, 0.5) 70%, var(--bg) 100%),
+      url('/headroom/djvibe-studiox-dt_UuLU_foM-unsplash.jpg') center bottom / cover no-repeat;
+  }
+
+  .final-cta::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    box-shadow: inset 0 0 8em 2em var(--bg);
+    pointer-events: none;
+  }
+
+  .final-cta h2 {
+    font-size: 2em;
+    margin-bottom: 0.4em;
+    position: relative;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  }
+
+  .final-cta p {
+    color: var(--text-muted);
+    font-size: 1.1em;
+    position: relative;
+    max-width: 500px;
+    margin: 0 auto 2em;
+  }
+
+  .btn-primary {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1em;
+    padding: 0.75em 2.5em;
+    border-radius: 2em;
+    transition: box-shadow 200ms, transform 200ms;
+    box-shadow: 0 0 1.5em var(--accent-glow);
+    position: relative;
+  }
+
+  .btn-primary:hover {
+    box-shadow: 0 0 2.5em var(--accent-glow);
+    transform: translateY(-1px);
+  }
+
+  @media (max-width: 640px) {
+    .entry-header,
+    .entry-content {
+      padding-left: 1.2em;
+      padding-right: 1.2em;
+    }
+  }
+</style>
+
+<div class="entry-header">
+  <div class="breadcrumb">
+    <a href="/headroom/">Headroom</a>
+    <span>/</span>
+    <a href="/headroom/concepts/">Concepts</a>
+    <span>/</span>
+    Gain Staging
+  </div>
+  <h1>Gain Staging</h1>
+  <div class="part-of-speech">noun</div>
+  <p class="lead">
+    The practice of setting and managing signal levels at each point in the
+    audio chain so the signal stays clean, loud, and distortion-free from
+    source to speaker.
+  </p>
+</div>
+
+<div class="entry-content">
+
+  <p>
+    Every device in an audio chain — a turntable, mixer, amplifier, speaker — has
+    an input and an output, and each one operates best within a specific range of
+    signal levels. Too low, and you drag the signal down into the noise floor.
+    Too high, and you clip the signal, introducing harsh digital or analog
+    distortion. Gain staging is the discipline of keeping every device in the
+    chain operating in its sweet spot.
+  </p>
+
+  <h2>Why it matters for DJs</h2>
+
+  <p>
+    A DJ rig is a chain: source (media player or laptop) → mixer channel →
+    mixer master → amplifier → speakers. Each step multiplies whatever came
+    before it. If your channel gain is cranked to compensate for a quiet track,
+    that added noise gets amplified right along with the music. If your mixer
+    master is clipping before it hits the amp, no amount of downstream
+    adjustment will undo the distortion.
+  </p>
+
+  <div class="callout">
+    <p>
+      A good rule of thumb: set each stage to
+      <a href="/headroom/concepts/unity-gain/">unity gain</a> — the point
+      where a stage's output level matches its input level, neither boosting
+      nor cutting — so its meters peak around 0 dBVU (or just below 0 dBFS on a
+      digital meter) during the loudest moments. Then the next stage down the
+      chain starts from a predictable, healthy level.
+    </p>
+  </div>
+
+  <h2>The stages in a typical DJ rig</h2>
+
+  <ul>
+    <li><strong>Trim / gain knob</strong> — sets the input level for each channel on the mixer. This is where you level-match tracks so they hit the mixer at the same volume regardless of how they were mastered.</li>
+    <li><strong>Channel fader</strong> — controls how much of that gained signal is sent to the mix bus. Not a substitute for proper gain — riding the fader up to compensate for a quiet track means you're also riding up the noise.</li>
+    <li><strong>Master output</strong> — controls the combined signal sent to the booth amp and the PA. This should live at or near unity unless the amp requires otherwise.</li>
+    <li><strong>Booth monitor</strong> — a separate output on most club mixers; set independently so you can hear yourself without affecting the PA level.</li>
+  </ul>
+
+  <h2>Common mistakes</h2>
+
+  <ul>
+    <li>Turning the channel gain all the way up to make a quiet track loud, then pulling the master down — this pushes noise through the whole chain.</li>
+    <li>Mixing into a limiter at the master stage and treating it as a safety net instead of addressing the underlying gain issue.</li>
+    <li>Setting gain at home on studio monitors and discovering the club's system sounds completely different because the room, the amp, and the speakers all have their own sensitivities.</li>
+  </ul>
+
+  <h2>In the context of Headroom</h2>
+
+  <p>
+    Gain staging is covered in depth in
+    <a href="/headroom/#curriculum">Week 2 (Signal Flow)</a> and Week 6 (Mixing).
+    Understanding it early means you'll know why a track sounds muddy or thin
+    before you reach for EQ — and that changes everything about how you prepare
+    and perform.
+  </p>
+
+  <div class="related">
+    <h3>Related terms</h3>
+    <div class="related-list">
+      <a href="/headroom/concepts/unity-gain/">Unity Gain</a>
+    </div>
+  </div>
+
+</div>
+
+<div class="final-cta">
+  <h2>Want to go deeper?</h2>
+  <p>
+    Headroom is an 8-week course covering the technical foundations every
+    serious DJ should know — signal flow, equipment, mixing, and more.
+  </p>
+  <a class="btn-primary" href="/headroom/#book">Learn about the course</a>
+</div>
