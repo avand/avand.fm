@@ -1,10 +1,10 @@
 ---
 layout: headroom
-title: "Master Tempo — Headroom DJ Glossary"
-description: "Master tempo is a feature that lets you change a track's playback speed without changing its pitch, decoupling tempo from key."
+title: "Musical Key — Headroom DJ Glossary"
+description: "Musical key is the tonal center of a track — the note everything orbits around — and the property that determines whether two songs will sound harmonically compatible when played together."
 section: Concepts
 section_url: /headroom/concepts/
-subsection: Master Tempo
+subsection: Musical Key
 ---
 
 <style>
@@ -230,72 +230,100 @@ subsection: Master Tempo
     <span>/</span>
     <a href="/headroom/concepts/">Concepts</a>
     <span>/</span>
-    Master Tempo
+    Musical Key
   </div>
-  <h1>Master Tempo</h1>
+  <h1>Musical Key</h1>
   <p class="lead">
-    A feature that lets you speed up or slow down a track without raising
-    or lowering its pitch — tempo and key decoupled from each other.
+    The tonal center of a track — the note everything orbits around — and the
+    property that determines whether two songs will sound harmonically compatible
+    when played together.
   </p>
 </div>
 
 <div class="entry-content">
 
   <p>
-    On a turntable with no pitch correction, speeding up a record always
-    raises its pitch — push the tempo fader up and the track gets faster
-    and higher, like a tape sped up. Master tempo (sometimes called "key
-    lock" or "pitch lock") breaks that link. It lets you change playback
-    speed on its own, while a separate process re-synthesizes the audio to
-    keep the original pitch intact.
+    Every piece of Western music is built around a scale — a set of notes that
+    sound good together. The key names which scale that is and where it starts.
+    A track "in A minor" uses the notes of the A minor scale as its harmonic
+    foundation. The melody, the chords, the bassline — they all orbit that root
+    note, A, the way planets orbit a star.
   </p>
 
-  <h2>Why it matters for DJs</h2>
+  <h2>The 24 possible keys</h2>
 
   <p>
-    Master tempo is what makes large tempo jumps usable in a set. Beatmatching
-    a 122 BPM house track into a 140 BPM track without it means the slower
-    track gets pitched up so far it sounds like a different key entirely —
-    vocals turn chipmunked, basslines lose their weight. With master tempo
-    engaged, you can push that same tempo range and the track stays in its
-    original key, so the harmonic relationship between songs stays
-    predictable instead of accidental.
+    There are 12 distinct pitches in Western music (the 12 notes of the chromatic
+    scale). Each one can serve as the root of a major or minor scale, giving you
+    24 total keys: 12 major and 12 minor. Major keys tend to sound bright or
+    uplifting; minor keys tend to sound darker or more melancholic. That's a
+    generalization with plenty of exceptions, but it's a useful starting point
+    for understanding why two tracks might clash even if their BPMs are identical.
+  </p>
+
+  <h2>How DJs use key: harmonic mixing</h2>
+
+  <p>
+    When you mix two tracks together, their keys interact. If they're compatible,
+    the transition sounds smooth — almost musical, like the second track was
+    always supposed to follow the first. If they're not compatible, you get
+    a clashing, off-key feeling that no amount of EQ will fix.
+  </p>
+
+  <p>
+    <a href="/headroom/concepts/harmonic-mixing/">Harmonic mixing</a> is the practice
+    of choosing tracks whose keys are compatible so transitions sound melodic rather
+    than jarring. Compatible keys are ones that share enough notes to coexist without
+    producing obvious dissonance.
+  </p>
+
+  <h2>The Camelot Wheel</h2>
+
+  <p>
+    Music theory has a tool called the circle of fifths that maps out which keys
+    are harmonically related. DJs have their own version: the Camelot Wheel.
+    It remaps every key to a number (1–12) and a letter (A for minor, B for major),
+    so compatible keys are visually adjacent on the wheel. A minor = 8A.
+    C major = 8B. Moving one step clockwise, counterclockwise, or switching
+    between A and B at the same number all produce compatible transitions.
   </p>
 
   <div class="callout">
     <p>
-      Master tempo isn't free — it works by digitally stretching or
-      compressing the audio in time, which is more processing than a simple
-      speed change. Pushed to extremes (very large tempo shifts), you'll
-      start to hear artifacts: a slightly grainy or "smeared" quality,
-      especially on vocals and cymbals. Small-to-moderate tempo changes are
-      usually transparent; big ones aren't free of cost.
+      The Camelot system exists specifically because "go up a perfect fifth" is
+      harder to act on in the booth than "go from 8A to 9A." Same music theory,
+      friendlier interface.
     </p>
   </div>
 
-  <h2>Where you'll find the control</h2>
-
-  <ul>
-    <li><strong>CDJs and standalone players</strong> — almost always a dedicated "Master Tempo" or "Key Lock" button near the pitch fader.</li>
-    <li><strong>DJ software</strong> (Serato, rekordbox, Engine DJ) — typically a toggle per deck, sometimes with a separate "keylock quality" setting that trades CPU load for audio fidelity.</li>
-    <li><strong>Turntables</strong> — generally don't have it natively; true vinyl pitch changes always shift key, which is part of why all-vinyl tempo-matching across wide BPM ranges is harder.</li>
-  </ul>
-
-  <h2>In the context of Headroom</h2>
+  <h2>Key, tempo, and the pitch shift problem</h2>
 
   <p>
-    Master tempo comes up in Module 4: Music — once you're
-    blending across genres or BPM ranges, knowing when to lean on it (and
-    when its artifacts start working against you) is part of building a set
-    that holds together instead of just lining up on the grid.
+    Changing a track's playback speed also changes its pitch — slow it down and
+    it drops; speed it up and it rises. <a href="/headroom/concepts/master-tempo/">Master
+    tempo</a> (also called key lock) corrects for this digitally, allowing you to
+    adjust BPM without shifting the key. But at extreme tempo changes (more than
+    5–6% from the original), the pitch correction algorithm starts to introduce
+    artifacts, and the key can drift slightly. Worth knowing when you're trying
+    to harmonic-mix a track you've nudged aggressively to match a different BPM.
+  </p>
+
+  <h2>Auto-detection software</h2>
+
+  <p>
+    Software like Mixed in Key analyzes tracks and writes their Camelot codes
+    directly into the ID3 tags of the file. When you load those tracks into
+    rekordbox or Serato, the key is already there. No ear training required —
+    though understanding what the numbers mean helps you make better decisions
+    when the algorithm gets it wrong (and it occasionally does, especially on
+    tracks with ambiguous or shifting tonality).
   </p>
 
   <div class="related">
     <h3>Related terms</h3>
     <div class="related-list">
-      <a href="/headroom/concepts/key-lock/">Key Lock</a>
-      <a href="/headroom/concepts/bpm/">BPM</a>
-      <a href="/headroom/concepts/musical-key/">Musical Key</a>
+      <a href="/headroom/concepts/harmonic-mixing/">Harmonic Mixing</a>
+      <a href="/headroom/concepts/master-tempo/">Master Tempo</a>
     </div>
   </div>
 

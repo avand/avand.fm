@@ -1,10 +1,10 @@
 ---
 layout: headroom
-title: "Master Tempo — Headroom DJ Glossary"
-description: "Master tempo is a feature that lets you change a track's playback speed without changing its pitch, decoupling tempo from key."
+title: "Line Level — Headroom DJ Glossary"
+description: "Line level is the standard signal strength used by most audio gear — the voltage level at which mixers, players, and amplifiers are designed to talk to each other."
 section: Concepts
 section_url: /headroom/concepts/
-subsection: Master Tempo
+subsection: Line Level
 ---
 
 <style>
@@ -230,72 +230,84 @@ subsection: Master Tempo
     <span>/</span>
     <a href="/headroom/concepts/">Concepts</a>
     <span>/</span>
-    Master Tempo
+    Line Level
   </div>
-  <h1>Master Tempo</h1>
+  <h1>Line Level</h1>
   <p class="lead">
-    A feature that lets you speed up or slow down a track without raising
-    or lowering its pitch — tempo and key decoupled from each other.
+    The standard signal strength used by most audio gear — the voltage level at
+    which mixers, players, and amplifiers are designed to talk to each other.
   </p>
 </div>
 
 <div class="entry-content">
 
   <p>
-    On a turntable with no pitch correction, speeding up a record always
-    raises its pitch — push the tempo fader up and the track gets faster
-    and higher, like a tape sped up. Master tempo (sometimes called "key
-    lock" or "pitch lock") breaks that link. It lets you change playback
-    speed on its own, while a separate process re-synthesizes the audio to
-    keep the original pitch intact.
+    Audio signals exist across a huge range of voltages. A microphone produces
+    a tiny, fragile signal. A power amplifier's output can drive a speaker with
+    enough force to move serious air. Line level sits in the middle — a defined
+    sweet spot that most professional and consumer audio gear uses as a common
+    language.
   </p>
 
-  <h2>Why it matters for DJs</h2>
+  <h2>The three signal levels DJs encounter</h2>
+
+  <ul>
+    <li><strong>Mic level</strong> — very weak, typically in the millivolt range. This is the raw output of a microphone before amplification. Plugging a mic directly into a line input gives you a whisper, even at full volume.</li>
+    <li><strong>Line level</strong> — the standard operating level for most gear. Media players, mixers, audio interfaces, and effects units all speak line level. There are two common standards: –10 dBV (consumer) and +4 dBu (professional). They're close enough that most gear handles both, but the difference matters in studio contexts.</li>
+    <li><strong>Speaker level</strong> — the amplified output from a power amp to the speaker cabinet. This is far stronger than line level. Connecting a speaker-level output to a line-level input (say, running speaker wire into a mixer channel) can seriously damage the input — and possibly the gear downstream.</li>
+  </ul>
+
+  <div class="callout">
+    <p>
+      The practical rule: match levels at every connection. Line out to line in.
+      Never speaker out to line in. If something sounds weak and thin, check
+      whether the source is outputting at the level the destination expects.
+    </p>
+  </div>
+
+  <h2>Why DJ mixers have a separate mic input</h2>
 
   <p>
-    Master tempo is what makes large tempo jumps usable in a set. Beatmatching
-    a 122 BPM house track into a 140 BPM track without it means the slower
-    track gets pitched up so far it sounds like a different key entirely —
-    vocals turn chipmunked, basslines lose their weight. With master tempo
-    engaged, you can push that same tempo range and the track stays in its
-    original key, so the harmonic relationship between songs stays
-    predictable instead of accidental.
+    Most DJ mixers have a dedicated microphone input that's separate from the
+    channel line inputs. This is not a courtesy — it's a technical necessity.
+    Mic-level signals need a preamp to boost them up to line level before the
+    mixer's signal path can work with them properly. The mic input has that
+    preamp built in. Plugging a microphone into a line input would produce a
+    barely audible signal, cranked gain, and a lot of noise. Plugging a line
+    source (like a media player) into the mic input would massively overdrive it.
+  </p>
+
+  <h2>Line level and gain staging</h2>
+
+  <p>
+    <a href="/headroom/concepts/gain-staging/">Gain staging</a> is fundamentally
+    about keeping signals at the right level through every stage of the chain.
+    Line level is the target at most stages in a DJ rig — what's coming out of
+    the player, what's entering the mixer, what's leaving the mixer before it
+    hits the amp. Understanding that line level is a defined range (not just
+    "medium volume") helps you think about mismatches rather than just turning
+    knobs until something sounds right.
   </p>
 
   <div class="callout">
     <p>
-      Master tempo isn't free — it works by digitally stretching or
-      compressing the audio in time, which is more processing than a simple
-      speed change. Pushed to extremes (very large tempo shifts), you'll
-      start to hear artifacts: a slightly grainy or "smeared" quality,
-      especially on vocals and cymbals. Small-to-moderate tempo changes are
-      usually transparent; big ones aren't free of cost.
+      A phono cartridge (from a turntable) outputs at an even lower level than
+      a microphone, and requires RIAA equalization on top of amplification.
+      That's what a phono preamp (or a mixer's phono input) does — it's not
+      just a level boost, it's a level boost plus a specific EQ curve baked
+      into the vinyl format.
     </p>
   </div>
-
-  <h2>Where you'll find the control</h2>
-
-  <ul>
-    <li><strong>CDJs and standalone players</strong> — almost always a dedicated "Master Tempo" or "Key Lock" button near the pitch fader.</li>
-    <li><strong>DJ software</strong> (Serato, rekordbox, Engine DJ) — typically a toggle per deck, sometimes with a separate "keylock quality" setting that trades CPU load for audio fidelity.</li>
-    <li><strong>Turntables</strong> — generally don't have it natively; true vinyl pitch changes always shift key, which is part of why all-vinyl tempo-matching across wide BPM ranges is harder.</li>
-  </ul>
-
-  <h2>In the context of Headroom</h2>
-
-  <p>
-    Master tempo comes up in Module 4: Music — once you're
-    blending across genres or BPM ranges, knowing when to lean on it (and
-    when its artifacts start working against you) is part of building a set
-    that holds together instead of just lining up on the grid.
-  </p>
 
   <div class="related">
     <h3>Related terms</h3>
     <div class="related-list">
-      <a href="/headroom/concepts/key-lock/">Key Lock</a>
-      <a href="/headroom/concepts/bpm/">BPM</a>
-      <a href="/headroom/concepts/musical-key/">Musical Key</a>
+      <a href="/headroom/concepts/signal-flow/">Signal Flow</a>
+      <a href="/headroom/concepts/gain-staging/">Gain Staging</a>
+      <a href="/headroom/concepts/balanced-vs-unbalanced/">Balanced vs. Unbalanced</a>
+      <a href="/headroom/concepts/xlr/">XLR</a>
+      <a href="/headroom/concepts/trs/">TRS</a>
+      <a href="/headroom/concepts/rca/">RCA</a>
     </div>
   </div>
 

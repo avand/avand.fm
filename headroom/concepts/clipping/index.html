@@ -1,10 +1,10 @@
 ---
 layout: headroom
-title: "Master Tempo — Headroom DJ Glossary"
-description: "Master tempo is a feature that lets you change a track's playback speed without changing its pitch, decoupling tempo from key."
+title: "Clipping — Headroom DJ Glossary"
+description: "Clipping is what happens when an audio signal is pushed louder than a system can handle — the waveform gets its peaks cut off, producing harsh distortion."
 section: Concepts
 section_url: /headroom/concepts/
-subsection: Master Tempo
+subsection: Clipping
 ---
 
 <style>
@@ -230,72 +230,91 @@ subsection: Master Tempo
     <span>/</span>
     <a href="/headroom/concepts/">Concepts</a>
     <span>/</span>
-    Master Tempo
+    Clipping
   </div>
-  <h1>Master Tempo</h1>
+  <h1>Clipping</h1>
   <p class="lead">
-    A feature that lets you speed up or slow down a track without raising
-    or lowering its pitch — tempo and key decoupled from each other.
+    What happens when an audio signal is pushed louder than a system can handle
+    — the waveform gets its peaks cut off, and what comes out the other side is
+    harsh, ugly distortion.
   </p>
 </div>
 
 <div class="entry-content">
 
   <p>
-    On a turntable with no pitch correction, speeding up a record always
-    raises its pitch — push the tempo fader up and the track gets faster
-    and higher, like a tape sped up. Master tempo (sometimes called "key
-    lock" or "pitch lock") breaks that link. It lets you change playback
-    speed on its own, while a separate process re-synthesizes the audio to
-    keep the original pitch intact.
+    Think of it like trying to fit a tall person through a door frame. Everything
+    below the frame passes through fine. Everything above the frame gets cut off.
+    What you end up with doesn't resemble a person anymore — and what you end up
+    with sonically doesn't resemble the original audio anymore either.
   </p>
-
-  <h2>Why it matters for DJs</h2>
 
   <p>
-    Master tempo is what makes large tempo jumps usable in a set. Beatmatching
-    a 122 BPM house track into a 140 BPM track without it means the slower
-    track gets pitched up so far it sounds like a different key entirely —
-    vocals turn chipmunked, basslines lose their weight. With master tempo
-    engaged, you can push that same tempo range and the track stays in its
-    original key, so the harmonic relationship between songs stays
-    predictable instead of accidental.
+    In technical terms: every audio circuit and every digital system has a
+    ceiling — the maximum signal level it can accurately represent. When the
+    signal exceeds that ceiling, the system can't follow the wave's natural curve.
+    Instead, it pins the output at the maximum value until the signal drops back
+    down. The peaks of the waveform get flattened, or "clipped," into a straight
+    line at the top and bottom.
   </p>
+
+  <h2>Analog vs. digital clipping</h2>
+
+  <p>
+    Not all clipping is created equal, and the domain matters a lot:
+  </p>
+
+  <ul>
+    <li><strong>Analog clipping</strong> — happens in analog circuits (tubes, transistors, transformers) when the signal exceeds the supply voltage. The wave compresses and rounds at the peaks rather than cutting off sharply. At moderate levels, this can actually sound pleasant — it's the basis of "warm" tube saturation and the reason some DJs and producers deliberately drive analog gear. But push it too hard and it gets ugly fast.</li>
+    <li><strong>Digital clipping</strong> — happens when a digital signal exceeds 0 dBFS (the absolute ceiling in digital audio). Because digital systems work in discrete steps, the clipping is abrupt and mathematically precise. The result is immediate, harsh distortion with no gradual compression on the way. There is no pleasant version of digital clipping.</li>
+  </ul>
 
   <div class="callout">
     <p>
-      Master tempo isn't free — it works by digitally stretching or
-      compressing the audio in time, which is more processing than a simple
-      speed change. Pushed to extremes (very large tempo shifts), you'll
-      start to hear artifacts: a slightly grainy or "smeared" quality,
-      especially on vocals and cymbals. Small-to-moderate tempo changes are
-      usually transparent; big ones aren't free of cost.
+      0 dBFS is an absolute ceiling — there is literally no louder value the
+      system can represent. Unlike analog where you can push a bit past the
+      nominal level before things go bad, in digital, going over 0 dBFS is
+      immediately wrong. This is why <a href="/headroom/concepts/headroom/">headroom</a>
+      matters: you want the loudest peaks to land below 0 dBFS, not at it.
     </p>
   </div>
 
-  <h2>Where you'll find the control</h2>
-
-  <ul>
-    <li><strong>CDJs and standalone players</strong> — almost always a dedicated "Master Tempo" or "Key Lock" button near the pitch fader.</li>
-    <li><strong>DJ software</strong> (Serato, rekordbox, Engine DJ) — typically a toggle per deck, sometimes with a separate "keylock quality" setting that trades CPU load for audio fidelity.</li>
-    <li><strong>Turntables</strong> — generally don't have it natively; true vinyl pitch changes always shift key, which is part of why all-vinyl tempo-matching across wide BPM ranges is harder.</li>
-  </ul>
-
-  <h2>In the context of Headroom</h2>
+  <h2>Why clipping is bad</h2>
 
   <p>
-    Master tempo comes up in Module 4: Music — once you're
-    blending across genres or BPM ranges, knowing when to lean on it (and
-    when its artifacts start working against you) is part of building a set
-    that holds together instead of just lining up on the grid.
+    When a waveform is clipped, its shape changes — and a different shape means
+    different frequency content. Clipping introduces harmonic distortion:
+    frequencies that were not present in the original signal get added, typically
+    as odd-order harmonics that sound grating and fatiguing. The more severe the
+    clipping, the more of these artificial frequencies appear, and the worse the
+    sound gets.
   </p>
+
+  <p>
+    Sustained clipping can also damage speakers. A clipped signal is essentially
+    a square wave at the peaks, which carries more energy than a smooth sine wave
+    at the same apparent volume. Tweeters (the high-frequency drivers) are
+    especially vulnerable because the distortion products from clipping tend to
+    be in the upper frequency range.
+  </p>
+
+  <h2>How to prevent it</h2>
+
+  <ul>
+    <li>Practice proper <a href="/headroom/concepts/gain-staging/">gain staging</a> — set each stage of the signal chain so the signal peaks well below the ceiling at every point.</li>
+    <li>Maintain <a href="/headroom/concepts/headroom/">headroom</a> — leave room between your average levels and the maximum, so transients (drum hits, peaks) have space to breathe without hitting the ceiling.</li>
+    <li>Use a <a href="/headroom/concepts/limiter/">limiter</a> at the master output as a safety net, not a substitute for proper gain management. A limiter catches occasional rogue peaks; it shouldn't be working constantly.</li>
+    <li>Watch your meters. Red means you're at or past the ceiling. If the clip indicator lights up, pull the level back before continuing.</li>
+  </ul>
 
   <div class="related">
     <h3>Related terms</h3>
     <div class="related-list">
-      <a href="/headroom/concepts/key-lock/">Key Lock</a>
-      <a href="/headroom/concepts/bpm/">BPM</a>
-      <a href="/headroom/concepts/musical-key/">Musical Key</a>
+      <a href="/headroom/concepts/gain-staging/">Gain Staging</a>
+      <a href="/headroom/concepts/headroom/">Headroom</a>
+      <a href="/headroom/concepts/limiter/">Limiter</a>
+      <a href="/headroom/concepts/amplitude/">Amplitude</a>
+      <a href="/headroom/concepts/transient/">Transient</a>
     </div>
   </div>
 

@@ -1,10 +1,10 @@
 ---
 layout: headroom
-title: "Master Tempo — Headroom DJ Glossary"
-description: "Master tempo is a feature that lets you change a track's playback speed without changing its pitch, decoupling tempo from key."
+title: "Superposition — Headroom DJ Glossary"
+description: "Superposition is the rule that says when two sound waves meet, their amplitudes add together — which explains everything from bass nodes in a room to how a mixer sums tracks into a single output."
 section: Concepts
 section_url: /headroom/concepts/
-subsection: Master Tempo
+subsection: Superposition
 ---
 
 <style>
@@ -230,72 +230,102 @@ subsection: Master Tempo
     <span>/</span>
     <a href="/headroom/concepts/">Concepts</a>
     <span>/</span>
-    Master Tempo
+    Superposition
   </div>
-  <h1>Master Tempo</h1>
+  <h1>Superposition</h1>
   <p class="lead">
-    A feature that lets you speed up or slow down a track without raising
-    or lowering its pitch — tempo and key decoupled from each other.
+    The rule that says when two sound waves meet, their amplitudes add together —
+    which explains everything from why a PA sounds different in different spots in
+    a room to how a mixer sums tracks into a single output.
   </p>
 </div>
 
 <div class="entry-content">
 
   <p>
-    On a turntable with no pitch correction, speeding up a record always
-    raises its pitch — push the tempo fader up and the track gets faster
-    and higher, like a tape sped up. Master tempo (sometimes called "key
-    lock" or "pitch lock") breaks that link. It lets you change playback
-    speed on its own, while a separate process re-synthesizes the audio to
-    keep the original pitch intact.
+    Superposition is one of the fundamental principles of wave physics: when two
+    waves occupy the same space at the same time, the resulting displacement at
+    any point is simply the sum of the two individual displacements. Waves don't
+    collide or block each other — they add. This happens algebraically, which
+    means the result depends entirely on how the waves line up.
   </p>
 
-  <h2>Why it matters for DJs</h2>
+  <h2>Constructive and destructive interference</h2>
 
   <p>
-    Master tempo is what makes large tempo jumps usable in a set. Beatmatching
-    a 122 BPM house track into a 140 BPM track without it means the slower
-    track gets pitched up so far it sounds like a different key entirely —
-    vocals turn chipmunked, basslines lose their weight. With master tempo
-    engaged, you can push that same tempo range and the track stays in its
-    original key, so the harmonic relationship between songs stays
-    predictable instead of accidental.
+    When two waves of the same <a href="/headroom/concepts/frequency/">frequency</a>
+    meet, the outcome depends on their phase relationship — how their peaks and
+    troughs align:
   </p>
+
+  <ul>
+    <li><strong>Constructive interference</strong> — peaks align with peaks, troughs with troughs. The amplitudes add, and the result is louder than either wave alone. Two identical waves perfectly in phase produce a wave with twice the amplitude (+6 dB).</li>
+    <li><strong>Destructive interference</strong> — peaks align with troughs. The amplitudes cancel. Two identical waves perfectly out of phase (180 degrees apart) produce silence — they literally add to zero.</li>
+    <li><strong>Partial interference</strong> — most real-world cases, where waves are partially in or out of phase, producing a mix of reinforcement and cancellation across different frequencies.</li>
+  </ul>
 
   <div class="callout">
     <p>
-      Master tempo isn't free — it works by digitally stretching or
-      compressing the audio in time, which is more processing than a simple
-      speed change. Pushed to extremes (very large tempo shifts), you'll
-      start to hear artifacts: a slightly grainy or "smeared" quality,
-      especially on vocals and cymbals. Small-to-moderate tempo changes are
-      usually transparent; big ones aren't free of cost.
+      This is not theoretical. Stand in a club with two subwoofer stacks and
+      walk slowly across the room. You'll feel the bass swell and disappear as
+      you move through zones of constructive and destructive interference.
+      The sound system didn't change — your position relative to the wave
+      patterns did.
     </p>
   </div>
 
-  <h2>Where you'll find the control</h2>
-
-  <ul>
-    <li><strong>CDJs and standalone players</strong> — almost always a dedicated "Master Tempo" or "Key Lock" button near the pitch fader.</li>
-    <li><strong>DJ software</strong> (Serato, rekordbox, Engine DJ) — typically a toggle per deck, sometimes with a separate "keylock quality" setting that trades CPU load for audio fidelity.</li>
-    <li><strong>Turntables</strong> — generally don't have it natively; true vinyl pitch changes always shift key, which is part of why all-vinyl tempo-matching across wide BPM ranges is harder.</li>
-  </ul>
-
-  <h2>In the context of Headroom</h2>
+  <h2>Standing waves and bass nodes in rooms</h2>
 
   <p>
-    Master tempo comes up in Module 4: Music — once you're
-    blending across genres or BPM ranges, knowing when to lean on it (and
-    when its artifacts start working against you) is part of building a set
-    that holds together instead of just lining up on the grid.
+    When sound reflects off a wall and travels back through the room, it
+    superimposes on the sound still coming from the speakers. At certain
+    frequencies, the reflected wave and the direct wave lock into a pattern
+    called a standing wave — regions of permanent reinforcement (nodes of high
+    amplitude) and permanent cancellation (nodes of near-silence). These are
+    the "bass traps" that room acoustics engineers try to tame.
+  </p>
+
+  <p>
+    In a small booth or a badly treated room, standing waves mean the bass
+    response is wildly uneven — booming in one spot, dead in another. A DJ who
+    mixes with their head directly over a bass node may be hearing 6–10 dB more
+    low end than the rest of the room. This is a real, practical problem, and
+    it's superposition doing the work.
+  </p>
+
+  <h2>Mono summing and frequency cancellation</h2>
+
+  <p>
+    When a mixer combines a stereo signal into mono — adding the left and right
+    channels together — superposition applies to any frequency content that
+    differs in phase between the channels. Content that's in phase adds up
+    (gets louder). Content that's out of phase cancels (gets quieter or
+    disappears entirely). This is why poorly produced tracks "fall apart in mono"
+    and why checking your mix in <a href="/headroom/concepts/mono-vs-stereo/">mono</a>
+    is a standard quality check. Certain stereo widening effects work by
+    introducing phase differences between channels — which is exactly what gets
+    destroyed when you sum to mono.
+  </p>
+
+  <h2>The mixer's summing bus</h2>
+
+  <p>
+    A DJ mixer's master output is a summing bus — it takes all the active channel
+    signals and adds them together. This is superposition applied to electrical
+    signals rather than air. The resulting combined signal is what gets sent to
+    the amplifier. When two tracks are playing simultaneously during a mix, their
+    <a href="/headroom/concepts/waveform/">waveforms</a> are being summed sample
+    by sample, and the total amplitude of the combined signal can be significantly
+    higher than either track alone — which is why gain staging becomes especially
+    important during transitions.
   </p>
 
   <div class="related">
     <h3>Related terms</h3>
     <div class="related-list">
-      <a href="/headroom/concepts/key-lock/">Key Lock</a>
-      <a href="/headroom/concepts/bpm/">BPM</a>
-      <a href="/headroom/concepts/musical-key/">Musical Key</a>
+      <a href="/headroom/concepts/frequency/">Frequency</a>
+      <a href="/headroom/concepts/waveform/">Waveform</a>
+      <a href="/headroom/concepts/mono-vs-stereo/">Mono vs. Stereo</a>
     </div>
   </div>
 

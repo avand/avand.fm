@@ -1,10 +1,10 @@
 ---
 layout: headroom
-title: "Master Tempo — Headroom DJ Glossary"
-description: "Master tempo is a feature that lets you change a track's playback speed without changing its pitch, decoupling tempo from key."
+title: "Limiter — Headroom DJ Glossary"
+description: "A processor that sets a hard ceiling on a signal's level — it lets audio through freely up to a threshold, then clamps down to prevent anything louder from passing."
 section: Concepts
 section_url: /headroom/concepts/
-subsection: Master Tempo
+subsection: Limiter
 ---
 
 <style>
@@ -230,72 +230,72 @@ subsection: Master Tempo
     <span>/</span>
     <a href="/headroom/concepts/">Concepts</a>
     <span>/</span>
-    Master Tempo
+    Limiter
   </div>
-  <h1>Master Tempo</h1>
+  <h1>Limiter</h1>
   <p class="lead">
-    A feature that lets you speed up or slow down a track without raising
-    or lowering its pitch — tempo and key decoupled from each other.
+    A processor that sets a hard ceiling on a signal's level — it lets audio
+    through freely up to a threshold, then clamps down to prevent anything
+    louder from passing.
   </p>
 </div>
 
 <div class="entry-content">
 
   <p>
-    On a turntable with no pitch correction, speeding up a record always
-    raises its pitch — push the tempo fader up and the track gets faster
-    and higher, like a tape sped up. Master tempo (sometimes called "key
-    lock" or "pitch lock") breaks that link. It lets you change playback
-    speed on its own, while a separate process re-synthesizes the audio to
-    keep the original pitch intact.
+    A limiter is an extreme compressor. Where a compressor reduces levels above
+    a threshold by a set ratio (say, 4:1 or 8:1), a limiter uses an effectively
+    infinite ratio — meaning once the signal hits the threshold, it simply
+    refuses to let it go higher. The threshold becomes a hard ceiling.
   </p>
 
-  <h2>Why it matters for DJs</h2>
+  <h2>Limiter vs. compressor</h2>
 
   <p>
-    Master tempo is what makes large tempo jumps usable in a set. Beatmatching
-    a 122 BPM house track into a 140 BPM track without it means the slower
-    track gets pitched up so far it sounds like a different key entirely —
-    vocals turn chipmunked, basslines lose their weight. With master tempo
-    engaged, you can push that same tempo range and the track stays in its
-    original key, so the harmonic relationship between songs stays
-    predictable instead of accidental.
+    The difference is in the ratio and intent. A compressor is a dynamics
+    shaping tool — it controls the relationship between loud and quiet moments
+    to add punch, glue, or consistency. A limiter is a protection circuit — its
+    job is to stop the signal from ever exceeding a level that would cause
+    damage or distortion. In practice, limiters often have very fast attack
+    times (catching peaks instantly) and release times tuned so the limiting is
+    as transparent as possible.
   </p>
+
+  <h2>Where DJs encounter limiters</h2>
+
+  <ul>
+    <li><strong>The mixer master output.</strong> Most professional DJ mixers have a built-in limiter on the master bus. It's there to protect the downstream signal chain — and the speakers — from a sudden gain spike.</li>
+    <li><strong>DJ software.</strong> Rekordbox, Serato, Traktor, and others include a limiter on the master output. It's usually on by default and often invisible — which can give a false sense of security about gain staging.</li>
+    <li><strong>Venue PA systems.</strong> Almost every professional PA system has limiting at some point in the chain — in the amp rack, in the processing, or both. The venue engineer sets it to protect the speakers. You don't control it, and you shouldn't assume it's doing your job for you.</li>
+  </ul>
+
+  <h2>The limiter is not a substitute for gain staging</h2>
 
   <div class="callout">
     <p>
-      Master tempo isn't free — it works by digitally stretching or
-      compressing the audio in time, which is more processing than a simple
-      speed change. Pushed to extremes (very large tempo shifts), you'll
-      start to hear artifacts: a slightly grainy or "smeared" quality,
-      especially on vocals and cymbals. Small-to-moderate tempo changes are
-      usually transparent; big ones aren't free of cost.
+      If your signal is consistently hitting a limiter hard enough to trigger
+      it, the audio is already distorting before the limiter catches it — the
+      limiter is catching the aftermath, not preventing the problem. Think of it
+      as a seatbelt: absolutely good to have, not a reason to drive recklessly.
+      Proper <a href="/headroom/concepts/gain-staging/">gain staging</a> keeps
+      you out of the limiter's territory in the first place.
     </p>
   </div>
 
-  <h2>Where you'll find the control</h2>
-
-  <ul>
-    <li><strong>CDJs and standalone players</strong> — almost always a dedicated "Master Tempo" or "Key Lock" button near the pitch fader.</li>
-    <li><strong>DJ software</strong> (Serato, rekordbox, Engine DJ) — typically a toggle per deck, sometimes with a separate "keylock quality" setting that trades CPU load for audio fidelity.</li>
-    <li><strong>Turntables</strong> — generally don't have it natively; true vinyl pitch changes always shift key, which is part of why all-vinyl tempo-matching across wide BPM ranges is harder.</li>
-  </ul>
-
-  <h2>In the context of Headroom</h2>
-
   <p>
-    Master tempo comes up in Module 4: Music — once you're
-    blending across genres or BPM ranges, knowing when to lean on it (and
-    when its artifacts start working against you) is part of building a set
-    that holds together instead of just lining up on the grid.
+    The tell-tale sign of a limiter working too hard is a loss of dynamics —
+    the music starts to feel squashed and flat, like the peaks and the quiet
+    moments are all the same level. That's the limiter constantly clamping down
+    because the average level is too high. Back off the gain, and the music
+    breathes again.
   </p>
 
   <div class="related">
     <h3>Related terms</h3>
     <div class="related-list">
-      <a href="/headroom/concepts/key-lock/">Key Lock</a>
-      <a href="/headroom/concepts/bpm/">BPM</a>
-      <a href="/headroom/concepts/musical-key/">Musical Key</a>
+      <a href="/headroom/concepts/clipping/">Clipping</a>
+      <a href="/headroom/concepts/headroom/">Headroom</a>
+      <a href="/headroom/concepts/gain-staging/">Gain Staging</a>
     </div>
   </div>
 

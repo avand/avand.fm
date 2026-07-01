@@ -1,10 +1,10 @@
 ---
 layout: headroom
-title: "Master Tempo — Headroom DJ Glossary"
-description: "Master tempo is a feature that lets you change a track's playback speed without changing its pitch, decoupling tempo from key."
+title: "Headroom — Headroom DJ Glossary"
+description: "The gap between a signal's current level and the maximum level the system can handle before clipping — the safety buffer that keeps audio clean when the music gets loud."
 section: Concepts
 section_url: /headroom/concepts/
-subsection: Master Tempo
+subsection: Headroom
 ---
 
 <style>
@@ -230,72 +230,104 @@ subsection: Master Tempo
     <span>/</span>
     <a href="/headroom/concepts/">Concepts</a>
     <span>/</span>
-    Master Tempo
+    Headroom
   </div>
-  <h1>Master Tempo</h1>
+  <h1>Headroom</h1>
   <p class="lead">
-    A feature that lets you speed up or slow down a track without raising
-    or lowering its pitch — tempo and key decoupled from each other.
+    The gap between a signal's current level and the maximum level the system
+    can handle before clipping — the safety buffer that keeps audio clean when
+    the music gets loud.
   </p>
 </div>
 
 <div class="entry-content">
 
   <p>
-    On a turntable with no pitch correction, speeding up a record always
-    raises its pitch — push the tempo fader up and the track gets faster
-    and higher, like a tape sped up. Master tempo (sometimes called "key
-    lock" or "pitch lock") breaks that link. It lets you change playback
-    speed on its own, while a separate process re-synthesizes the audio to
-    keep the original pitch intact.
+    Headroom is measured in decibels. It's the difference between a signal's
+    average operating level and the clipping point — the ceiling beyond which
+    the system can't go. A system with 6dB of headroom can handle
+    <a href="/headroom/concepts/transient/">transient</a> peaks 6dB louder
+    than the average signal without distorting. A system with 0dB of headroom
+    is already at the edge, and the next loud moment will clip.
   </p>
 
-  <h2>Why it matters for DJs</h2>
+  <h2>Why peaks make it matter</h2>
 
   <p>
-    Master tempo is what makes large tempo jumps usable in a set. Beatmatching
-    a 122 BPM house track into a 140 BPM track without it means the slower
-    track gets pitched up so far it sounds like a different key entirely —
-    vocals turn chipmunked, basslines lose their weight. With master tempo
-    engaged, you can push that same tempo range and the track stays in its
-    original key, so the harmonic relationship between songs stays
-    predictable instead of accidental.
+    Music isn't a constant level. A kick drum hits 6–10dB louder than the
+    average signal in the mix around it. A snare snap, a vocal stab, a synth
+    stab — they all spike above the average. Without headroom, those peaks
+    clip. With headroom, they pass through cleanly, and the listener hears
+    them as punch and presence rather than crunch and distortion.
+  </p>
+
+  <h2>Digital vs. analog</h2>
+
+  <p>
+    Digital systems have a hard ceiling at 0dBFS (decibels relative to full
+    scale). Go over it — even by a fraction — and you get harsh, audible
+    <a href="/headroom/concepts/clipping/">clipping</a>. There is no gradual
+    warmth above 0dBFS; it just breaks. Analog systems clip more gradually,
+    which is part of why analog saturation can sound pleasing and digital
+    clipping rarely does.
+  </p>
+
+  <h2>How to maintain it</h2>
+
+  <p>
+    Good <a href="/headroom/concepts/gain-staging/">gain staging</a> throughout
+    the signal chain is the answer. The general target in a DJ context: keep
+    average program levels around -6 to -3dBFS on digital meters. That leaves
+    room for peaks to land without hitting the ceiling. A
+    <a href="/headroom/concepts/limiter/">limiter</a> at the output can catch
+    the occasional spike, but it's a seatbelt, not a driving strategy.
   </p>
 
   <div class="callout">
     <p>
-      Master tempo isn't free — it works by digitally stretching or
-      compressing the audio in time, which is more processing than a simple
-      speed change. Pushed to extremes (very large tempo shifts), you'll
-      start to hear artifacts: a slightly grainy or "smeared" quality,
-      especially on vocals and cymbals. Small-to-moderate tempo changes are
-      usually transparent; big ones aren't free of cost.
+      When you see the clip indicator light up on your mixer's master section,
+      you've already lost headroom. The goal is to run the whole set without
+      that light ever turning on — not because you're scared of it, but because
+      you've set the levels correctly from the start.
     </p>
   </div>
 
-  <h2>Where you'll find the control</h2>
-
-  <ul>
-    <li><strong>CDJs and standalone players</strong> — almost always a dedicated "Master Tempo" or "Key Lock" button near the pitch fader.</li>
-    <li><strong>DJ software</strong> (Serato, rekordbox, Engine DJ) — typically a toggle per deck, sometimes with a separate "keylock quality" setting that trades CPU load for audio fidelity.</li>
-    <li><strong>Turntables</strong> — generally don't have it natively; true vinyl pitch changes always shift key, which is part of why all-vinyl tempo-matching across wide BPM ranges is harder.</li>
-  </ul>
-
-  <h2>In the context of Headroom</h2>
+  <h2>Wait, isn't that the name of this course?</h2>
 
   <p>
-    Master tempo comes up in Module 4: Music — once you're
-    blending across genres or BPM ranges, knowing when to lean on it (and
-    when its artifacts start working against you) is part of building a set
-    that holds together instead of just lining up on the grid.
+    Yes. And it's not an accident.
+  </p>
+
+  <p>
+    The technical concept of headroom — that safety buffer between where you
+    are and where things fall apart — is a perfect metaphor for what this
+    course is trying to give you. Every DJ has played a set where something
+    went wrong: a track didn't load, a cable crackled, a transition landed
+    badly, the crowd shifted and you didn't see it coming. In those moments,
+    what saves you isn't luck. It's knowledge.
+  </p>
+
+  <p>
+    When you deeply understand your gear, your signal path, your music, and
+    your crowd, you build headroom. Room to improvise. Room to recover from
+    mistakes. Room to perform without the constant low-level fear that
+    something is about to go wrong. The DJ who knows why their mixer clips
+    fixes it in five seconds and keeps moving. The DJ who doesn't spends the
+    rest of the set nervous.
+  </p>
+
+  <p>
+    The more knowledge you carry into the booth, the more headroom you have.
+    That's the whole idea.
   </p>
 
   <div class="related">
     <h3>Related terms</h3>
     <div class="related-list">
-      <a href="/headroom/concepts/key-lock/">Key Lock</a>
-      <a href="/headroom/concepts/bpm/">BPM</a>
-      <a href="/headroom/concepts/musical-key/">Musical Key</a>
+      <a href="/headroom/concepts/gain-staging/">Gain Staging</a>
+      <a href="/headroom/concepts/clipping/">Clipping</a>
+      <a href="/headroom/concepts/limiter/">Limiter</a>
+      <a href="/headroom/concepts/noise-floor/">Noise Floor</a>
     </div>
   </div>
 

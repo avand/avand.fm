@@ -1,10 +1,10 @@
 ---
 layout: headroom
-title: "Pulse-Code Modulation (PCM) — Headroom DJ Glossary"
-description: "PCM is the standard method for representing analog audio as digital data — sampling amplitude at regular intervals with no compression. It's the format behind WAV, AIFF, and CD audio."
+title: "Sample Rate — Headroom DJ Glossary"
+description: "Sample rate is how many times per second a digital audio system measures the amplitude of a sound wave — the higher the rate, the more accurately high frequencies are captured."
 section: Concepts
 section_url: /headroom/concepts/
-subsection: Pulse-Code Modulation (PCM)
+subsection: Sample Rate
 ---
 
 <style>
@@ -230,76 +230,95 @@ subsection: Pulse-Code Modulation (PCM)
     <span>/</span>
     <a href="/headroom/concepts/">Concepts</a>
     <span>/</span>
-    Pulse-Code Modulation (PCM)
+    Sample Rate
   </div>
-  <h1>Pulse-Code Modulation (PCM)</h1>
+  <h1>Sample Rate</h1>
   <p class="lead">
-    The standard method for turning analog sound into digital data —
-    measuring amplitude at regular intervals and storing every measurement,
-    with nothing thrown away.
+    How many times per second a digital audio system measures the amplitude of a
+    sound wave — the higher the rate, the more accurately high frequencies are
+    captured.
   </p>
 </div>
 
 <div class="entry-content">
 
   <p>
-    PCM is how a microphone's continuous analog wave becomes a string of
-    numbers a computer can store and play back. Thousands of times per
-    second, it measures the wave's amplitude and records that value as a
-    number. Do that enough times per second, with enough precision per
-    measurement, and the string of numbers can be turned back into a wave
-    that's indistinguishable from the original to the human ear. No part of
-    the signal is judged, masked, or discarded — every sample gets kept.
+    Digital audio works by taking snapshots of an analog sound wave at regular
+    intervals, recording the <a href="/headroom/concepts/amplitude/">amplitude</a>
+    at each moment, and storing those values as numbers. Sample rate is how
+    frequently those snapshots are taken, measured in samples per second (or
+    kilohertz, where 1 kHz = 1,000 samples per second). Play all those values
+    back in sequence at the same rate and you reconstruct the original wave —
+    which is the core idea behind
+    <a href="/headroom/concepts/pulse-code-modulation/">pulse-code modulation (PCM)</a>.
   </p>
 
-  <h2>Why it matters for DJs</h2>
+  <h2>The Nyquist theorem</h2>
 
   <p>
-    PCM is the baseline format underneath WAV, AIFF, and CD audio — the
-    files you'd reach for when you want the most faithful possible copy of a
-    track. It's the opposite approach from
-    <a href="/headroom/concepts/perceptual-coding/">perceptual coding</a>,
-    which deliberately throws away data it predicts you won't hear. A PCM
-    file keeps everything, which is exactly why it's bigger: there's no
-    psychoacoustic shortcut being taken, just a direct, uncompressed
-    representation of the wave.
+    There's a hard mathematical limit on what sample rate can capture. The
+    Nyquist theorem states that to accurately reproduce a frequency, you need
+    to sample at least twice as fast as that frequency. To capture a 10 kHz tone,
+    you need a minimum of 20,000 samples per second. To capture the top of human
+    hearing at 20 kHz, you need at least 40,000 samples per second.
+  </p>
+
+  <p>
+    This is exactly why the CD standard landed at 44,100 Hz (44.1 kHz): it
+    covers the full human hearing range (up to ~22 kHz) with a small safety
+    margin, and it fits a certain amount of audio onto the physical space of a
+    disc. It wasn't arbitrary — it was the minimum sufficient sample rate for
+    full-bandwidth audio, chosen deliberately.
   </p>
 
   <div class="callout">
     <p>
-      Two numbers define a PCM file's quality: sample rate (how often it
-      measures — 44.1 kHz for CD-quality audio) and bit depth (how precisely
-      each measurement is stored — 16-bit for CD, often 24-bit for
-      production masters). Higher numbers mean a more accurate digital
-      picture of the original wave, and a bigger file.
+      If you try to represent a frequency higher than half the sample rate, the
+      digital system can't do it accurately and produces a false, lower-frequency
+      artifact instead. This is called aliasing — it sounds like a weird,
+      metallic ringing that has no relationship to the original audio. Anti-aliasing
+      filters in audio converters prevent this by rolling off frequencies above
+      the Nyquist limit before sampling.
     </p>
   </div>
 
-  <h2>Where it shows up in a DJ's library</h2>
+  <h2>Common sample rates and when they appear</h2>
 
   <ul>
-    <li><strong>WAV / AIFF</strong> — the two most common PCM container formats; functionally identical audio data, different file wrappers (WAV is Windows-native, AIFF is Apple-native, both play everywhere now).</li>
-    <li><strong>CD audio</strong> — Red Book CDs store PCM at 44.1 kHz / 16-bit, which became the de facto standard for "CD quality."</li>
-    <li><strong>FLAC / ALAC</strong> — not PCM themselves, but lossless wrappers around PCM data — they compress the file size without throwing away any of the original samples, then decompress back to identical PCM on playback.</li>
+    <li><strong>44.1 kHz</strong> — the CD standard, and the most common rate for music distribution. Every streaming platform, most downloaded files, and the vast majority of DJ libraries. Perfectly sufficient for a dance floor.</li>
+    <li><strong>48 kHz</strong> — the standard for video and broadcast audio. If you're watching a film or a TV show, the audio is almost certainly at 48 kHz. Some DJ controllers and audio interfaces default to this rate.</li>
+    <li><strong>96 kHz and above</strong> — high-resolution audio, used in professional recording and production. Captures frequencies well beyond human hearing, which is useful during processing and editing (where math on the audio can create new frequencies) but largely irrelevant for final playback through a PA.</li>
   </ul>
 
-  <h2>In the context of Headroom</h2>
+  <h2>Why DJs should care</h2>
 
   <p>
-    File format choice comes up in Module 4: Music alongside
-    perceptual coding — understanding that PCM is the uncompressed source
-    everything else gets derived from helps explain why a lossless rip and a
-    low-bitrate MP3 of the same track can sound noticeably different on a
-    real system.
+    For most DJ purposes, sample rate is a decision you make when building your
+    library and setting up your software, not something you adjust on the fly.
+    A few things worth knowing:
+  </p>
+
+  <ul>
+    <li><strong>44.1 kHz is enough.</strong> A dance floor PA — even a very good one — is not going to reveal any difference between a 44.1 kHz file and a 96 kHz file. The room acoustics, the crowd, and the distance from the speakers dwarf any theoretical advantage of a higher sample rate.</li>
+    <li><strong>Sample rate mismatches cause problems.</strong> If your audio interface is set to 48 kHz and your software is outputting at 44.1 kHz, the system has to resample on the fly — which can introduce artifacts or, worse, cause audio to play back at slightly the wrong pitch or speed. Match your software and hardware settings.</li>
+    <li><strong>Lossy formats don't store raw samples.</strong> MP3 and AAC files use <a href="/headroom/concepts/perceptual-coding/">perceptual coding</a> to compress audio — they don't store PCM samples at all in the same way. The sample rate of a lossy file describes the rate it's decoded to on playback, not a raw snapshot rate.</li>
+  </ul>
+
+  <p>
+    Sample rate and <a href="/headroom/concepts/quantization-noise/">quantization noise</a>
+    are the two axes of digital audio quality. Sample rate controls the frequency
+    ceiling. Bit depth (the precision of each amplitude measurement) controls
+    the dynamic range and noise floor. Most music is 16-bit/44.1 kHz — and for
+    playback through a PA, that's more than adequate.
   </p>
 
   <div class="related">
     <h3>Related terms</h3>
     <div class="related-list">
-      <a href="/headroom/concepts/perceptual-coding/">Perceptual Coding</a>
+      <a href="/headroom/concepts/pulse-code-modulation/">Pulse-Code Modulation</a>
       <a href="/headroom/concepts/quantization-noise/">Quantization Noise</a>
-      <a href="/headroom/concepts/sample-rate/">Sample Rate</a>
       <a href="/headroom/concepts/waveform/">Waveform</a>
+      <a href="/headroom/concepts/frequency/">Frequency</a>
     </div>
   </div>
 

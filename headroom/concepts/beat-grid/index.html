@@ -1,10 +1,10 @@
 ---
 layout: headroom
-title: "Master Tempo — Headroom DJ Glossary"
-description: "Master tempo is a feature that lets you change a track's playback speed without changing its pitch, decoupling tempo from key."
+title: "Beat Grid — Headroom DJ Glossary"
+description: "A beat grid is the map of a track's beat structure that DJ software builds from analyzing its waveform — the invisible scaffolding that makes beat sync, hot cues, and loop points land exactly where they should."
 section: Concepts
 section_url: /headroom/concepts/
-subsection: Master Tempo
+subsection: Beat Grid
 ---
 
 <style>
@@ -230,72 +230,97 @@ subsection: Master Tempo
     <span>/</span>
     <a href="/headroom/concepts/">Concepts</a>
     <span>/</span>
-    Master Tempo
+    Beat Grid
   </div>
-  <h1>Master Tempo</h1>
+  <h1>Beat Grid</h1>
   <p class="lead">
-    A feature that lets you speed up or slow down a track without raising
-    or lowering its pitch — tempo and key decoupled from each other.
+    The map of a track's beat structure that DJ software builds from analyzing its
+    waveform — the invisible scaffolding that makes beat sync, hot cues, and loop
+    points land exactly where they should.
   </p>
 </div>
 
 <div class="entry-content">
 
   <p>
-    On a turntable with no pitch correction, speeding up a record always
-    raises its pitch — push the tempo fader up and the track gets faster
-    and higher, like a tape sped up. Master tempo (sometimes called "key
-    lock" or "pitch lock") breaks that link. It lets you change playback
-    speed on its own, while a separate process re-synthesizes the audio to
-    keep the original pitch intact.
+    When you load a track into rekordbox, Serato, or Traktor, the software analyzes
+    the waveform and places a marker at each beat — specifically by detecting the
+    <a href="/headroom/concepts/transient/">transients</a> of the kick drum and other
+    rhythmic elements. These markers form the beat grid: a consistent series of
+    timestamps at the track's <a href="/headroom/concepts/bpm/">BPM</a> that tells the
+    software exactly where beat 1, beat 2, beat 3, and beat 4 are throughout the
+    entire track.
   </p>
 
-  <h2>Why it matters for DJs</h2>
+  <h2>Why accuracy matters</h2>
 
   <p>
-    Master tempo is what makes large tempo jumps usable in a set. Beatmatching
-    a 122 BPM house track into a 140 BPM track without it means the slower
-    track gets pitched up so far it sounds like a different key entirely —
-    vocals turn chipmunked, basslines lose their weight. With master tempo
-    engaged, you can push that same tempo range and the track stays in its
-    original key, so the harmonic relationship between songs stays
-    predictable instead of accidental.
+    The beat grid is the reference that everything else snaps to. Get it wrong and
+    the consequences compound:
   </p>
+
+  <ul>
+    <li>Beat sync will lock to the wrong position and the tracks will phase in and out rather than locking together</li>
+    <li><a href="/headroom/concepts/hot-cues/">Hot cues</a> placed on the downbeat will actually land somewhere off the beat</li>
+    <li>Loop points will start or end at the wrong moment, producing glitchy, unintended sounds when the loop engages</li>
+    <li>The waveform display will show misaligned beats, making visual beatmatching unreliable</li>
+  </ul>
+
+  <h2>Why grids go wrong</h2>
+
+  <p>
+    The analyzer works well on electronically produced music with a consistent,
+    machine-quantized click track. It struggles when that assumption breaks down:
+  </p>
+
+  <ul>
+    <li><strong>Live recordings</strong> — human drummers (and even programmed parts mixed live) breathe slightly, speeding up and slowing down in ways that don't fit a fixed BPM</li>
+    <li><strong>Tracks mastered without a click track</strong> — some older recordings, particularly from the analog era, have tempo drift baked in throughout</li>
+    <li><strong>Complex or unusual intros</strong> — tracks that open with a percussion break, an a cappella, or a sound effect can confuse the analyzer before the main rhythm establishes itself</li>
+    <li><strong>Half-time or double-time sections</strong> — a track that shifts feel (a breakdown that drops to half-tempo) may cause the analyzer to miscalculate the BPM</li>
+  </ul>
+
+  <h2>How to fix a bad beat grid</h2>
+
+  <p>
+    Every major DJ platform includes tools for manual grid correction. The process is
+    roughly the same across software:
+  </p>
+
+  <ol>
+    <li>Play the track and listen for where the downbeat (beat 1) actually falls versus where the software placed it</li>
+    <li>Set the downbeat marker manually — usually by tapping a button on the beat or dragging the marker to the correct position</li>
+    <li>Verify the BPM is correct; if the grid drifts over the length of the track, the BPM may need fine adjustment</li>
+    <li>For tracks with genuine tempo fluctuation (live recordings), use "warp" or "dynamic grid" markers that allow the grid to flex at specific points rather than staying rigid at a fixed BPM</li>
+  </ol>
 
   <div class="callout">
     <p>
-      Master tempo isn't free — it works by digitally stretching or
-      compressing the audio in time, which is more processing than a simple
-      speed change. Pushed to extremes (very large tempo shifts), you'll
-      start to hear artifacts: a slightly grainy or "smeared" quality,
-      especially on vocals and cymbals. Small-to-moderate tempo changes are
-      usually transparent; big ones aren't free of cost.
+      This is prep work. Time spent correcting beat grids before a gig is time that
+      saves you from train wrecks during one. A track with a perfect grid takes
+      three seconds to fix in library mode. Discovering a bad grid mid-mix while a
+      floor full of people is watching is a very different situation.
     </p>
   </div>
 
-  <h2>Where you'll find the control</h2>
-
-  <ul>
-    <li><strong>CDJs and standalone players</strong> — almost always a dedicated "Master Tempo" or "Key Lock" button near the pitch fader.</li>
-    <li><strong>DJ software</strong> (Serato, rekordbox, Engine DJ) — typically a toggle per deck, sometimes with a separate "keylock quality" setting that trades CPU load for audio fidelity.</li>
-    <li><strong>Turntables</strong> — generally don't have it natively; true vinyl pitch changes always shift key, which is part of why all-vinyl tempo-matching across wide BPM ranges is harder.</li>
-  </ul>
-
-  <h2>In the context of Headroom</h2>
+  <h2>Beat grids vs. BPM detection</h2>
 
   <p>
-    Master tempo comes up in Module 4: Music — once you're
-    blending across genres or BPM ranges, knowing when to lean on it (and
-    when its artifacts start working against you) is part of building a set
-    that holds together instead of just lining up on the grid.
+    The BPM displayed in your library is derived from the beat grid analysis — it's
+    the average tempo calculated across the grid markers. A wrong BPM and a wrong
+    beat grid are usually the same problem; fixing the grid often fixes the displayed
+    BPM automatically. But not always: some tracks display a correct BPM while the
+    grid is offset by half a beat (the markers are between the beats rather than on
+    them), which is a phase error rather than a tempo error. Listen carefully —
+    your ears catch this faster than your eyes will.
   </p>
 
   <div class="related">
     <h3>Related terms</h3>
     <div class="related-list">
-      <a href="/headroom/concepts/key-lock/">Key Lock</a>
       <a href="/headroom/concepts/bpm/">BPM</a>
-      <a href="/headroom/concepts/musical-key/">Musical Key</a>
+      <a href="/headroom/concepts/transient/">Transient</a>
+      <a href="/headroom/concepts/hot-cues/">Hot Cues</a>
     </div>
   </div>
 

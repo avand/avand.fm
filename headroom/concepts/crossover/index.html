@@ -1,10 +1,10 @@
 ---
 layout: headroom
-title: "Master Tempo — Headroom DJ Glossary"
-description: "Master tempo is a feature that lets you change a track's playback speed without changing its pitch, decoupling tempo from key."
+title: "Crossover — Headroom DJ Glossary"
+description: "A circuit that splits an audio signal into frequency bands and sends each band to the speaker driver designed to handle it — so the subwoofer only gets bass, and the tweeter only gets highs."
 section: Concepts
 section_url: /headroom/concepts/
-subsection: Master Tempo
+subsection: Crossover
 ---
 
 <style>
@@ -230,72 +230,63 @@ subsection: Master Tempo
     <span>/</span>
     <a href="/headroom/concepts/">Concepts</a>
     <span>/</span>
-    Master Tempo
+    Crossover
   </div>
-  <h1>Master Tempo</h1>
+  <h1>Crossover</h1>
   <p class="lead">
-    A feature that lets you speed up or slow down a track without raising
-    or lowering its pitch — tempo and key decoupled from each other.
+    A circuit that splits an audio signal into frequency bands and sends each band to the speaker driver designed to handle it — so the subwoofer only gets bass, and the tweeter only gets highs.
   </p>
 </div>
 
 <div class="entry-content">
 
   <p>
-    On a turntable with no pitch correction, speeding up a record always
-    raises its pitch — push the tempo fader up and the track gets faster
-    and higher, like a tape sped up. Master tempo (sometimes called "key
-    lock" or "pitch lock") breaks that link. It lets you change playback
-    speed on its own, while a separate process re-synthesizes the audio to
-    keep the original pitch intact.
+    A speaker driver is a physical device, and physics doesn't give it a free pass. A 15-inch woofer cone has way too much mass to vibrate fast enough to reproduce a 10kHz cymbal accurately. A tweeter dome is way too small and fragile to push the air pressure needed for a 60Hz kick drum. The crossover is what keeps each driver in its lane.
   </p>
 
-  <h2>Why it matters for DJs</h2>
+  <h2>What a crossover does</h2>
 
   <p>
-    Master tempo is what makes large tempo jumps usable in a set. Beatmatching
-    a 122 BPM house track into a 140 BPM track without it means the slower
-    track gets pitched up so far it sounds like a different key entirely —
-    vocals turn chipmunked, basslines lose their weight. With master tempo
-    engaged, you can push that same tempo range and the track stays in its
-    original key, so the harmonic relationship between songs stays
-    predictable instead of accidental.
+    A crossover divides the full audio spectrum at defined "crossover points" — specific <a href="/headroom/concepts/frequency/">frequencies</a> where the signal is split and routed. Everything below the low crossover point goes to the subwoofer. Everything in the middle goes to the mid driver. Everything above the high crossover point goes to the tweeter or compression driver. The result is that each physical speaker only reproduces the frequencies it was built for, which means cleaner, louder, more controlled sound.
   </p>
+
+  <h2>Passive vs. active crossovers</h2>
+
+  <p>
+    There are two types, and they live in very different places:
+  </p>
+
+  <ul>
+    <li><strong>Passive crossover</strong> — built inside the speaker cabinet, after the amplifier. The amp drives the full signal into the cabinet, and the crossover filters it internally. Common in home speakers and budget PA gear.</li>
+    <li><strong>Active crossover</strong> — a separate processor that splits the signal before amplification, so each frequency band gets its own dedicated amplifier channel. This is what serious club systems use, and for good reason: each amp is optimized for its band, you have precise control over crossover points and levels, and you can tune the system to the room.</li>
+  </ul>
 
   <div class="callout">
     <p>
-      Master tempo isn't free — it works by digitally stretching or
-      compressing the audio in time, which is more processing than a simple
-      speed change. Pushed to extremes (very large tempo shifts), you'll
-      start to hear artifacts: a slightly grainy or "smeared" quality,
-      especially on vocals and cymbals. Small-to-moderate tempo changes are
-      usually transparent; big ones aren't free of cost.
+      When a venue's system tech talks about "tuning the system," they're largely adjusting crossover points, per-band levels, and time alignment between drivers. A well-tuned active crossover system is the difference between bass you feel in your chest and bass that just sounds loud.
     </p>
   </div>
 
-  <h2>Where you'll find the control</h2>
-
-  <ul>
-    <li><strong>CDJs and standalone players</strong> — almost always a dedicated "Master Tempo" or "Key Lock" button near the pitch fader.</li>
-    <li><strong>DJ software</strong> (Serato, rekordbox, Engine DJ) — typically a toggle per deck, sometimes with a separate "keylock quality" setting that trades CPU load for audio fidelity.</li>
-    <li><strong>Turntables</strong> — generally don't have it natively; true vinyl pitch changes always shift key, which is part of why all-vinyl tempo-matching across wide BPM ranges is harder.</li>
-  </ul>
-
-  <h2>In the context of Headroom</h2>
+  <h2>Why DJs should know this</h2>
 
   <p>
-    Master tempo comes up in Module 4: Music — once you're
-    blending across genres or BPM ranges, knowing when to lean on it (and
-    when its artifacts start working against you) is part of building a set
-    that holds together instead of just lining up on the grid.
+    In a big club, the system isn't one speaker — it's a network of drivers each handling a slice of the spectrum. Typically: subwoofers handling everything below roughly 80–120Hz, mid-range cabinets above that, and high-frequency drivers on top. When you reach for the bass <a href="/headroom/concepts/eq/">EQ</a> on your mixer, you are directly controlling what the subwoofer cabinet is doing. When you roll off the highs, you're controlling the tweeters and compression drivers.
+  </p>
+
+  <p>
+    This is why bass-heavy tracks hit so differently on a proper club system versus a home setup. At home, your single pair of speakers is trying to do everything. In a club, a subwoofer the size of a refrigerator is doing nothing but the low end, full-time. That's why the floor moves.
+  </p>
+
+  <p>
+    It also explains why certain EQ moves that sound subtle in headphones can have dramatic physical effects in a room — you might be adding 3dB to a 60Hz band that's feeding 4 subs stacked in a corner.
   </p>
 
   <div class="related">
     <h3>Related terms</h3>
     <div class="related-list">
-      <a href="/headroom/concepts/key-lock/">Key Lock</a>
-      <a href="/headroom/concepts/bpm/">BPM</a>
-      <a href="/headroom/concepts/musical-key/">Musical Key</a>
+      <a href="/headroom/concepts/frequency/">Frequency</a>
+      <a href="/headroom/concepts/eq/">EQ</a>
+      <a href="/headroom/concepts/stereo-field/">Stereo Field</a>
     </div>
   </div>
 

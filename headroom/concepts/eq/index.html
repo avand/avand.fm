@@ -1,10 +1,10 @@
 ---
 layout: headroom
-title: "Master Tempo — Headroom DJ Glossary"
-description: "Master tempo is a feature that lets you change a track's playback speed without changing its pitch, decoupling tempo from key."
+title: "EQ (Equalizer) — Headroom DJ Glossary"
+description: "A tool that boosts or cuts specific frequency ranges in a signal — the most used and most abused knob on any DJ mixer."
 section: Concepts
 section_url: /headroom/concepts/
-subsection: Master Tempo
+subsection: EQ (Equalizer)
 ---
 
 <style>
@@ -230,72 +230,73 @@ subsection: Master Tempo
     <span>/</span>
     <a href="/headroom/concepts/">Concepts</a>
     <span>/</span>
-    Master Tempo
+    EQ (Equalizer)
   </div>
-  <h1>Master Tempo</h1>
+  <h1>EQ (Equalizer)</h1>
   <p class="lead">
-    A feature that lets you speed up or slow down a track without raising
-    or lowering its pitch — tempo and key decoupled from each other.
+    A tool that boosts or cuts specific frequency ranges in a signal — the
+    most used and most abused knob on any DJ mixer.
   </p>
 </div>
 
 <div class="entry-content">
 
   <p>
-    On a turntable with no pitch correction, speeding up a record always
-    raises its pitch — push the tempo fader up and the track gets faster
-    and higher, like a tape sped up. Master tempo (sometimes called "key
-    lock" or "pitch lock") breaks that link. It lets you change playback
-    speed on its own, while a separate process re-synthesizes the audio to
-    keep the original pitch intact.
+    An equalizer is a filter that adjusts the amplitude of specific
+    <a href="/headroom/concepts/frequency/">frequency</a> bands independently,
+    leaving the rest of the signal untouched. The 3-band EQ found on most DJ
+    mixers gives you control over low (bass), mid, and high (treble) frequencies
+    — three knobs that together shape the entire tonal character of a track
+    in the mix.
   </p>
 
-  <h2>Why it matters for DJs</h2>
+  <h2>How DJs use EQ</h2>
+
+  <ol>
+    <li><strong>EQ mixing.</strong> The classic technique: cut the bass on the incoming track and the outgoing track simultaneously to prevent bass clash during a transition (two kick drums fighting in the same low-frequency space sounds like a muddy mess). Once the incoming track is sitting in the mix, swap the bass — cut the outgoing, restore the incoming. Clean, surgical, effective.</li>
+    <li><strong>Room correction.</strong> Every system and every room emphasizes or swallows certain frequencies. A system that's heavy in the low-mids makes every track sound boxy. A quick mid cut compensates without touching the source tracks. You're not fixing the music — you're fixing the room.</li>
+    <li><strong>Energy management.</strong> Lifting the highs adds air and presence. Pulling the mids creates a more scooped, electronic feel. Pushing the low end at a key moment adds weight. EQ is a real-time mixing tool, not just a one-time setup.</li>
+  </ol>
+
+  <h2>The kill switch</h2>
 
   <p>
-    Master tempo is what makes large tempo jumps usable in a set. Beatmatching
-    a 122 BPM house track into a 140 BPM track without it means the slower
-    track gets pitched up so far it sounds like a different key entirely —
-    vocals turn chipmunked, basslines lose their weight. With master tempo
-    engaged, you can push that same tempo range and the track stays in its
-    original key, so the harmonic relationship between songs stays
-    predictable instead of accidental.
+    Many DJ mixers have an EQ that sweeps all the way to -infinity on the low
+    end — meaning it completely removes that frequency band from the signal
+    rather than merely reducing it by -20 or -30dB. This is a performance tool.
+    Killing the bass mid-track and then slamming it back in is a moment. Killing
+    the highs creates a muffled, subterranean feeling that builds tension. This
+    is not a tone control; it's a performance instrument.
   </p>
+
+  <h2>Cut first, boost rarely</h2>
 
   <div class="callout">
     <p>
-      Master tempo isn't free — it works by digitally stretching or
-      compressing the audio in time, which is more processing than a simple
-      speed change. Pushed to extremes (very large tempo shifts), you'll
-      start to hear artifacts: a slightly grainy or "smeared" quality,
-      especially on vocals and cymbals. Small-to-moderate tempo changes are
-      usually transparent; big ones aren't free of cost.
+      If you're boosting EQ to fix a problem — adding highs because the track
+      sounds dull, adding lows because it sounds thin — you're often fighting
+      a signal chain issue or a mastering decision that can't actually be fixed
+      at the mixer. Cut what's in the way before you boost what you want.
+      And remember: boosting EQ increases the signal level, which eats into
+      your <a href="/headroom/concepts/headroom/">headroom</a> and can push
+      you toward <a href="/headroom/concepts/clipping/">clipping</a>. Every
+      dB of boost is a dB less of safety margin.
     </p>
   </div>
 
-  <h2>Where you'll find the control</h2>
-
-  <ul>
-    <li><strong>CDJs and standalone players</strong> — almost always a dedicated "Master Tempo" or "Key Lock" button near the pitch fader.</li>
-    <li><strong>DJ software</strong> (Serato, rekordbox, Engine DJ) — typically a toggle per deck, sometimes with a separate "keylock quality" setting that trades CPU load for audio fidelity.</li>
-    <li><strong>Turntables</strong> — generally don't have it natively; true vinyl pitch changes always shift key, which is part of why all-vinyl tempo-matching across wide BPM ranges is harder.</li>
-  </ul>
-
-  <h2>In the context of Headroom</h2>
-
   <p>
-    Master tempo comes up in Module 4: Music — once you're
-    blending across genres or BPM ranges, knowing when to lean on it (and
-    when its artifacts start working against you) is part of building a set
-    that holds together instead of just lining up on the grid.
+    The best EQ move is often the one nobody notices — a subtle cut that makes
+    the mix feel cleaner without anyone being able to point to what changed.
+    If people can hear your EQ moves, you're probably overcooking it.
   </p>
 
   <div class="related">
     <h3>Related terms</h3>
     <div class="related-list">
-      <a href="/headroom/concepts/key-lock/">Key Lock</a>
-      <a href="/headroom/concepts/bpm/">BPM</a>
-      <a href="/headroom/concepts/musical-key/">Musical Key</a>
+      <a href="/headroom/concepts/frequency/">Frequency</a>
+      <a href="/headroom/concepts/signal-flow/">Signal Flow</a>
+      <a href="/headroom/concepts/gain-staging/">Gain Staging</a>
+      <a href="/headroom/concepts/attenuation/">Attenuation</a>
     </div>
   </div>
 

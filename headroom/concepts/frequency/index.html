@@ -1,0 +1,344 @@
+---
+layout: headroom
+title: "Frequency — Headroom DJ Glossary"
+description: "Frequency is the number of times a sound wave completes a full cycle per second, perceived as pitch — and the single most important property for understanding how audio systems are built."
+section: Concepts
+section_url: /headroom/concepts/
+subsection: Frequency
+---
+
+<style>
+  .entry-header {
+    padding: 8em 2em 3em;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  .breadcrumb {
+    font-size: 0.8em;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 1.2em;
+  }
+
+  .breadcrumb a {
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .breadcrumb a:hover {
+    color: var(--text);
+  }
+
+  .breadcrumb span {
+    margin: 0 0.5em;
+    opacity: 0.4;
+  }
+
+  .entry-header h1 {
+    font-size: clamp(2em, 5vw, 3.2em);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 0.4em;
+  }
+
+  .entry-header .lead {
+    font-size: 1.15em;
+    color: var(--text-muted);
+    max-width: 600px;
+  }
+
+  .entry-content {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 2em 5em;
+  }
+
+  .entry-content h2 {
+    font-size: 1.4em;
+    font-weight: 700;
+    margin: 2.5em 0 0.6em;
+  }
+
+  .entry-content p {
+    color: var(--text-muted);
+    margin-bottom: 1em;
+    font-size: 1.02em;
+  }
+
+  .entry-content p a {
+    color: var(--text);
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 0.2em;
+  }
+
+  .entry-content ul,
+  .entry-content ol {
+    list-style: none;
+    margin-bottom: 1em;
+  }
+
+  .entry-content ul li,
+  .entry-content ol li {
+    position: relative;
+    padding-left: 1.4em;
+    color: var(--text-muted);
+    font-size: 1em;
+    margin-bottom: 0.35em;
+  }
+
+  .entry-content ul li::before {
+    content: "\25B8";
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+  }
+
+  .entry-content ol {
+    counter-reset: ol-counter;
+  }
+
+  .entry-content ol li {
+    counter-increment: ol-counter;
+  }
+
+  .entry-content ol li::before {
+    content: counter(ol-counter) ".";
+    position: absolute;
+    left: 0;
+    color: var(--warm);
+    font-weight: 700;
+    font-size: 0.85em;
+  }
+
+  .callout {
+    border-left: 3px solid var(--accent);
+    padding: 1em 1.4em;
+    background: var(--surface);
+    border-radius: 0 0.4em 0.4em 0;
+    margin: 1.5em 0;
+  }
+
+  .callout p {
+    margin: 0;
+    font-size: 0.97em;
+  }
+
+  .related {
+    border-top: 1px solid var(--border);
+    padding-top: 2em;
+    margin-top: 3em;
+  }
+
+  .related h3 {
+    font-size: 0.8em;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 1em;
+  }
+
+  .related-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6em;
+  }
+
+  .related-list a {
+    color: var(--text);
+    text-decoration: none;
+    font-size: 0.9em;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    border-radius: 2em;
+    padding: 0.35em 1em;
+    background: var(--surface);
+    transition: border-color 200ms;
+  }
+
+  .related-list a:hover {
+    border-color: var(--accent);
+  }
+
+  .final-cta {
+    text-align: center;
+    padding: 6em 2em;
+    position: relative;
+    background:
+      linear-gradient(to bottom, var(--bg) 0%, rgba(10, 10, 15, 0.5) 30%, rgba(10, 10, 15, 0.5) 70%, var(--bg) 100%),
+      url('/headroom/djvibe-studiox-dt_UuLU_foM-unsplash.jpg') center bottom / cover no-repeat;
+  }
+
+  .final-cta::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    box-shadow: inset 0 0 8em 2em var(--bg);
+    pointer-events: none;
+  }
+
+  .final-cta h2 {
+    font-size: 2em;
+    margin-bottom: 0.4em;
+    position: relative;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  }
+
+  .final-cta p {
+    color: var(--text-muted);
+    font-size: 1.1em;
+    position: relative;
+    max-width: 500px;
+    margin: 0 auto 2em;
+  }
+
+  .btn-primary {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1em;
+    padding: 0.75em 2.5em;
+    border-radius: 2em;
+    transition: box-shadow 200ms, transform 200ms;
+    box-shadow: 0 0 1.5em var(--accent-glow);
+    position: relative;
+  }
+
+  .btn-primary:hover {
+    box-shadow: 0 0 2.5em var(--accent-glow);
+    transform: translateY(-1px);
+  }
+
+  @media (max-width: 640px) {
+    .entry-header,
+    .entry-content {
+      padding-left: 1.2em;
+      padding-right: 1.2em;
+    }
+  }
+</style>
+
+<div class="entry-header">
+  <div class="breadcrumb">
+    <a href="/headroom/">Headroom</a>
+    <span>/</span>
+    <a href="/headroom/concepts/">Concepts</a>
+    <span>/</span>
+    Frequency
+  </div>
+  <h1>Frequency</h1>
+  <p class="lead">
+    The number of times a sound wave completes a full cycle per second, perceived
+    as pitch — and the single most important property for understanding how audio
+    systems are built.
+  </p>
+</div>
+
+<div class="entry-content">
+
+  <p>
+    Frequency is measured in hertz (Hz), where 1 Hz means one complete cycle per
+    second. A cycle is one full oscillation of a sound wave: from rest, up to its
+    peak, back down through rest, all the way to its trough, and back to rest
+    again. The faster those cycles happen, the higher the pitch. A bass drum sits
+    around 60–80 Hz. A snare crack's snap is somewhere around 5–10 kHz. Middle C
+    on a piano is 261 Hz. Your voice, roughly 100–300 Hz for fundamentals with
+    harmonics stretching well into the thousands.
+  </p>
+
+  <h2>The human hearing range</h2>
+
+  <p>
+    Human ears can theoretically detect frequencies from about 20 Hz up to 20 kHz
+    (20,000 Hz) — though that upper limit drops with age, ear damage, and
+    too many years standing next to subwoofers without earplugs. This 20 Hz–20
+    kHz window is why audio equipment specs almost always reference it. It's the
+    goalposts for the entire industry.
+  </p>
+
+  <div class="callout">
+    <p>
+      1 kHz = 1,000 Hz. So 44.1 kHz (the standard CD
+      <a href="/headroom/concepts/sample-rate/">sample rate</a>) means 44,100
+      measurements per second — more than enough to capture everything your ears
+      can process.
+    </p>
+  </div>
+
+  <h2>What different frequency ranges actually do</h2>
+
+  <p>
+    Not all frequencies are equal, and not all of them reach you the same way.
+    The spectrum breaks into rough bands that behave very differently on a dance floor:
+  </p>
+
+  <ul>
+    <li><strong>Sub-bass (20–80 Hz)</strong> — You feel this more than you hear it. At high volumes, these frequencies move air and vibrate your chest, the floor, and the walls. A well-tuned subwoofer system at 40 Hz isn't playing music — it's applying pressure. This is the physical sensation that defines a great room.</li>
+    <li><strong>Bass (80–250 Hz)</strong> — The body of a kick drum, the fundamental of a bassline. This is where the groove lives. Too much, and the mix sounds muddy. Too little, and the track sounds thin and lifeless, no matter how loud you push it.</li>
+    <li><strong>Low-mids (250 Hz–1 kHz)</strong> — Warmth, thickness, and unfortunately, the muddiest region in a dense mix. Vocals and instruments occupy this space; so do a lot of room resonances. Heavy-handed boosts here tend to make everything sound boxy.</li>
+    <li><strong>Mids (1–4 kHz)</strong> — Presence and clarity. Human speech intelligibility lives here, which is why DJs cutting the mids too aggressively makes vocals disappear into the mix. The ear is most sensitive in this range.</li>
+    <li><strong>High-mids (4–8 kHz)</strong> — Brightness and attack. The crack of a snare, the pick attack on a guitar, the consonants in vocals. This is where energy and excitement live — and where ear fatigue starts if you overdo it.</li>
+    <li><strong>Highs (8–20 kHz)</strong> — Air, shimmer, and spatial detail. Cymbals, room reflections, the subtle texture of a hi-hat. You hear these frequencies, but you also feel their absence — a track rolled off at 12 kHz sounds dull and closed-in even if the rest of the spectrum is perfect.</li>
+  </ul>
+
+  <h2>Why speakers and mixers are split by frequency</h2>
+
+  <p>
+    A single speaker cone can't do everything well. Moving slowly enough to
+    produce a 40 Hz bass wave and fast enough to produce a 16 kHz high-hat shimmer
+    at the same time is physically contradictory — the cone either has to be large
+    and heavy (good for bass, terrible for highs) or small and light (the reverse).
+    That's why speaker systems are split into subwoofers, woofers, midrange drivers,
+    and tweeters, each covering a slice of the spectrum they're built for. A
+    <a href="/headroom/concepts/crossover/">crossover</a> network handles the
+    routing between them.
+  </p>
+
+  <p>
+    Mixers use this same logic. An <a href="/headroom/concepts/eq/">EQ</a> section
+    on a channel strip gives you control over specific frequency bands — because
+    boosting or cutting a narrow range of frequencies is far more useful than
+    just turning the volume up or down. When you pull the bass knob on your mixer,
+    you're filtering out sub-bass and low-bass frequencies, not just making the
+    track quieter.
+  </p>
+
+  <h2>Frequency on the dance floor</h2>
+
+  <p>
+    Most club DJ sets live in the sub-bass and bass range as their foundation.
+    The kick drum, the bassline, and the groove are all low-frequency events. The
+    mid and high frequencies carry the melodic and harmonic content that gives a
+    track its character. When you're mixing two tracks together, frequency clashes
+    in the low end are the most common cause of mud — which is why the classic
+    DJ EQ move (cut the bass on the incoming track, bring it in on the outgoing
+    track) is a frequency management technique, not just a volume trick.
+  </p>
+
+  <div class="related">
+    <h3>Related terms</h3>
+    <div class="related-list">
+      <a href="/headroom/concepts/amplitude/">Amplitude</a>
+      <a href="/headroom/concepts/waveform/">Waveform</a>
+      <a href="/headroom/concepts/eq/">EQ</a>
+      <a href="/headroom/concepts/sample-rate/">Sample Rate</a>
+      <a href="/headroom/concepts/superposition/">Superposition</a>
+    </div>
+  </div>
+
+</div>
+
+<div class="final-cta">
+  <h2>Want to go deeper?</h2>
+  <p>
+    Headroom is an 8-week course covering the technical foundations every
+    serious DJ should know — signal flow, equipment, mixing, and more.
+  </p>
+  <a class="btn-primary" href="/headroom/#book">Learn about the course</a>
+</div>

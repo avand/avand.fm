@@ -1,10 +1,10 @@
 ---
 layout: headroom
-title: "Master Tempo — Headroom DJ Glossary"
-description: "Master tempo is a feature that lets you change a track's playback speed without changing its pitch, decoupling tempo from key."
+title: "Waveform — Headroom DJ Glossary"
+description: "A waveform is the visual representation of a sound wave — a graph of amplitude over time that shows the shape, rhythm, and energy of audio at a glance."
 section: Concepts
 section_url: /headroom/concepts/
-subsection: Master Tempo
+subsection: Waveform
 ---
 
 <style>
@@ -230,72 +230,84 @@ subsection: Master Tempo
     <span>/</span>
     <a href="/headroom/concepts/">Concepts</a>
     <span>/</span>
-    Master Tempo
+    Waveform
   </div>
-  <h1>Master Tempo</h1>
+  <h1>Waveform</h1>
   <p class="lead">
-    A feature that lets you speed up or slow down a track without raising
-    or lowering its pitch — tempo and key decoupled from each other.
+    The visual representation of a sound wave — a graph of amplitude over time
+    that shows the shape, rhythm, and energy of audio at a glance.
   </p>
 </div>
 
 <div class="entry-content">
 
   <p>
-    On a turntable with no pitch correction, speeding up a record always
-    raises its pitch — push the tempo fader up and the track gets faster
-    and higher, like a tape sped up. Master tempo (sometimes called "key
-    lock" or "pitch lock") breaks that link. It lets you change playback
-    speed on its own, while a separate process re-synthesizes the audio to
-    keep the original pitch intact.
+    A waveform puts audio on a map. The horizontal axis is time. The vertical axis
+    is <a href="/headroom/concepts/amplitude/">amplitude</a> — how far the wave
+    is displaced from silence at any given moment. Everything you hear can be
+    drawn as a waveform, and once you learn to read them, they tell you a
+    remarkable amount about what a track is doing before you press play.
   </p>
 
-  <h2>Why it matters for DJs</h2>
+  <h2>How different sounds look</h2>
 
   <p>
-    Master tempo is what makes large tempo jumps usable in a set. Beatmatching
-    a 122 BPM house track into a 140 BPM track without it means the slower
-    track gets pitched up so far it sounds like a different key entirely —
-    vocals turn chipmunked, basslines lose their weight. With master tempo
-    engaged, you can push that same tempo range and the track stays in its
-    original key, so the harmonic relationship between songs stays
-    predictable instead of accidental.
+    Not all waveforms look the same, and the differences aren't arbitrary — they
+    reflect the physical nature of the sounds:
   </p>
+
+  <ul>
+    <li><strong>Kick drums</strong> — a sharp spike of amplitude (the <a href="/headroom/concepts/transient/">transient</a>) followed by a quick decay. In a waveform view, kick drums look like narrow peaks evenly spaced across the timeline.</li>
+    <li><strong>Sustained pads and drones</strong> — thick, relatively uniform blocks of energy that stretch across time without much variation in amplitude. The opposite of a kick drum: no sharp edges, just mass.</li>
+    <li><strong>Vocals</strong> — irregular, dynamic, with moments of high amplitude (held notes, consonants) and quieter passages. A vocal section in a waveform looks choppy and organic compared to a synth loop.</li>
+    <li><strong>Drops and buildups</strong> — visible as dramatic changes in overall amplitude. A buildup often compresses the waveform toward the peak, then the drop hits as a dense, tall block. You can spot a drop coming from 32 bars away just by watching the waveform scroll.</li>
+  </ul>
+
+  <h2>How DJs use waveforms</h2>
+
+  <p>
+    DJ software (Rekordbox, Serato, Traktor, and friends) displays waveforms in
+    real time and in the track overview. This is one of the most practically
+    useful tools in your software — not a crutch, a map.
+  </p>
+
+  <ul>
+    <li><strong>Visual beatmatching</strong> — align the peaks in one waveform with the peaks in another, and you can see whether tracks are phase-aligned even before your ears confirm it.</li>
+    <li><strong>Spotting structure</strong> — breaks, drops, and buildups are visible as regions of different amplitude density. You know a break is coming when the waveform thins out, and you can plan your mix around it instead of getting caught off guard.</li>
+    <li><strong>Finding edit points</strong> — clean cuts, loops, and cue points are easiest to place on zero crossings (where the waveform crosses the center line), which minimizes the click or pop you'd hear from an abrupt amplitude change.</li>
+    <li><strong>Phrase matching</strong> — in an overview waveform, you can see 8-bar and 16-bar phrase structures repeating. Matching phrases between two tracks is the difference between a smooth mix and one that feels structurally off.</li>
+  </ul>
 
   <div class="callout">
     <p>
-      Master tempo isn't free — it works by digitally stretching or
-      compressing the audio in time, which is more processing than a simple
-      speed change. Pushed to extremes (very large tempo shifts), you'll
-      start to hear artifacts: a slightly grainy or "smeared" quality,
-      especially on vocals and cymbals. Small-to-moderate tempo changes are
-      usually transparent; big ones aren't free of cost.
+      Most DJ software color-codes waveforms by frequency — low frequencies shown
+      in red or orange, highs in blue or white. This gives you frequency
+      information at a glance: a waveform that's all orange is bass-heavy;
+      one with lots of blue has significant high-frequency content.
     </p>
   </div>
 
-  <h2>Where you'll find the control</h2>
-
-  <ul>
-    <li><strong>CDJs and standalone players</strong> — almost always a dedicated "Master Tempo" or "Key Lock" button near the pitch fader.</li>
-    <li><strong>DJ software</strong> (Serato, rekordbox, Engine DJ) — typically a toggle per deck, sometimes with a separate "keylock quality" setting that trades CPU load for audio fidelity.</li>
-    <li><strong>Turntables</strong> — generally don't have it natively; true vinyl pitch changes always shift key, which is part of why all-vinyl tempo-matching across wide BPM ranges is harder.</li>
-  </ul>
-
-  <h2>In the context of Headroom</h2>
+  <h2>Waveforms and digital audio</h2>
 
   <p>
-    Master tempo comes up in Module 4: Music — once you're
-    blending across genres or BPM ranges, knowing when to lean on it (and
-    when its artifacts start working against you) is part of building a set
-    that holds together instead of just lining up on the grid.
+    In digital audio, a waveform isn't stored as a continuous curve — it's stored
+    as a sequence of discrete amplitude measurements called samples. Each sample
+    captures the amplitude at one moment in time, and the
+    <a href="/headroom/concepts/sample-rate/">sample rate</a> determines how many
+    of those snapshots are taken per second. Play them back fast enough and the
+    discrete steps blur into a smooth, continuous wave — which is exactly how
+    <a href="/headroom/concepts/pulse-code-modulation/">pulse-code modulation
+    (PCM)</a> works. The waveform display in your DJ software is just a zoomed-out
+    rendering of all those samples drawn as a continuous shape.
   </p>
 
   <div class="related">
     <h3>Related terms</h3>
     <div class="related-list">
-      <a href="/headroom/concepts/key-lock/">Key Lock</a>
-      <a href="/headroom/concepts/bpm/">BPM</a>
-      <a href="/headroom/concepts/musical-key/">Musical Key</a>
+      <a href="/headroom/concepts/frequency/">Frequency</a>
+      <a href="/headroom/concepts/amplitude/">Amplitude</a>
+      <a href="/headroom/concepts/pulse-code-modulation/">Pulse-Code Modulation</a>
+      <a href="/headroom/concepts/sample-rate/">Sample Rate</a>
     </div>
   </div>
 

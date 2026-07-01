@@ -1,10 +1,10 @@
 ---
 layout: headroom
-title: "Master Tempo — Headroom DJ Glossary"
-description: "Master tempo is a feature that lets you change a track's playback speed without changing its pitch, decoupling tempo from key."
+title: "Harmonic Mixing — Headroom DJ Glossary"
+description: "The practice of choosing tracks whose musical keys are compatible, so transitions sound melodic and intentional rather than like two songs fighting each other."
 section: Concepts
 section_url: /headroom/concepts/
-subsection: Master Tempo
+subsection: Harmonic Mixing
 ---
 
 <style>
@@ -230,71 +230,77 @@ subsection: Master Tempo
     <span>/</span>
     <a href="/headroom/concepts/">Concepts</a>
     <span>/</span>
-    Master Tempo
+    Harmonic Mixing
   </div>
-  <h1>Master Tempo</h1>
+  <h1>Harmonic Mixing</h1>
   <p class="lead">
-    A feature that lets you speed up or slow down a track without raising
-    or lowering its pitch — tempo and key decoupled from each other.
+    The practice of choosing tracks whose musical keys are compatible, so
+    transitions sound melodic and intentional rather than like two songs
+    fighting each other.
   </p>
 </div>
 
 <div class="entry-content">
 
   <p>
-    On a turntable with no pitch correction, speeding up a record always
-    raises its pitch — push the tempo fader up and the track gets faster
-    and higher, like a tape sped up. Master tempo (sometimes called "key
-    lock" or "pitch lock") breaks that link. It lets you change playback
-    speed on its own, while a separate process re-synthesizes the audio to
-    keep the original pitch intact.
+    Every track is in a <a href="/headroom/concepts/musical-key/">musical key</a>.
+    When you mix two tracks whose keys clash, the harmonics of one melody
+    actively conflict with the harmonics of the other — the result is a
+    transition that sounds wrong in a way the crowd feels even if they can't
+    name it. Harmonic mixing is the practice of selecting tracks based on key
+    compatibility, so your transitions sound like they belong together.
   </p>
 
-  <h2>Why it matters for DJs</h2>
+  <h2>The Camelot Wheel</h2>
 
   <p>
-    Master tempo is what makes large tempo jumps usable in a set. Beatmatching
-    a 122 BPM house track into a 140 BPM track without it means the slower
-    track gets pitched up so far it sounds like a different key entirely —
-    vocals turn chipmunked, basslines lose their weight. With master tempo
-    engaged, you can push that same tempo range and the track stays in its
-    original key, so the harmonic relationship between songs stays
-    predictable instead of accidental.
+    The Camelot Wheel maps all 24 musical keys (12 major, 12 minor) onto a
+    clock face numbered 1 through 12, with each position having an "A" (minor)
+    and "B" (major) variant. The rules are simple:
   </p>
+
+  <ul>
+    <li><strong>Same number, same letter</strong> — identical key, always compatible.</li>
+    <li><strong>Same number, different letter</strong> — relative major/minor pair (e.g. 8A and 8B). Compatible and often emotionally interesting.</li>
+    <li><strong>Adjacent numbers, same letter</strong> — a step around the circle of fifths (e.g. 7A and 8A). Harmonically smooth.</li>
+    <li><strong>Move more than one step</strong> — possible, but needs more care. Can work as an intentional energy shift.</li>
+  </ul>
+
+  <h2>Using it in practice</h2>
+
+  <ol>
+    <li><strong>Tag your tracks.</strong> Software like Mixed in Key analyzes your library and writes a Camelot code into each file's metadata. Rekordbox and Serato can display this tag so you see it at a glance.</li>
+    <li><strong>Sort by code.</strong> Before a set, browse by Camelot code to find compatible options from your current track. You're not planning a rigid setlist — you're seeing the menu of harmonically smooth next moves.</li>
+    <li><strong>Build transitions between compatible codes.</strong> When two tracks share a code or are one step apart, you can let them overlap longer, let melodic elements breathe into each other, and trust that they won't fight.</li>
+  </ol>
+
+  <h2>A guide, not a law</h2>
 
   <div class="callout">
     <p>
-      Master tempo isn't free — it works by digitally stretching or
-      compressing the audio in time, which is more processing than a simple
-      speed change. Pushed to extremes (very large tempo shifts), you'll
-      start to hear artifacts: a slightly grainy or "smeared" quality,
-      especially on vocals and cymbals. Small-to-moderate tempo changes are
-      usually transparent; big ones aren't free of cost.
+      Some of the most powerful transitions in DJ history are deliberately
+      dissonant. A jarring key clash can signal a dramatic energy shift — a
+      drop into something harder, darker, or completely unexpected. Harmonic
+      mixing gives you a vocabulary; knowing when to break the rules is
+      fluency. Use it as a tool, not a cage.
     </p>
   </div>
 
-  <h2>Where you'll find the control</h2>
-
-  <ul>
-    <li><strong>CDJs and standalone players</strong> — almost always a dedicated "Master Tempo" or "Key Lock" button near the pitch fader.</li>
-    <li><strong>DJ software</strong> (Serato, rekordbox, Engine DJ) — typically a toggle per deck, sometimes with a separate "keylock quality" setting that trades CPU load for audio fidelity.</li>
-    <li><strong>Turntables</strong> — generally don't have it natively; true vinyl pitch changes always shift key, which is part of why all-vinyl tempo-matching across wide BPM ranges is harder.</li>
-  </ul>
-
-  <h2>In the context of Headroom</h2>
+  <h2>Key lock and BPM offsets</h2>
 
   <p>
-    Master tempo comes up in Module 4: Music — once you're
-    blending across genres or BPM ranges, knowing when to lean on it (and
-    when its artifacts start working against you) is part of building a set
-    that holds together instead of just lining up on the grid.
+    One practical wrinkle: <a href="/headroom/concepts/master-tempo/">master tempo</a>
+    (key lock) corrects pitch when you change BPM, but only up to a point.
+    At large BPM offsets — say, more than 6–8% — the pitch correction
+    algorithm starts to introduce artifacts, and the perceived key can drift
+    slightly. If you're matching a 128 BPM track to a 118 BPM track with key
+    lock on, the Camelot code is still a useful starting point, but trust your
+    ears on the final call.
   </p>
 
   <div class="related">
     <h3>Related terms</h3>
     <div class="related-list">
-      <a href="/headroom/concepts/key-lock/">Key Lock</a>
-      <a href="/headroom/concepts/bpm/">BPM</a>
       <a href="/headroom/concepts/musical-key/">Musical Key</a>
     </div>
   </div>

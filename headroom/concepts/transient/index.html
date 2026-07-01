@@ -1,10 +1,10 @@
 ---
 layout: headroom
-title: "Master Tempo — Headroom DJ Glossary"
-description: "Master tempo is a feature that lets you change a track's playback speed without changing its pitch, decoupling tempo from key."
+title: "Transient — Headroom DJ Glossary"
+description: "A transient is the sharp, fast spike of energy at the very start of a sound — the crack of a snare, the thud of a kick — that your ear uses to identify rhythm and your DJ software uses to set beat grids."
 section: Concepts
 section_url: /headroom/concepts/
-subsection: Master Tempo
+subsection: Transient
 ---
 
 <style>
@@ -230,72 +230,92 @@ subsection: Master Tempo
     <span>/</span>
     <a href="/headroom/concepts/">Concepts</a>
     <span>/</span>
-    Master Tempo
+    Transient
   </div>
-  <h1>Master Tempo</h1>
+  <h1>Transient</h1>
   <p class="lead">
-    A feature that lets you speed up or slow down a track without raising
-    or lowering its pitch — tempo and key decoupled from each other.
+    The sharp, fast spike of energy at the very start of a sound — the "crack"
+    of a snare, the "thud" of a kick — that your ear uses to identify rhythm and
+    your DJ software uses to set beat grids.
   </p>
 </div>
 
 <div class="entry-content">
 
   <p>
-    On a turntable with no pitch correction, speeding up a record always
-    raises its pitch — push the tempo fader up and the track gets faster
-    and higher, like a tape sped up. Master tempo (sometimes called "key
-    lock" or "pitch lock") breaks that link. It lets you change playback
-    speed on its own, while a separate process re-synthesizes the audio to
-    keep the original pitch intact.
+    Every percussive sound has two parts: the attack and the sustain. The attack
+    is the transient — a brief, high-amplitude burst of energy that happens the
+    instant a sound begins. The sustain is everything after: the body of the kick
+    drum resonating, the snare rattle decaying, the cymbal shimmer fading. The
+    transient is short (we're talking milliseconds) and loud, and it carries
+    enormous amounts of information. Your brain uses transients to tell when a
+    beat happened, which instrument made the sound, and whether a system sounds
+    tight or sluggish.
   </p>
 
-  <h2>Why it matters for DJs</h2>
+  <h2>Why beat grids depend on transients</h2>
 
   <p>
-    Master tempo is what makes large tempo jumps usable in a set. Beatmatching
-    a 122 BPM house track into a 140 BPM track without it means the slower
-    track gets pitched up so far it sounds like a different key entirely —
-    vocals turn chipmunked, basslines lose their weight. With master tempo
-    engaged, you can push that same tempo range and the track stays in its
-    original key, so the harmonic relationship between songs stays
-    predictable instead of accidental.
+    DJ software detects the tempo and beat position of a track by finding its
+    kick drum transients. The algorithm looks for sharp, sudden amplitude spikes
+    at regular intervals and uses those to place the
+    <a href="/headroom/concepts/beat-grid/">beat grid</a>. When a track has
+    clear, sharp kick transients, grid detection is fast and accurate. When a
+    track has soft, smeary attacks — a brushed jazz kick, a heavily compressed
+    electronic track where the transients have been intentionally rounded — the
+    software has to work harder, and errors are more common.
+  </p>
+
+  <p>
+    If you've ever wondered why your software confidently nails the grid on a
+    four-to-the-floor techno track but fumbles on an old soul record, transients
+    are the answer. The techno kick hits like a hammer. The soul drummer's kick
+    is softer, more organic, and harder to pin down algorithmically.
   </p>
 
   <div class="callout">
     <p>
-      Master tempo isn't free — it works by digitally stretching or
-      compressing the audio in time, which is more processing than a simple
-      speed change. Pushed to extremes (very large tempo shifts), you'll
-      start to hear artifacts: a slightly grainy or "smeared" quality,
-      especially on vocals and cymbals. Small-to-moderate tempo changes are
-      usually transparent; big ones aren't free of cost.
+      In a waveform display, transients are the narrow, tall spikes you can see
+      at the start of each kick and snare hit. They're the sharpest-looking
+      features in any rhythmically active section of a track.
     </p>
   </div>
 
-  <h2>Where you'll find the control</h2>
-
-  <ul>
-    <li><strong>CDJs and standalone players</strong> — almost always a dedicated "Master Tempo" or "Key Lock" button near the pitch fader.</li>
-    <li><strong>DJ software</strong> (Serato, rekordbox, Engine DJ) — typically a toggle per deck, sometimes with a separate "keylock quality" setting that trades CPU load for audio fidelity.</li>
-    <li><strong>Turntables</strong> — generally don't have it natively; true vinyl pitch changes always shift key, which is part of why all-vinyl tempo-matching across wide BPM ranges is harder.</li>
-  </ul>
-
-  <h2>In the context of Headroom</h2>
+  <h2>Transients and the perception of punch</h2>
 
   <p>
-    Master tempo comes up in Module 4: Music — once you're
-    blending across genres or BPM ranges, knowing when to lean on it (and
-    when its artifacts start working against you) is part of building a set
-    that holds together instead of just lining up on the grid.
+    The physical sensation of a kick drum hitting you in the chest isn't just
+    about the sub-bass frequencies — it's about the speed of the attack. A kick
+    with a fast, clean transient feels tight and punchy. A kick with a slow
+    attack (whether by design or because something in the signal chain is
+    softening it) feels rounded and pillowy. On a large PA, this difference is
+    not subtle. It's the difference between a system that sounds like it
+    hits and one that just sounds loud.
   </p>
+
+  <p>
+    Speaker systems also have transient response characteristics. A woofer cone
+    that can't accelerate fast enough to track a sharp transient will smear the
+    attack, rounding off the initial spike and making the whole system sound
+    slow. This is one reason high-quality professional speakers cost what they
+    do — tight transient response at high volumes is genuinely hard to engineer.
+  </p>
+
+  <h2>What damages transients</h2>
+
+  <ul>
+    <li><strong>Clipping</strong> — when a signal exceeds the ceiling of a digital or analog system, the peak of the transient gets sliced off. Clipped transients introduce harsh, buzzy harmonics and are one of the most unpleasant sounds a PA system can reproduce. See <a href="/headroom/concepts/clipping/">clipping</a>.</li>
+    <li><strong>Heavy compression</strong> — compression with a fast attack setting actively reduces transient amplitude. This is sometimes intentional (taming a too-aggressive snare crack) but when overdone, it makes a mix sound flat and lifeless, without the dynamic contrast that makes percussion feel physical.</li>
+    <li><strong>Lossy compression</strong> — MP3 and AAC encoding uses psychoacoustic models to decide what audio information to discard. Transients, because they contain a broad spread of frequency content concentrated in a very short time window, are sometimes smeared or softened by lossy codecs — especially at lower bitrates. High-bitrate files (320 kbps) largely avoid this; low-bitrate files (128 kbps) can make kicks sound slightly soft and vague compared to the original.</li>
+    <li><strong>EQ</strong> — high-pass filtering removes the low-frequency body of a kick, which changes how the transient integrates with the rest of the sound. Aggressive <a href="/headroom/concepts/eq/">EQ</a> cuts in the 3–8 kHz range (where much of a snare's crack lives) can also dull the perceived sharpness of transients.</li>
+  </ul>
 
   <div class="related">
     <h3>Related terms</h3>
     <div class="related-list">
-      <a href="/headroom/concepts/key-lock/">Key Lock</a>
-      <a href="/headroom/concepts/bpm/">BPM</a>
-      <a href="/headroom/concepts/musical-key/">Musical Key</a>
+      <a href="/headroom/concepts/beat-grid/">Beat Grid</a>
+      <a href="/headroom/concepts/clipping/">Clipping</a>
+      <a href="/headroom/concepts/eq/">EQ</a>
     </div>
   </div>
 

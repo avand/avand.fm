@@ -1,10 +1,10 @@
 ---
 layout: headroom
-title: "Master Tempo — Headroom DJ Glossary"
-description: "Master tempo is a feature that lets you change a track's playback speed without changing its pitch, decoupling tempo from key."
+title: "ID3 Tags — Headroom DJ Glossary"
+description: "ID3 tags are the metadata embedded inside an audio file — the title, artist, BPM, key, and any custom tags you add — that makes your library searchable, sortable, and portable across devices and software."
 section: Concepts
 section_url: /headroom/concepts/
-subsection: Master Tempo
+subsection: ID3 Tags
 ---
 
 <style>
@@ -127,43 +127,6 @@ subsection: Master Tempo
     font-size: 0.97em;
   }
 
-  .related {
-    border-top: 1px solid var(--border);
-    padding-top: 2em;
-    margin-top: 3em;
-  }
-
-  .related h3 {
-    font-size: 0.8em;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-bottom: 1em;
-  }
-
-  .related-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.6em;
-  }
-
-  .related-list a {
-    color: var(--text);
-    text-decoration: none;
-    font-size: 0.9em;
-    font-weight: 600;
-    border: 1px solid var(--border);
-    border-radius: 2em;
-    padding: 0.35em 1em;
-    background: var(--surface);
-    transition: border-color 200ms;
-  }
-
-  .related-list a:hover {
-    border-color: var(--accent);
-  }
-
   .final-cta {
     text-align: center;
     padding: 6em 2em;
@@ -230,74 +193,79 @@ subsection: Master Tempo
     <span>/</span>
     <a href="/headroom/concepts/">Concepts</a>
     <span>/</span>
-    Master Tempo
+    ID3 Tags
   </div>
-  <h1>Master Tempo</h1>
+  <h1>ID3 Tags</h1>
   <p class="lead">
-    A feature that lets you speed up or slow down a track without raising
-    or lowering its pitch — tempo and key decoupled from each other.
+    The metadata embedded inside an audio file — the title, artist, BPM, key, and
+    any custom tags you add — that makes your library searchable, sortable, and
+    portable across devices and software.
   </p>
 </div>
 
 <div class="entry-content">
 
   <p>
-    On a turntable with no pitch correction, speeding up a record always
-    raises its pitch — push the tempo fader up and the track gets faster
-    and higher, like a tape sped up. Master tempo (sometimes called "key
-    lock" or "pitch lock") breaks that link. It lets you change playback
-    speed on its own, while a separate process re-synthesizes the audio to
-    keep the original pitch intact.
+    ID3 is a metadata standard originally developed for MP3 files in the mid-1990s.
+    It defines a container baked into the file itself that stores information about
+    the audio: artist, title, album, track number, genre, BPM, key, cover art,
+    comments, and custom fields. The standard has been extended and adopted by other
+    formats since then, so the term "ID3 tags" is used loosely to refer to embedded
+    audio metadata across formats.
   </p>
 
-  <h2>Why it matters for DJs</h2>
+  <h2>Why DJs should care deeply about tags</h2>
 
   <p>
-    Master tempo is what makes large tempo jumps usable in a set. Beatmatching
-    a 122 BPM house track into a 140 BPM track without it means the slower
-    track gets pitched up so far it sounds like a different key entirely —
-    vocals turn chipmunked, basslines lose their weight. With master tempo
-    engaged, you can push that same tempo range and the track stays in its
-    original key, so the harmonic relationship between songs stays
-    predictable instead of accidental.
+    Tags are the difference between a library and a pile of files. Here's why they matter:
+  </p>
+
+  <ul>
+    <li><strong>Tags travel with the file.</strong> Unlike a database entry that lives inside rekordbox or Serato, a tag is written into the file itself. Move the file, and the metadata moves with it.</li>
+    <li><strong>Well-tagged libraries are portable.</strong> Switching from Serato to rekordbox (or to anything else) is orders of magnitude less painful when your BPM, key, and genre data live in the files rather than in a proprietary database.</li>
+    <li><strong>Smart playlists and search depend entirely on tag quality.</strong> Searching for "dark techno" in a library where genre is blank everywhere returns nothing. Garbage in, garbage results.</li>
+  </ul>
+
+  <h2>A practical DJ tagging workflow</h2>
+
+  <p>
+    A common approach: download tracks, run them through Mixed in Key (or a similar
+    analyzer) to auto-write BPM and Camelot key into the appropriate tag fields,
+    then add custom tags for vibe, energy level, or intended usage context. The
+    comments field or a custom "energy" field can hold values like "peak hour,"
+    "opener," or "peak-to-closing" — searchable in the booth when you need a
+    specific tool for a specific moment.
   </p>
 
   <div class="callout">
     <p>
-      Master tempo isn't free — it works by digitally stretching or
-      compressing the audio in time, which is more processing than a simple
-      speed change. Pushed to extremes (very large tempo shifts), you'll
-      start to hear artifacts: a slightly grainy or "smeared" quality,
-      especially on vocals and cymbals. Small-to-moderate tempo changes are
-      usually transparent; big ones aren't free of cost.
+      Some DJ software writes metadata back to its own database rather than to the
+      file. Rekordbox, for example, stores cue points and beat grids in its library
+      database by default, not in the ID3 tags (though you can configure it to
+      export some data to tags). If you uninstall rekordbox or your library database
+      corrupts, those cue points are gone. Know where your data actually lives.
     </p>
   </div>
 
-  <h2>Where you'll find the control</h2>
+  <h2>Standard fields DJs use</h2>
 
   <ul>
-    <li><strong>CDJs and standalone players</strong> — almost always a dedicated "Master Tempo" or "Key Lock" button near the pitch fader.</li>
-    <li><strong>DJ software</strong> (Serato, rekordbox, Engine DJ) — typically a toggle per deck, sometimes with a separate "keylock quality" setting that trades CPU load for audio fidelity.</li>
-    <li><strong>Turntables</strong> — generally don't have it natively; true vinyl pitch changes always shift key, which is part of why all-vinyl tempo-matching across wide BPM ranges is harder.</li>
+    <li><strong>BPM</strong> — beats per minute; written by analysis software and readable by DJ software for sync and sorting</li>
+    <li><strong>Key</strong> — tonal key, often written as a Camelot code (e.g., 8A) or standard notation (e.g., Am)</li>
+    <li><strong>Genre</strong> — searchable category; only as useful as how consistently you apply it</li>
+    <li><strong>Comment</strong> — a general-purpose text field; popular for energy ratings, personal notes, and workflow flags</li>
+    <li><strong>Grouping</strong> — sometimes used by DJs for set-context labeling</li>
   </ul>
 
-  <h2>In the context of Headroom</h2>
+  <h2>Format notes</h2>
 
   <p>
-    Master tempo comes up in Module 4: Music — once you're
-    blending across genres or BPM ranges, knowing when to lean on it (and
-    when its artifacts start working against you) is part of building a set
-    that holds together instead of just lining up on the grid.
+    ID3v2 (the current version) supports all the fields above and more. WAV files
+    have historically had inconsistent ID3 support depending on the software — if
+    portability matters, AIFF or MP3 tend to be safer bets for reliable tag
+    read/write across applications. FLAC uses a different metadata system (Vorbis
+    comments) but most DJ software reads it correctly.
   </p>
-
-  <div class="related">
-    <h3>Related terms</h3>
-    <div class="related-list">
-      <a href="/headroom/concepts/key-lock/">Key Lock</a>
-      <a href="/headroom/concepts/bpm/">BPM</a>
-      <a href="/headroom/concepts/musical-key/">Musical Key</a>
-    </div>
-  </div>
 
 </div>
 

@@ -1,10 +1,10 @@
 ---
 layout: headroom
-title: "Master Tempo — Headroom DJ Glossary"
-description: "Master tempo is a feature that lets you change a track's playback speed without changing its pitch, decoupling tempo from key."
+title: "Signal Flow — Headroom DJ Glossary"
+description: "Signal flow is the path an audio signal takes from its source to its destination — understanding it is how you troubleshoot problems in seconds instead of minutes."
 section: Concepts
 section_url: /headroom/concepts/
-subsection: Master Tempo
+subsection: Signal Flow
 ---
 
 <style>
@@ -230,72 +230,104 @@ subsection: Master Tempo
     <span>/</span>
     <a href="/headroom/concepts/">Concepts</a>
     <span>/</span>
-    Master Tempo
+    Signal Flow
   </div>
-  <h1>Master Tempo</h1>
+  <h1>Signal Flow</h1>
   <p class="lead">
-    A feature that lets you speed up or slow down a track without raising
-    or lowering its pitch — tempo and key decoupled from each other.
+    The path an audio signal takes from its source to its destination — and
+    understanding it is the difference between a DJ who troubleshoots in 30
+    seconds and one who's still staring at the back of the mixer when the crowd
+    is waiting.
   </p>
 </div>
 
 <div class="entry-content">
 
   <p>
-    On a turntable with no pitch correction, speeding up a record always
-    raises its pitch — push the tempo fader up and the track gets faster
-    and higher, like a tape sped up. Master tempo (sometimes called "key
-    lock" or "pitch lock") breaks that link. It lets you change playback
-    speed on its own, while a separate process re-synthesizes the audio to
-    keep the original pitch intact.
+    Every piece of audio gear has an input and an output. Signal flow is simply
+    the sequence those devices form — audio enters one end and works its way
+    through the chain until it reaches the speakers. The concept sounds obvious
+    until something goes wrong and you realize you have no mental map of where
+    the sound actually travels.
   </p>
 
-  <h2>Why it matters for DJs</h2>
+  <h2>A typical DJ signal path</h2>
 
   <p>
-    Master tempo is what makes large tempo jumps usable in a set. Beatmatching
-    a 122 BPM house track into a 140 BPM track without it means the slower
-    track gets pitched up so far it sounds like a different key entirely —
-    vocals turn chipmunked, basslines lose their weight. With master tempo
-    engaged, you can push that same tempo range and the track stays in its
-    original key, so the harmonic relationship between songs stays
-    predictable instead of accidental.
+    In most club setups, the signal moves like this:
+  </p>
+
+  <ol>
+    <li><strong>Source</strong> — a media player, turntable, or laptop outputs an audio signal at <a href="/headroom/concepts/line-level/">line level</a>.</li>
+    <li><strong>Mixer channel</strong> — the signal enters a channel on the mixer, where the gain knob sets the input level and the channel fader controls how much reaches the mix bus.</li>
+    <li><strong>Master output</strong> — the mixed signal leaves the mixer at a level set by the master fader and goes out to the amplifier (or the venue's house system).</li>
+    <li><strong>Amplifier</strong> — the signal is boosted to speaker level (a much higher voltage than line level).</li>
+    <li><strong>Speakers</strong> — the amplified electrical signal is converted into physical movement of air, which is what you actually hear.</li>
+  </ol>
+
+  <div class="callout">
+    <p>
+      The chain only goes one direction. Audio flows from source to destination,
+      and each stage is downstream of the one before it. A problem introduced
+      at any stage travels with the signal for the rest of the path — you can't
+      fix it downstream.
+    </p>
+  </div>
+
+  <h2>Why signal flow matters</h2>
+
+  <p>
+    Every link in the chain can add noise, introduce distortion, or lose signal
+    strength. A cable with a dodgy connector, a gain knob set too hot, an
+    amplifier with a mismatched input sensitivity — any of these degrades the
+    signal, and the degradation compounds as you move downstream. Knowing the
+    path means knowing exactly where to look when something sounds wrong.
+  </p>
+
+  <p>
+    It also shapes how you think about <a href="/headroom/concepts/gain-staging/">gain staging</a>. You're not just
+    setting levels on individual pieces of gear — you're managing a system where
+    each stage hands off to the next. A healthy signal flow means each handoff
+    happens at an appropriate level: not so low that noise dominates, not so
+    high that the next device clips.
+  </p>
+
+  <h2>How to trace a signal when something's wrong</h2>
+
+  <p>
+    Start at the source. Is the player outputting signal? (Check with headphones
+    directly on the player.) If yes, move downstream: is the channel meter on
+    the mixer moving? If yes, is the master output showing signal? Work your way
+    from source to speaker until you find the link that breaks the chain. The
+    problem is almost always at the boundary between two devices — a cable,
+    a connector, a gain control set to zero, or an input set to the wrong source.
   </p>
 
   <div class="callout">
     <p>
-      Master tempo isn't free — it works by digitally stretching or
-      compressing the audio in time, which is more processing than a simple
-      speed change. Pushed to extremes (very large tempo shifts), you'll
-      start to hear artifacts: a slightly grainy or "smeared" quality,
-      especially on vocals and cymbals. Small-to-moderate tempo changes are
-      usually transparent; big ones aren't free of cost.
+      A surprisingly common culprit: the channel on the mixer is set to the
+      wrong input (CD vs. phono vs. line). The signal exists; it's just not
+      being routed to where you expect it.
     </p>
   </div>
 
-  <h2>Where you'll find the control</h2>
-
-  <ul>
-    <li><strong>CDJs and standalone players</strong> — almost always a dedicated "Master Tempo" or "Key Lock" button near the pitch fader.</li>
-    <li><strong>DJ software</strong> (Serato, rekordbox, Engine DJ) — typically a toggle per deck, sometimes with a separate "keylock quality" setting that trades CPU load for audio fidelity.</li>
-    <li><strong>Turntables</strong> — generally don't have it natively; true vinyl pitch changes always shift key, which is part of why all-vinyl tempo-matching across wide BPM ranges is harder.</li>
-  </ul>
-
-  <h2>In the context of Headroom</h2>
+  <h2>Each device has an operating range</h2>
 
   <p>
-    Master tempo comes up in Module 4: Music — once you're
-    blending across genres or BPM ranges, knowing when to lean on it (and
-    when its artifacts start working against you) is part of building a set
-    that holds together instead of just lining up on the grid.
+    Gear is designed to work within defined input and output levels. Feed a
+    device a signal that's too strong and it clips. Feed it one that's too weak
+    and it amplifies the noise floor along with the music. Understanding signal
+    flow means understanding that every device in the chain has a comfort zone,
+    and your job is to keep the signal inside that zone at every step.
   </p>
 
   <div class="related">
     <h3>Related terms</h3>
     <div class="related-list">
-      <a href="/headroom/concepts/key-lock/">Key Lock</a>
-      <a href="/headroom/concepts/bpm/">BPM</a>
-      <a href="/headroom/concepts/musical-key/">Musical Key</a>
+      <a href="/headroom/concepts/gain-staging/">Gain Staging</a>
+      <a href="/headroom/concepts/line-level/">Line Level</a>
+      <a href="/headroom/concepts/balanced-vs-unbalanced/">Balanced vs. Unbalanced</a>
+      <a href="/headroom/concepts/clipping/">Clipping</a>
     </div>
   </div>
 
