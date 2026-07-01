@@ -1,0 +1,367 @@
+---
+layout: headroom
+title: "Attunement — Headroom DJ Glossary"
+description: "Attunement is the ongoing practice of reading and responding to the room — the crowd, the moment, the other DJ — so your decisions serve the dance floor rather than just yourself."
+section: Concepts
+section_url: /headroom/concepts/
+subsection: Attunement
+---
+
+<style>
+  .entry-header {
+    padding: 8em 2em 3em;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  .breadcrumb {
+    font-size: 0.8em;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 1.2em;
+  }
+
+  .breadcrumb a {
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .breadcrumb a:hover {
+    color: var(--text);
+  }
+
+  .breadcrumb span {
+    margin: 0 0.5em;
+    opacity: 0.4;
+  }
+
+  .entry-header h1 {
+    font-size: clamp(2em, 5vw, 3.2em);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 0.4em;
+  }
+
+  .entry-header .lead {
+    font-size: 1.15em;
+    color: var(--text-muted);
+    max-width: 600px;
+  }
+
+  .entry-content {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 2em 5em;
+  }
+
+  .entry-content h2 {
+    font-size: 1.4em;
+    font-weight: 700;
+    margin: 2.5em 0 0.6em;
+  }
+
+  .entry-content p {
+    color: var(--text-muted);
+    margin-bottom: 1em;
+    font-size: 1.02em;
+  }
+
+  .entry-content p a {
+    color: var(--text);
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 0.2em;
+  }
+
+  .entry-content ul,
+  .entry-content ol {
+    list-style: none;
+    margin-bottom: 1em;
+  }
+
+  .entry-content ul li,
+  .entry-content ol li {
+    position: relative;
+    padding-left: 1.4em;
+    color: var(--text-muted);
+    font-size: 1em;
+    margin-bottom: 0.35em;
+  }
+
+  .entry-content ul li::before {
+    content: "\25B8";
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+  }
+
+  .entry-content ol {
+    counter-reset: ol-counter;
+  }
+
+  .entry-content ol li {
+    counter-increment: ol-counter;
+  }
+
+  .entry-content ol li::before {
+    content: counter(ol-counter) ".";
+    position: absolute;
+    left: 0;
+    color: var(--warm);
+    font-weight: 700;
+    font-size: 0.85em;
+  }
+
+  .callout {
+    border-left: 3px solid var(--accent);
+    padding: 1em 1.4em;
+    background: var(--surface);
+    border-radius: 0 0.4em 0.4em 0;
+    margin: 1.5em 0;
+  }
+
+  .callout p {
+    margin: 0;
+    font-size: 0.97em;
+  }
+
+  .related {
+    border-top: 1px solid var(--border);
+    padding-top: 2em;
+    margin-top: 3em;
+  }
+
+  .related h3 {
+    font-size: 0.8em;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 1em;
+  }
+
+  .related-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6em;
+  }
+
+  .related-list a {
+    color: var(--text);
+    text-decoration: none;
+    font-size: 0.9em;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    border-radius: 2em;
+    padding: 0.35em 1em;
+    background: var(--surface);
+    transition: border-color 200ms;
+  }
+
+  .related-list a:hover {
+    border-color: var(--accent);
+  }
+
+  .final-cta {
+    text-align: center;
+    padding: 6em 2em;
+    position: relative;
+    background:
+      linear-gradient(to bottom, var(--bg) 0%, rgba(10, 10, 15, 0.5) 30%, rgba(10, 10, 15, 0.5) 70%, var(--bg) 100%),
+      url('/headroom/djvibe-studiox-dt_UuLU_foM-unsplash.jpg') center bottom / cover no-repeat;
+  }
+
+  .final-cta::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    box-shadow: inset 0 0 8em 2em var(--bg);
+    pointer-events: none;
+  }
+
+  .final-cta h2 {
+    font-size: 2em;
+    margin-bottom: 0.4em;
+    position: relative;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  }
+
+  .final-cta p {
+    color: var(--text-muted);
+    font-size: 1.1em;
+    position: relative;
+    max-width: 500px;
+    margin: 0 auto 2em;
+  }
+
+  .btn-primary {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1em;
+    padding: 0.75em 2.5em;
+    border-radius: 2em;
+    transition: box-shadow 200ms, transform 200ms;
+    box-shadow: 0 0 1.5em var(--accent-glow);
+    position: relative;
+  }
+
+  .btn-primary:hover {
+    box-shadow: 0 0 2.5em var(--accent-glow);
+    transform: translateY(-1px);
+  }
+
+  @media (max-width: 640px) {
+    .entry-header,
+    .entry-content {
+      padding-left: 1.2em;
+      padding-right: 1.2em;
+    }
+  }
+</style>
+
+<div class="entry-header">
+  <div class="breadcrumb">
+    <a href="/headroom/">Headroom</a>
+    <span>/</span>
+    <a href="/headroom/concepts/">Concepts</a>
+    <span>/</span>
+    Attunement
+  </div>
+  <h1>Attunement</h1>
+  <p class="lead">
+    The ongoing practice of reading and responding to the room — the crowd,
+    the moment, the other DJ — so your decisions serve the dance floor rather
+    than just yourself.
+  </p>
+</div>
+
+<div class="entry-content">
+
+  <p>
+    DJing is a feedback loop. You play something, the room responds, and that
+    response is information — about energy levels, about what the crowd wants
+    next, about where the night could go. Attunement is the skill of actually
+    receiving that information instead of just broadcasting into it. The DJ
+    who's attuned adjusts in real time; the one who isn't plays a rehearsed
+    set regardless of what's happening in front of them (and usually clears
+    the floor by midnight).
+  </p>
+
+  <h2>Reading the crowd</h2>
+
+  <p>
+    Bodies don't lie. Watch for: Are people facing the booth or facing each
+    other? Are they moving or standing still? Are they ordering drinks (energy
+    dip) or putting their phones away (locked in)? Crowd attunement isn't
+    about playing what people explicitly ask for — it's about reading where
+    the collective energy is and where it wants to go next.
+  </p>
+
+  <p>
+    Neuroscience backs this up: humans sync their body movements and even
+    heart rates with music they're engaged with (a phenomenon called
+    <a href="/headroom/concepts/entrainment/">entrainment</a>). When a crowd is attuned to the music, you can literally see
+    it in how they move. When they're not, you'll see that too — scattered,
+    independent motion, people checking phones, talking over the music. That's
+    feedback. Use it.
+  </p>
+
+  <h2>Song requests</h2>
+
+  <p>
+    Requests are a real-time signal about what at least one person wants from
+    the night, but they're not instructions. The honest framework: a request
+    is worth taking when it fits the current arc of the set and serves the
+    room as a whole, not just the person asking. A request that derails a
+    carefully built groove isn't a favor to anyone, even the requester.
+  </p>
+
+  <div class="callout">
+    <p>
+      The most useful thing to ask yourself about a request isn't "do I have
+      this track?" but "does this track belong here, right now?" If the answer
+      is yes, play it. If it's no, it's completely okay to decline (or to say
+      "later in the night") — that's not arrogance, that's craft.
+    </p>
+  </div>
+
+  <p>
+    How you decline matters as much as whether you decline. A brief,
+    genuine acknowledgment ("I'll see what I can do") lands differently than
+    ignoring someone or a flat no with no eye contact. Attunement with
+    requesters is its own micro-skill: being present with the person, not
+    just processing their track name.
+  </p>
+
+  <h2>Attuning to the other DJ</h2>
+
+  <p>
+    In a back-to-back (B2B) set or at a club with a lineup, you're sharing
+    creative space with another person. Attunement here means listening before
+    you play — not just to the music but to the arc they're building, the
+    energy they're managing, the direction they seem to be heading. Dropping a
+    track that upends what they just carefully set up isn't bold, it's just
+    inconsiderate.
+  </p>
+
+  <p>
+    In a B2B, good attunement shows up as musical conversation: you respond to
+    what they played, they respond to what you played, and the set builds into
+    something neither of you would have done alone. The best B2Bs feel like a
+    dialogue; the worst feel like two people taking turns performing at each
+    other.
+  </p>
+
+  <h2>Attunement, consent, and respect</h2>
+
+  <p>
+    Attunement has an ethical dimension that doesn't get talked about enough.
+    A dance floor is a shared space, and the DJ holds more power over it than
+    almost anyone else in the room — you control the energy, the volume, the
+    atmosphere. Using that power with attunement means staying aware of how
+    the room is actually experiencing the night, not just how you'd like them
+    to experience it.
+  </p>
+
+  <p>
+    This shows up in small ways (reading when a crowd needs a breather versus
+    a peak) and larger ones (being mindful of how your track selection
+    represents or excludes the people on the floor, being responsive when
+    something you play clearly doesn't land). The DJ who treats the dance floor
+    as a passive audience to perform at is missing half the job. The one who
+    treats it as a collaborator — listening as much as leading — is the one
+    people remember.
+  </p>
+
+  <h2>In the context of Headroom</h2>
+
+  <p>
+    Attunement runs as a thread throughout the entire curriculum, but it comes
+    up explicitly in Week 7 (Reading the Room and Set Structure) alongside the
+    technical skills of building a set arc and managing energy across the
+    night. The argument there: all the gear knowledge in the world doesn't
+    help you if you can't tell whether the room is with you or not.
+  </p>
+
+  <div class="related">
+    <h3>Related terms</h3>
+    <div class="related-list">
+      <a href="/headroom/concepts/entrainment/">Entrainment</a>
+    </div>
+  </div>
+
+</div>
+
+<div class="final-cta">
+  <h2>Want to go deeper?</h2>
+  <p>
+    Headroom is an 8-week course covering the technical foundations every
+    serious DJ should know — signal flow, equipment, mixing, and more.
+  </p>
+  <a class="btn-primary" href="/headroom/#book">Learn about the course</a>
+</div>
