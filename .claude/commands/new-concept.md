@@ -19,7 +19,7 @@ Create a new entry in the Headroom DJ glossary at `headroom/concepts/` and regis
 
 4. Write the new file to `headroom/concepts/<slug>/index.html` by copying the structure of the template at `headroom/concepts/gain-staging/index.html`. This site uses Jekyll: the shared nav, footer, fonts, CSS variables, and favicon script live in `_layouts/headroom.html`, so the page file only needs front matter plus its own content. Specifically:
    - Front matter: `layout: headroom`, `title`, `description`, `section: Concepts`, `section_url: /headroom/concepts/`, `subsection: <Term>`
-   - A page-specific `<style>` block (copy entry-header/entry-content/callout/related/final-cta styles from the gain-staging template — these aren't in the shared layout since they're specific to concept entry pages)
+   - No `<style>` block — the shared concept styles live in `headroom/concepts/concepts.css`, which the layout loads automatically for any page with a `subsection`. Do not copy or inline them.
    - Breadcrumb: Headroom (`/headroom/`) → Concepts (`/headroom/concepts/`) → [Term] — use absolute paths, not relative
    - `<h1>` = the term name
    - `lead` paragraph = a one-sentence plain-English definition
