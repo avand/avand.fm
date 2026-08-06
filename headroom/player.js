@@ -13,7 +13,16 @@
 (function () {
   "use strict";
 
+  // Swap this one string to move the video to a CDN later; nothing else in the
+  // page knows where the media lives.
   var VIDEO_BASE = "https://avand.github.io/headroom-video/";
+
+  // Served from localhost? Use the local video server that serve.sh starts, so
+  // previewing works without hand-editing this file.
+  if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) {
+    VIDEO_BASE = "http://127.0.0.1:8101/";
+  }
+
   var HLS_LIB = "hls.min.js";
 
   var hlsPromise = null;
