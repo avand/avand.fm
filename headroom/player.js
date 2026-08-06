@@ -9,6 +9,10 @@
  * it is fetched on the first play rather than on page load — a visitor who
  * never presses play never pays for it. Nothing is requested for a video until
  * it is played, which matters on a page carrying eleven of them.
+ *
+ * Players marked data-autoplay start muted when they scroll into view and stop
+ * when they leave, with captions on by default since muted video is silent
+ * video. A prominent unmute control is the way back to sound.
  */
 (function () {
   "use strict";
@@ -24,6 +28,8 @@
   }
 
   var HLS_LIB = "hls.min.js";
+
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   var hlsPromise = null;
 
@@ -49,19 +55,29 @@
   }
 
   var players = [];
+  var bySlug = {};
 
   function Player(root) {
     this.root = root;
     this.slug = root.dataset.video;
-    this.video = root.querySelector("video");
+    this.autoplay = root.hasAttribute("data-autoplay");
     this.ready = false;
     this.hls = null;
     this.hideTimer = null;
 
+    // Once someone pauses deliberately, stop resuming on their behalf.
+    this.userPaused = false;
+    // Once someone touches the volume, stop deciding it for them.
+    this.userSetSound = false;
+
+    this.render();
     this.build();
     this.bind();
     this.lazyPoster();
+    this.watchViewport();
+
     players.push(this);
+    bySlug[this.slug] = this;
   }
 
   /* Eleven posters at ~88KB each is about a megabyte of images, most of which a
@@ -88,23 +104,140 @@
     observer.observe(this.root);
   };
 
+  var ICONS = {
+    play: '<path d="M8 5v14l11-7z"/>',
+    pause: '<path d="M6 5h4v14H6zm8 0h4v14h-4z"/>',
+    restart:
+      '<path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/>',
+    loud:
+      '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 2v2a8 8 0 0 1 0 16v2a10 10 0 0 0 0-20z"/>',
+    muted:
+      '<path d="M3 9v6h4l5 5V4L7 9H3zm18.6 3l2.1-2.1-1.4-1.4-2.1 2.1-2.1-2.1-1.4 1.4 2.1 2.1-2.1 2.1 1.4 1.4 2.1-2.1 2.1 2.1 1.4-1.4z"/>',
+    fs: '<path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>',
+    cc:
+      '<path d="M3 5h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zm4.5 4.8a2.2 2.2 0 0 0-2.2 2.2 2.2 2.2 0 0 0 2.2 2.2c.8 0 1.5-.4 1.9-1l-1.1-.6a.9.9 0 0 1-.8.4 1 1 0 0 1 0-2c.35 0 .65.16.8.42l1.1-.62a2.2 2.2 0 0 0-1.9-1zm7 0a2.2 2.2 0 0 0-2.2 2.2 2.2 2.2 0 0 0 2.2 2.2c.8 0 1.5-.4 1.9-1l-1.1-.6a.9.9 0 0 1-.8.4 1 1 0 0 1 0-2c.35 0 .65.16.8.42l1.1-.62a2.2 2.2 0 0 0-1.9-1z"/>',
+  };
+
+  function svg(path, cls) {
+    return (
+      '<svg viewBox="0 0 24 24" aria-hidden="true"' +
+      (cls ? ' class="' + cls + '"' : "") +
+      ">" +
+      path +
+      "</svg>"
+    );
+  }
+
+  /* The player's chrome is identical for all eleven videos, so it is built here
+     rather than repeated in the markup. A player in the page is one line:
+       <div class="player" data-video="brand" data-autoplay data-label="..."></div> */
+  Player.prototype.render = function () {
+    var label = this.root.dataset.label || "video";
+    var captions = this.root.hasAttribute("data-captions");
+
+    // The caption file is fetched and attached as a blob rather than pointed at
+    // with a src, so it works whatever Content-Type the host decides to send
+    // for .vtt -- browsers reject a text track that isn't text/vtt. It also
+    // means the video element needs no crossorigin attribute.
+    var html =
+      "<video playsinline preload=\"none\"></video>" +
+      '<button class="pl-bigplay" aria-label="Play video: ' +
+      label +
+      '"><span>' +
+      svg(ICONS.play) +
+      "</span></button>" +
+      '<button class="pl-unmute" aria-label="Turn on sound">' +
+      svg(ICONS.muted) +
+      "<span>Tap for sound</span></button>" +
+      '<div class="pl-spinner" aria-hidden="true"></div>' +
+      '<div class="pl-error" role="alert"></div>' +
+      '<div class="pl-controls">' +
+      '<div class="pl-bar" role="slider" tabindex="0" aria-label="Seek"' +
+      ' aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">' +
+      '<div class="pl-buffered"></div><div class="pl-played"></div><div class="pl-knob"></div>' +
+      "</div>" +
+      '<div class="pl-row">' +
+      '<button class="pl-btn pl-restart" aria-label="Start from the beginning">' +
+      svg(ICONS.restart) +
+      "</button>" +
+      '<button class="pl-btn pl-play" aria-label="Play">' +
+      svg(ICONS.play, "pl-icon-play") +
+      svg(ICONS.pause, "pl-icon-pause") +
+      "</button>" +
+      '<span class="pl-time"><span class="pl-time-now">0:00</span> / <span class="pl-time-total">0:00</span></span>' +
+      '<span class="pl-spacer"></span>' +
+      (captions
+        ? '<button class="pl-btn pl-cc" aria-label="Captions" aria-pressed="false">' +
+          svg(ICONS.cc) +
+          "</button>"
+        : "") +
+      '<button class="pl-btn pl-mute" aria-label="Mute">' +
+      svg(ICONS.loud, "pl-icon-loud") +
+      svg(ICONS.muted, "pl-icon-muted") +
+      "</button>" +
+      '<input class="pl-vol" type="range" min="0" max="1" step="0.05" value="1" aria-label="Volume">' +
+      '<button class="pl-btn pl-fs" aria-label="Fullscreen">' +
+      svg(ICONS.fs) +
+      "</button>" +
+      "</div></div>";
+
+    this.root.innerHTML = html;
+    this.root.setAttribute("tabindex", "0");
+    this.root.setAttribute("role", "region");
+    this.root.setAttribute("aria-label", "Video: " + label);
+  };
+
   Player.prototype.build = function () {
     var r = this.root;
 
+    this.video = r.querySelector("video");
     this.bigPlay = r.querySelector(".pl-bigplay");
     this.controls = r.querySelector(".pl-controls");
     this.playBtn = r.querySelector(".pl-play");
+    this.restartBtn = r.querySelector(".pl-restart");
     this.muteBtn = r.querySelector(".pl-mute");
+    this.ccBtn = r.querySelector(".pl-cc");
     this.fsBtn = r.querySelector(".pl-fs");
+    this.unmuteBtn = r.querySelector(".pl-unmute");
     this.bar = r.querySelector(".pl-bar");
     this.played = r.querySelector(".pl-played");
     this.buffered = r.querySelector(".pl-buffered");
     this.knob = r.querySelector(".pl-knob");
     this.timeNow = r.querySelector(".pl-time-now");
     this.timeTotal = r.querySelector(".pl-time-total");
-    this.spinner = r.querySelector(".pl-spinner");
     this.errorEl = r.querySelector(".pl-error");
     this.volRange = r.querySelector(".pl-vol");
+  };
+
+  /* Fetch the captions and attach them as a blob. Done alongside the video so
+     that a muted autoplay has words on screen from the start. */
+  Player.prototype.loadCaptions = function () {
+    if (!this.root.hasAttribute("data-captions") || this.captionsLoaded) return;
+    this.captionsLoaded = true;
+
+    var self = this;
+    fetch(VIDEO_BASE + this.slug + "/captions.vtt")
+      .then(function (res) {
+        if (!res.ok) throw new Error("no captions");
+        return res.text();
+      })
+      .then(function (text) {
+        var url = URL.createObjectURL(new Blob([text], { type: "text/vtt" }));
+        var track = document.createElement("track");
+        track.kind = "captions";
+        track.srclang = "en";
+        track.label = "English";
+        track.default = true;
+        track.src = url;
+        self.video.appendChild(track);
+        track.addEventListener("load", function () {
+          self.root.classList.add("has-cc");
+          self.syncCaptions();
+        });
+      })
+      .catch(function () {
+        /* Captions are an enhancement; a missing file just means none. */
+      });
   };
 
   /* Attach a source. Called on first play, not on page load. */
@@ -114,6 +247,8 @@
 
     var self = this;
     var src = VIDEO_BASE + this.slug + "/master.m3u8";
+
+    this.loadCaptions();
 
     // Safari (and iOS in general) handles HLS in the media element itself.
     if (this.video.canPlayType("application/vnd.apple.mpegurl")) {
@@ -127,8 +262,6 @@
           throw new Error("This browser can't play the video");
         }
         self.hls = new window.Hls({
-          // Keep the first segment small so playback starts quickly, then let
-          // the bandwidth estimator take over.
           startLevel: -1,
           capLevelToPlayerSize: true,
           maxBufferLength: 30,
@@ -163,28 +296,95 @@
     this.root.classList.toggle("is-busy", !!busy);
   };
 
-  Player.prototype.play = function () {
+  Player.prototype.play = function (opts) {
     var self = this;
+    var silent = opts && opts.muted;
 
     // Only one video at a time; two soundtracks at once is never what anyone
-    // wanted.
+    // wanted. A muted autoplay should not interrupt something already audible.
     players.forEach(function (p) {
-      if (p !== self && !p.video.paused) p.video.pause();
+      if (p === self || p.video.paused) return;
+      if (silent && !p.video.muted) return;
+      p.pause({ auto: true });
     });
 
+    if (silent && !this.userSetSound) this.video.muted = true;
+
     this.setBusy(true);
-    Promise.resolve(this.attach())
+    return Promise.resolve(this.attach())
       .then(function () {
         return self.video.play();
       })
+      .then(function () {
+        self.userPaused = false;
+      })
       .catch(function () {
         self.setBusy(false);
+        // Autoplay refused (iOS Low Power Mode, for instance). Fall back to
+        // showing the play button rather than a video that silently does
+        // nothing.
+        self.root.classList.remove("is-playing");
       });
   };
 
+  Player.prototype.pause = function (opts) {
+    if (!(opts && opts.auto)) this.userPaused = true;
+    this.video.pause();
+  };
+
   Player.prototype.toggle = function () {
+    if (this.video.paused) {
+      this.userPaused = false;
+      this.play();
+    } else {
+      this.pause();
+    }
+  };
+
+  Player.prototype.restart = function () {
+    this.video.currentTime = 0;
     if (this.video.paused) this.play();
-    else this.video.pause();
+    this.nudgeControls();
+  };
+
+  Player.prototype.unmute = function () {
+    this.userSetSound = true;
+    this.video.muted = false;
+    if (this.video.volume === 0) this.video.volume = 1;
+    if (this.video.paused) this.play();
+  };
+
+  /* Autoplay when scrolled into view, stop when out of view. Videos driven by
+     the curriculum scroller opt out with data-manual, since that controller
+     decides which one is on screen. */
+  Player.prototype.watchViewport = function (force) {
+    var self = this;
+    if (!("IntersectionObserver" in window)) return;
+    if (this.viewportWatched) return;
+    // Slides in the pinned curriculum are stacked at the same position, so all
+    // of them would read as "in view" at once. That controller opts out here
+    // and drives playback itself; when it falls back to a plain list it calls
+    // this with force to hand control back.
+    if (this.root.hasAttribute("data-manual") && !force) return;
+    this.viewportWatched = true;
+
+    var observer = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+            if (self.autoplay && !self.userPaused && self.video.paused) {
+              self.play({ muted: true });
+            }
+          } else if (!entry.isIntersecting && !self.video.paused) {
+            // Leaving the viewport: stop, so a visitor further down the page
+            // isn't still pulling segments for a video they left behind.
+            self.pause({ auto: true });
+          }
+        });
+      },
+      { threshold: [0, 0.5] }
+    );
+    observer.observe(this.root);
   };
 
   Player.prototype.seekFromPointer = function (clientX) {
@@ -215,8 +415,6 @@
     }
   };
 
-  /* Controls fade out during playback, and come back on any intent to use
-     them — pointer movement, focus, or touch. */
   Player.prototype.nudgeControls = function () {
     var self = this;
     this.root.classList.add("show-controls");
@@ -230,21 +428,58 @@
     }
   };
 
+  /* Captions default on whenever sound is off, and off once sound is on —
+     matching what the viewer can actually perceive. */
+  Player.prototype.syncCaptions = function (force) {
+    var tracks = this.video.textTracks;
+    if (!tracks || !tracks.length) return;
+    var on = force === undefined ? this.video.muted : force;
+    for (var i = 0; i < tracks.length; i++) {
+      if (tracks[i].kind === "captions" || tracks[i].kind === "subtitles") {
+        tracks[i].mode = on ? "showing" : "hidden";
+      }
+    }
+    this.root.classList.toggle("cc-on", on);
+    if (this.ccBtn) this.ccBtn.setAttribute("aria-pressed", on ? "true" : "false");
+  };
+
+  Player.prototype.hasCaptions = function () {
+    return this.video.textTracks && this.video.textTracks.length > 0;
+  };
+
   Player.prototype.bind = function () {
     var self = this;
     var v = this.video;
 
     this.bigPlay.addEventListener("click", function () {
+      self.userPaused = false;
+      self.userSetSound = true; // an explicit press means they want it properly
+      v.muted = false;
       self.play();
     });
+
     this.playBtn.addEventListener("click", function () {
       self.toggle();
     });
 
-    // Clicking the picture itself toggles playback, the way every other video
-    // on the web behaves.
+    if (this.restartBtn) {
+      this.restartBtn.addEventListener("click", function () {
+        self.restart();
+      });
+    }
+
+    if (this.unmuteBtn) {
+      this.unmuteBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        self.unmute();
+      });
+    }
+
     v.addEventListener("click", function () {
-      self.toggle();
+      // While muted-autoplaying, a tap on the picture should turn sound on —
+      // the behaviour people already expect from a muted feed video.
+      if (!v.paused && v.muted && !self.userSetSound) self.unmute();
+      else self.toggle();
     });
 
     v.addEventListener("play", function () {
@@ -278,21 +513,32 @@
     v.addEventListener("loadedmetadata", function () {
       self.timeTotal.textContent = formatTime(v.duration);
       self.renderProgress();
+      self.syncCaptions();
+      self.root.classList.toggle("has-cc", self.hasCaptions());
     });
     v.addEventListener("volumechange", function () {
       var muted = v.muted || v.volume === 0;
       self.root.classList.toggle("is-muted", muted);
       self.muteBtn.setAttribute("aria-label", muted ? "Unmute" : "Mute");
       if (self.volRange) self.volRange.value = muted ? 0 : v.volume;
+      self.syncCaptions();
     });
 
     this.muteBtn.addEventListener("click", function () {
+      self.userSetSound = true;
       v.muted = !v.muted;
       if (!v.muted && v.volume === 0) v.volume = 1;
     });
 
+    if (this.ccBtn) {
+      this.ccBtn.addEventListener("click", function () {
+        self.syncCaptions(!self.root.classList.contains("cc-on"));
+      });
+    }
+
     if (this.volRange) {
       this.volRange.addEventListener("input", function () {
+        self.userSetSound = true;
         v.volume = parseFloat(self.volRange.value);
         v.muted = v.volume === 0;
       });
@@ -312,7 +558,6 @@
       }
     });
 
-    // Scrubbing.
     var dragging = false;
     this.bar.addEventListener("pointerdown", function (e) {
       dragging = true;
@@ -344,7 +589,6 @@
     });
 
     this.root.addEventListener("keydown", function (e) {
-      // Let the seek bar and the volume slider handle their own arrow keys.
       if (e.target !== self.root) return;
       var handled = true;
       switch (e.key) {
@@ -365,10 +609,14 @@
           v.volume = Math.max(0, v.volume - 0.1);
           break;
         case "m":
+          self.userSetSound = true;
           v.muted = !v.muted;
           break;
         case "f":
           self.fsBtn.click();
+          break;
+        case "0":
+          self.restart();
           break;
         default:
           handled = false;
@@ -389,20 +637,6 @@
         self.root.classList.remove("show-controls");
       }
     });
-
-    // Stop the download when a video is scrolled well out of view, so a visitor
-    // reading further down the page isn't still pulling segments for a video
-    // they left behind.
-    if ("IntersectionObserver" in window) {
-      new IntersectionObserver(
-        function (entries) {
-          entries.forEach(function (entry) {
-            if (!entry.isIntersecting && !v.paused) v.pause();
-          });
-        },
-        { threshold: 0.15 }
-      ).observe(this.root);
-    }
   };
 
   function init() {
@@ -416,4 +650,13 @@
   } else {
     init();
   }
+
+  // The curriculum scroller drives its own videos.
+  window.Headroom = {
+    players: players,
+    get: function (slug) {
+      return bySlug[slug];
+    },
+    reduceMotion: reduceMotion,
+  };
 })();
