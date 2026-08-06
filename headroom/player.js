@@ -250,8 +250,17 @@
 
     this.loadCaptions();
 
-    // Safari (and iOS in general) handles HLS in the media element itself.
-    if (this.video.canPlayType("application/vnd.apple.mpegurl")) {
+    // Safari plays HLS in the media element itself, and does it better than
+    // hls.js can (hardware decoding, AirPlay), so prefer native there.
+    //
+    // canPlayType alone is not enough to decide this: Chrome answers "maybe"
+    // for HLS and then fails with MEDIA_ERR_SRC_NOT_SUPPORTED the moment you
+    // hand it a playlist. The vendor check is what separates the browsers that
+    // mean it from the one that doesn't.
+    var isApple = (navigator.vendor || "").indexOf("Apple") === 0;
+    var canNative = !!this.video.canPlayType("application/vnd.apple.mpegurl");
+
+    if (canNative && isApple) {
       this.video.src = src;
       return Promise.resolve();
     }
@@ -259,6 +268,11 @@
     return loadHlsLibrary()
       .then(function () {
         if (!window.Hls || !window.Hls.isSupported()) {
+          // No MSE. If the browser claims native HLS after all, take it.
+          if (canNative) {
+            self.video.src = src;
+            return;
+          }
           throw new Error("This browser can't play the video");
         }
         self.hls = new window.Hls({
@@ -368,10 +382,14 @@
     if (this.root.hasAttribute("data-manual") && !force) return;
     this.viewportWatched = true;
 
+    // A quarter visible is enough to start. The brand video is deliberately
+    // pulled up into the fold, so at rest on load it is only about 44% on
+    // screen — a half-visible threshold would leave it sitting there stopped,
+    // which is exactly the thing it is not supposed to do.
     var observer = new IntersectionObserver(
       function (entries) {
         entries.forEach(function (entry) {
-          if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.25) {
             if (self.autoplay && !self.userPaused && self.video.paused) {
               self.play({ muted: true });
             }
@@ -382,7 +400,7 @@
           }
         });
       },
-      { threshold: [0, 0.5] }
+      { threshold: [0, 0.25] }
     );
     observer.observe(this.root);
   };

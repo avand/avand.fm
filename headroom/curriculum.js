@@ -71,13 +71,30 @@
       dot.setAttribute("aria-current", i === index ? "true" : "false");
     });
 
-    // Only the visible video plays.
     if (previous >= 0) {
       var old = playerFor(slides[previous]);
       if (old) old.pause({ auto: true });
     }
-    var next = playerFor(slides[index]);
-    if (next) next.play({ muted: true });
+  }
+
+  /* Starting playback is deliberately not done in setActive.
+     Player.play() is async — it resolves an HLS attach before the media
+     element actually starts — so a synchronous pause issued straight after it
+     lands first and then loses to the play that arrives later. Deciding
+     playback in exactly one place, from the state the scroller is actually in,
+     removes that race. Keyed so it only acts on a real change. */
+  var playbackKey = "";
+
+  function syncPlayback(index, offScreen) {
+    var key = index + ":" + offScreen;
+    if (key === playbackKey) return;
+    playbackKey = key;
+
+    var current = playerFor(slides[index]);
+    if (!current) return;
+
+    if (offScreen) current.pause({ auto: true });
+    else if (!current.userPaused) current.play({ muted: true });
   }
 
   function measure() {
@@ -100,6 +117,10 @@
     setActive(index, direction);
 
     scroller.classList.toggle("is-pinned", rect.top <= 0 && rect.bottom > step);
+
+    // Scrolled clear of the region entirely: stop the video rather than leave
+    // it playing and pulling segments off screen.
+    syncPlayback(index, rect.bottom <= 0 || rect.top >= step);
   }
 
   function onScroll() {
