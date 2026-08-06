@@ -149,6 +149,7 @@
       '<button class="pl-unmute" aria-label="Turn on sound">' +
       svg(ICONS.muted) +
       "<span>Tap for sound</span></button>" +
+      '<div class="pl-captions is-empty" aria-live="off"></div>' +
       '<div class="pl-spinner" aria-hidden="true"></div>' +
       '<div class="pl-error" role="alert"></div>' +
       '<div class="pl-controls">' +
@@ -206,11 +207,67 @@
     this.timeNow = r.querySelector(".pl-time-now");
     this.timeTotal = r.querySelector(".pl-time-total");
     this.errorEl = r.querySelector(".pl-error");
+    this.captionBox = r.querySelector(".pl-captions");
     this.volRange = r.querySelector(".pl-vol");
   };
 
-  /* Fetch the captions and attach them as a blob. Done alongside the video so
-     that a muted autoplay has words on screen from the start. */
+  /*
+   * Captions are parsed and rendered by hand rather than handed to a <track>
+   * element.
+   *
+   * hls.js manages the media element's native text tracks for CEA-608/708
+   * captions, and clears ones it did not create — so a track appended around
+   * the time it attaches loads successfully and then ends up with zero cues.
+   * Owning the rendering sidesteps that entirely, and along the way avoids
+   * depending on the host's Content-Type for .vtt, lets the captions sit above
+   * the control bar instead of behind it, and lets them be styled to match the
+   * rest of the page, which ::cue only partly allows.
+   */
+  function parseTime(stamp) {
+    // "00:01:02.500" or "01:02.500", possibly followed by cue settings.
+    var parts = stamp.trim().split(/\s+/)[0].split(":");
+    var seconds = 0;
+    for (var i = 0; i < parts.length; i++) {
+      seconds = seconds * 60 + parseFloat(parts[i]);
+    }
+    return isFinite(seconds) ? seconds : 0;
+  }
+
+  function parseVtt(text) {
+    var cues = [];
+    var blocks = text.replace(/\r/g, "").split(/\n{2,}/);
+
+    blocks.forEach(function (block) {
+      var lines = block.split("\n").filter(function (l) {
+        return l.trim() !== "";
+      });
+      var timingIndex = -1;
+      for (var i = 0; i < lines.length; i++) {
+        if (lines[i].indexOf("-->") !== -1) {
+          timingIndex = i;
+          break;
+        }
+      }
+      if (timingIndex === -1) return;
+
+      var halves = lines[timingIndex].split("-->");
+      var body = lines
+        .slice(timingIndex + 1)
+        .join(" ")
+        .replace(/<[^>]+>/g, "") // strip any inline cue markup
+        .trim();
+      if (!body) return;
+
+      cues.push({
+        start: parseTime(halves[0]),
+        end: parseTime(halves[1]),
+        text: body,
+      });
+    });
+
+    return cues;
+  }
+
   Player.prototype.loadCaptions = function () {
     if (!this.root.hasAttribute("data-captions") || this.captionsLoaded) return;
     this.captionsLoaded = true;
@@ -222,22 +279,42 @@
         return res.text();
       })
       .then(function (text) {
-        var url = URL.createObjectURL(new Blob([text], { type: "text/vtt" }));
-        var track = document.createElement("track");
-        track.kind = "captions";
-        track.srclang = "en";
-        track.label = "English";
-        track.default = true;
-        track.src = url;
-        self.video.appendChild(track);
-        track.addEventListener("load", function () {
-          self.root.classList.add("has-cc");
-          self.syncCaptions();
-        });
+        self.cues = parseVtt(text);
+        if (!self.cues.length) return;
+        self.root.classList.add("has-cc");
+        self.syncCaptions();
+        self.renderCue();
       })
       .catch(function () {
         /* Captions are an enhancement; a missing file just means none. */
       });
+  };
+
+  Player.prototype.renderCue = function () {
+    if (!this.captionBox || !this.cues || !this.cues.length) return;
+
+    var t = this.video.currentTime;
+    var current = null;
+    // Cues are in order and playback is mostly linear, so start from the last
+    // match rather than rescanning a few hundred cues every timeupdate.
+    var i = this.cueIndex || 0;
+    if (i >= this.cues.length || this.cues[i].start > t) i = 0;
+    for (; i < this.cues.length; i++) {
+      var cue = this.cues[i];
+      if (cue.start > t) break;
+      if (t <= cue.end) {
+        current = cue;
+        this.cueIndex = i;
+        break;
+      }
+    }
+
+    var text = current ? current.text : "";
+    if (text !== this.shownCue) {
+      this.shownCue = text;
+      this.captionBox.textContent = text;
+      this.captionBox.classList.toggle("is-empty", !text);
+    }
   };
 
   /* Attach a source. Called on first play, not on page load. */
@@ -449,20 +526,14 @@
   /* Captions default on whenever sound is off, and off once sound is on —
      matching what the viewer can actually perceive. */
   Player.prototype.syncCaptions = function (force) {
-    var tracks = this.video.textTracks;
-    if (!tracks || !tracks.length) return;
+    if (!this.cues || !this.cues.length) return;
     var on = force === undefined ? this.video.muted : force;
-    for (var i = 0; i < tracks.length; i++) {
-      if (tracks[i].kind === "captions" || tracks[i].kind === "subtitles") {
-        tracks[i].mode = on ? "showing" : "hidden";
-      }
-    }
     this.root.classList.toggle("cc-on", on);
     if (this.ccBtn) this.ccBtn.setAttribute("aria-pressed", on ? "true" : "false");
   };
 
   Player.prototype.hasCaptions = function () {
-    return this.video.textTracks && this.video.textTracks.length > 0;
+    return !!(this.cues && this.cues.length);
   };
 
   Player.prototype.bind = function () {
@@ -524,6 +595,7 @@
     });
     v.addEventListener("timeupdate", function () {
       self.renderProgress();
+      self.renderCue();
     });
     v.addEventListener("progress", function () {
       self.renderProgress();
@@ -532,7 +604,6 @@
       self.timeTotal.textContent = formatTime(v.duration);
       self.renderProgress();
       self.syncCaptions();
-      self.root.classList.toggle("has-cc", self.hasCaptions());
     });
     v.addEventListener("volumechange", function () {
       var muted = v.muted || v.volume === 0;
