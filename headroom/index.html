@@ -120,11 +120,13 @@
        rest of the region scrolls past underneath. */
 
     .hero-stage {
+      /* --p is the rise, --q the exit; hero.js drives both. */
       --p: 0;
+      --q: 0;
       position: relative;
-      /* The rise spends the first 100vh and the sticky child occupies another,
-         so the video stays locked for height - 200vh. This is that dwell. */
-      height: 340vh;
+      /* One viewport of rise, one of dwell, one of exit, plus the viewport the
+         sticky child itself occupies. */
+      height: 400vh;
     }
 
     .hero-sticky {
@@ -165,7 +167,9 @@
       inset: 0;
       z-index: 2;
       background: var(--bg);
-      opacity: calc(var(--p) * 0.78);
+      /* Finishes to solid on the way out, so once the video has gone the hero
+         photograph isn't left scrolling away behind nothing. */
+      opacity: calc(var(--p) * 0.78 + var(--q) * 0.22);
     }
 
     .hero-content {
@@ -285,8 +289,10 @@
       position: relative;
       z-index: 4;
       width: min(calc(100vw - 3em), calc((100vh - 8em) * 16 / 9));
-      transform: translateY(calc((1 - var(--p)) * 100vh)) scale(calc(0.94 + var(--p) * 0.06));
-      opacity: clamp(0, calc(var(--p) * 1.5), 1);
+      transform:
+        translateY(calc((1 - var(--p)) * 100vh - var(--q) * 100vh))
+        scale(calc(0.94 + var(--p) * 0.06 - var(--q) * 0.06));
+      opacity: clamp(0, calc((var(--p) - var(--q)) * 1.5), 1);
       will-change: transform;
     }
 
@@ -339,7 +345,7 @@
 
     @media (max-width: 640px) {
       .hero-stage {
-        height: 280vh;
+        height: 340vh;
       }
 
       .hero-content {

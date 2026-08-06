@@ -60,8 +60,23 @@
     ticking = false;
 
     var rect = stage.getBoundingClientRect();
-    var p = Math.min(1, Math.max(0, -rect.top / riseDistance()));
+    var vh = window.innerHeight;
+    var travelled = -rect.top;
+
+    // How far the sticky child stays pinned before the region runs out.
+    var travel = stage.offsetHeight - vh;
+    var rise = riseDistance();
+    var exit = vh;
+
+    // Where the exit begins. The max() keeps the two phases from overlapping
+    // if the region is ever too short to hold both.
+    var exitStart = Math.max(rise, travel - exit);
+
+    var p = Math.min(1, Math.max(0, travelled / rise));
+    var q = Math.min(1, Math.max(0, (travelled - exitStart) / exit));
+
     stage.style.setProperty("--p", p.toFixed(4));
+    stage.style.setProperty("--q", q.toFixed(4));
 
     var nowLocked = p > 0.65;
     if (nowLocked !== locked) {
@@ -69,9 +84,10 @@
       stage.classList.toggle("is-locked", locked);
     }
 
-    // Play once it has actually arrived, and only while the stage is on screen.
-    var onScreen = rect.bottom > 0 && rect.top < window.innerHeight;
-    syncPlayback(p >= 0.98 && onScreen);
+    // Play once it has arrived, and stop once it is halfway out rather than
+    // letting it run while it flies away.
+    var onScreen = rect.bottom > 0 && rect.top < vh;
+    syncPlayback(p >= 0.98 && q < 0.5 && onScreen);
   }
 
   function onScroll() {
@@ -92,6 +108,7 @@
     // comes into view like any other.
     stage.classList.add("is-static");
     stage.style.setProperty("--p", "1");
+    stage.style.setProperty("--q", "0");
     window.removeEventListener("scroll", onScroll);
     window.removeEventListener("resize", onScroll);
 
