@@ -4,12 +4,19 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Headroom — Advanced DJ Training for Serious Performers</title>
-  <meta name="description" content="Advanced DJ systems training for serious performers. Master the tech so you can confidently step into any booth and find your flow amongst the chaos." />
+  <title>Headroom — Advanced DJ Training for Aspiring Performers</title>
+  <meta name="description" content="Advanced DJ training for aspiring performers. An eight-week, end-to-end up-leveling of the entire DJ stack—so you can step into any booth and find your flow." />
+  <meta property="og:title" content="Headroom — Advanced DJ Training for Aspiring Performers" />
+  <meta property="og:description" content="Advanced DJ training for aspiring performers. An eight-week, end-to-end up-leveling of the entire DJ stack—so you can step into any booth and find your flow." />
   <meta property="og:image" content="og-image.jpg" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- Video is served from a separate GitHub Pages site; warming the connection
+       here shaves a round trip off the first play. -->
+  <link rel="preconnect" href="https://avand.github.io" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet" />
   <link rel="icon" type="image/png" href="favicon.svg" id="favicon" />
   <!-- Fathom Analytics -->
@@ -41,6 +48,22 @@
       -webkit-font-smoothing: antialiased;
     }
 
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--warm);
+      outline-offset: 2px;
+    }
+
     /* --- Nav --- */
 
     nav {
@@ -56,6 +79,7 @@
       justify-content: space-between;
       align-items: center;
       padding: 0.8em 2em;
+      gap: 1em;
     }
 
     nav .brand {
@@ -71,6 +95,7 @@
     }
 
     nav .cta-nav a {
+      display: inline-block;
       color: var(--bg);
       background: var(--text);
       text-decoration: none;
@@ -79,6 +104,7 @@
       padding: 0.5em 1.4em;
       border-radius: 2em;
       transition: opacity 200ms;
+      white-space: nowrap;
     }
 
     nav .cta-nav a:hover {
@@ -156,6 +182,17 @@
       gap: 0.4em;
     }
 
+    .price-was {
+      color: var(--text-muted);
+      text-decoration: line-through;
+      text-decoration-thickness: 1px;
+    }
+
+    .price-now {
+      color: var(--text);
+      font-weight: 700;
+    }
+
     .btn-primary {
       display: inline-block;
       background: var(--accent);
@@ -165,6 +202,9 @@
       font-size: 1.1em;
       padding: 0.75em 2.5em;
       border-radius: 2em;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
       transition: box-shadow 200ms, transform 200ms;
       box-shadow: 0 0 1.5em var(--accent-glow);
     }
@@ -186,6 +226,10 @@
       margin: 0 auto;
     }
 
+    section.wide {
+      max-width: 1140px;
+    }
+
     h2 {
       font-size: 2em;
       font-weight: 700;
@@ -197,6 +241,297 @@
       font-size: 1.1em;
       max-width: 600px;
       margin-bottom: 2.5em;
+    }
+
+    /* --- Video player --- */
+
+    .player {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000;
+      border-radius: 0.75em;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      isolation: isolate;
+    }
+
+    .player video {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      cursor: pointer;
+      background: #000;
+    }
+
+    .player:fullscreen video {
+      object-fit: contain;
+    }
+
+    /* Big centred play button over the poster, before playback starts. */
+    .pl-bigplay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.45));
+      border: none;
+      cursor: pointer;
+      transition: opacity 250ms;
+      z-index: 2;
+    }
+
+    .player.is-playing .pl-bigplay {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .pl-bigplay span {
+      width: 4.2em;
+      height: 4.2em;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 2em var(--accent-glow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 200ms, box-shadow 200ms;
+    }
+
+    .pl-bigplay:hover span {
+      transform: scale(1.07);
+      box-shadow: 0 0 3em var(--accent-glow);
+    }
+
+    .pl-bigplay svg {
+      width: 1.6em;
+      height: 1.6em;
+      fill: #fff;
+      margin-left: 0.18em;
+    }
+
+    /* Control bar */
+    .pl-controls {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 2.5em 0.9em 0.7em;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0));
+      display: flex;
+      flex-direction: column;
+      gap: 0.4em;
+      opacity: 0;
+      transform: translateY(0.5em);
+      transition: opacity 220ms, transform 220ms;
+      z-index: 3;
+      /* Invisible controls must not intercept clicks meant for the picture. */
+      pointer-events: none;
+    }
+
+    /* Before the first play the big play button owns the surface. After that,
+       controls show while paused, and while the viewer is interacting. */
+    .player.has-started.show-controls .pl-controls,
+    .player.has-started:not(.is-playing) .pl-controls {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .pl-bar {
+      position: relative;
+      height: 1.1em;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      touch-action: none;
+    }
+
+    .pl-bar::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 3px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .pl-buffered,
+    .pl-played {
+      position: absolute;
+      left: 0;
+      height: 3px;
+      border-radius: 3px;
+      width: 0;
+    }
+
+    .pl-buffered {
+      background: rgba(255, 255, 255, 0.35);
+    }
+
+    .pl-played {
+      background: var(--accent);
+    }
+
+    .pl-knob {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 0.8em;
+      height: 0.8em;
+      border-radius: 50%;
+      background: #fff;
+      transform: translate(-50%, -50%) scale(0);
+      transition: transform 150ms;
+      pointer-events: none;
+    }
+
+    .pl-bar:hover .pl-knob,
+    .pl-bar:focus-visible .pl-knob {
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .pl-row {
+      display: flex;
+      align-items: center;
+      gap: 0.7em;
+      color: #fff;
+    }
+
+    .pl-btn {
+      background: none;
+      border: none;
+      padding: 0.25em;
+      cursor: pointer;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      border-radius: 0.25em;
+    }
+
+    .pl-btn svg {
+      width: 1.25em;
+      height: 1.25em;
+      fill: currentColor;
+      display: block;
+    }
+
+    .pl-btn:hover {
+      color: var(--warm);
+    }
+
+    .pl-icon-pause,
+    .player.is-playing .pl-icon-play {
+      display: none;
+    }
+
+    .player.is-playing .pl-icon-pause {
+      display: block;
+    }
+
+    .pl-icon-muted,
+    .player.is-muted .pl-icon-loud {
+      display: none;
+    }
+
+    .player.is-muted .pl-icon-muted {
+      display: block;
+    }
+
+    .pl-time {
+      font-size: 0.8em;
+      font-variant-numeric: tabular-nums;
+      color: rgba(255, 255, 255, 0.85);
+      white-space: nowrap;
+    }
+
+    .pl-spacer {
+      flex: 1;
+    }
+
+    .pl-vol {
+      width: 5em;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    @media (max-width: 560px) {
+      .pl-vol {
+        display: none;
+      }
+    }
+
+    /* Buffering spinner */
+    .pl-spinner {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 2.6em;
+      height: 2.6em;
+      margin: -1.3em 0 0 -1.3em;
+      border: 3px solid rgba(255, 255, 255, 0.2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 4;
+      animation: pl-spin 800ms linear infinite;
+    }
+
+    .player.is-busy .pl-spinner {
+      opacity: 1;
+    }
+
+    @keyframes pl-spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .pl-spinner {
+        animation-duration: 2s;
+      }
+
+      .pl-controls,
+      .pl-bigplay,
+      .pl-bigplay span {
+        transition: none;
+      }
+    }
+
+    .pl-error {
+      position: absolute;
+      inset: auto 0 0;
+      display: none;
+      padding: 1em;
+      text-align: center;
+      font-size: 0.9em;
+      background: rgba(0, 0, 0, 0.85);
+      color: var(--text);
+      z-index: 5;
+    }
+
+    .player.is-failed .pl-error {
+      display: block;
+    }
+
+    .player.is-failed .pl-bigplay,
+    .player.is-failed .pl-spinner {
+      display: none;
+    }
+
+    /* --- Brand video section --- */
+
+    .brand-video {
+      max-width: 1000px;
+    }
+
+    .brand-video .section-lead {
+      max-width: 640px;
     }
 
     /* --- Curriculum Timeline --- */
@@ -222,7 +557,7 @@
       display: grid;
       grid-template-columns: 50px 1fr;
       gap: 1.6em;
-      padding-bottom: 3em;
+      padding-bottom: 3.5em;
     }
 
     .module:last-child {
@@ -276,17 +611,26 @@
       line-height: 1.2;
     }
 
+    /* Video beside the text on wide screens, stacked underneath on narrow. */
+    .module-cols {
+      display: grid;
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+      gap: 1.8em;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .module-cols {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 1.2em;
+      }
+    }
+
     .module-outcome {
       font-size: 1.08em;
       font-weight: 600;
       color: var(--text);
-      margin-bottom: 0.55em;
-    }
-
-    .module-desc {
-      color: var(--text-muted);
-      font-size: 1em;
-      margin-bottom: 0.9em;
+      margin-bottom: 0.7em;
     }
 
     .module-points {
@@ -318,6 +662,36 @@
       color: var(--warm);
     }
 
+    .read-more {
+      margin-top: 1em;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.85em;
+      font-weight: 600;
+      padding: 0.45em 1.1em;
+      border-radius: 2em;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45em;
+      transition: border-color 200ms, color 200ms;
+    }
+
+    .read-more:hover {
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .read-more svg {
+      width: 0.85em;
+      height: 0.85em;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+    }
+
     @media (max-width: 640px) {
       .module {
         gap: 1em;
@@ -326,6 +700,115 @@
       .module-body h3 {
         font-size: 1.3em;
       }
+    }
+
+    /* --- Modal --- */
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 2em 1.2em;
+    }
+
+    .modal[open],
+    .modal.is-open {
+      display: flex;
+    }
+
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(5, 5, 8, 0.8);
+      backdrop-filter: blur(0.4em);
+      border: none;
+      cursor: pointer;
+    }
+
+    .modal-panel {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 0.9em;
+      max-width: 720px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 2.4em;
+      box-shadow: 0 1.5em 4em rgba(0, 0, 0, 0.6);
+    }
+
+    @media (max-width: 640px) {
+      .modal-panel {
+        padding: 1.8em 1.3em;
+        max-height: 88vh;
+      }
+    }
+
+    .modal-week {
+      font-size: 0.72em;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--warm);
+    }
+
+    .modal-panel h3 {
+      font-size: 1.8em;
+      font-weight: 700;
+      line-height: 1.2;
+      margin: 0.15em 0 0.8em;
+    }
+
+    .modal-body p {
+      color: var(--text-muted);
+      margin-bottom: 1em;
+    }
+
+    .modal-body h4 {
+      font-size: 0.8em;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text);
+      margin: 1.8em 0 0.6em;
+    }
+
+    .modal-body .assignment {
+      border-left: 2px solid var(--accent);
+      padding-left: 1.1em;
+      font-style: italic;
+      color: var(--text-muted);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 1em;
+      right: 1em;
+      width: 2.2em;
+      height: 2.2em;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1em;
+      line-height: 1;
+    }
+
+    .modal-close:hover {
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    body.modal-open {
+      overflow: hidden;
     }
 
     /* --- Instructor --- */
@@ -424,7 +907,7 @@
       margin: 0.5em auto 0;
     }
 
-    /* --- Final CTA --- */
+    /* --- Final CTA + signup form --- */
 
     .final-cta {
       text-align: center;
@@ -452,7 +935,7 @@
       text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
     }
 
-    .final-cta p {
+    .final-cta>p {
       color: var(--text);
       margin-bottom: 2em;
       font-size: 1.2em;
@@ -461,6 +944,105 @@
       max-width: 540px;
       margin-left: auto;
       margin-right: auto;
+    }
+
+    .signup {
+      position: relative;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    .signup-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 0.6em;
+    }
+
+    @media (max-width: 640px) {
+      .signup-fields {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .signup input[type="text"],
+    .signup input[type="email"] {
+      font-family: inherit;
+      font-size: 1em;
+      padding: 0.75em 1.1em;
+      border-radius: 2em;
+      border: 1px solid var(--border);
+      background: rgba(10, 10, 15, 0.75);
+      color: var(--text);
+      min-width: 0;
+    }
+
+    .signup input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .signup input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .signup button[type="submit"] {
+      white-space: nowrap;
+      font-size: 1em;
+      padding: 0.75em 1.8em;
+    }
+
+    .signup button[disabled] {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .signup-note {
+      font-size: 0.85em;
+      color: var(--text-muted);
+      margin-top: 1em;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+    }
+
+    .signup-status {
+      margin-top: 1em;
+      font-size: 0.95em;
+      min-height: 1.5em;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+    }
+
+    .signup-status.ok {
+      color: #6ee7a8;
+    }
+
+    .signup-status.err {
+      color: #ff8a6b;
+    }
+
+    /* Honeypot: hidden from people, tempting to bots. */
+    .signup .hp {
+      position: absolute;
+      left: -9999px;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+    }
+
+    /* --- Bloopers --- */
+
+    .bloopers {
+      max-width: 820px;
+      text-align: center;
+    }
+
+    .bloopers h2 {
+      font-size: 1.6em;
+    }
+
+    .bloopers p {
+      color: var(--text-muted);
+      max-width: 520px;
+      margin: 0.4em auto 2em;
     }
 
     /* --- Footer --- */
@@ -484,6 +1066,10 @@
         padding: 0.6em 1.2em;
       }
 
+      nav .brand {
+        font-size: 0.95em;
+      }
+
       .hero {
         padding: 7em 1.2em 3em;
       }
@@ -497,6 +1083,10 @@
 
       section {
         padding: 3em 1.2em;
+      }
+
+      .final-cta {
+        padding: 5em 1.2em;
       }
 
       .credential-grid {
@@ -514,7 +1104,7 @@
   <nav>
     <div class="brand"><a href="../">avand.fm</a> / headroom</div>
     <div class="cta-nav">
-      <a href="https://calendar.app.google/2dhPnZHUngrQUUoF7" target="_blank">Book a call</a>
+      <a href="#notify">Get notified</a>
     </div>
   </nav>
 
@@ -523,21 +1113,74 @@
     <div class="hero-label">Fall 2026: Cohort #1</div>
     <h1>HEADROOM</h1>
     <p class="subtitle">
-      Advanced DJ training for serious performers. Master the tech
-      so you can confidently step into any booth and find your flow
-      amongst the chaos.
+      Advanced DJ training for aspiring performers. An end-to-end
+      up-leveling of the entire DJ stack&mdash;so you can step into any
+      booth and find your flow amongst the chaos.
     </p>
     <div class="hero-details">
       <span>8 weeks</span>
       <span>2 hrs / week</span>
       <span>10&ndash;15 students</span>
-      <span><s style="color: var(--text-muted); text-decoration-thickness: 1px;">$1,800</s> $900</span>
+      <span><s class="price-was">$1,600</s>&nbsp;<span class="price-now">$800</span></span>
     </div>
-    <a class="btn-primary" href="https://calendar.app.google/2dhPnZHUngrQUUoF7" target="_blank">Book an intro call</a>
+    <a class="btn-primary" href="#notify">Be the first to know</a>
   </div>
 
+  <!-- Brand video -->
+  <section class="brand-video">
+    <h2>Why I built this</h2>
+    <p class="section-lead">
+      Three minutes on what Headroom is, who it&rsquo;s for, and what you can
+      expect to walk away with.
+    </p>
+
+    <div class="player" data-video="brand" tabindex="0" role="region" aria-label="Video: why I built Headroom">
+      <video playsinline preload="none"></video>
+      <button class="pl-bigplay" aria-label="Play video: why I built Headroom">
+        <span><svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M8 5v14l11-7z" />
+          </svg></span>
+      </button>
+      <div class="pl-spinner" aria-hidden="true"></div>
+      <div class="pl-error" role="alert"></div>
+      <div class="pl-controls">
+        <div class="pl-bar" role="slider" tabindex="0" aria-label="Seek" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div class="pl-buffered"></div>
+          <div class="pl-played"></div>
+          <div class="pl-knob"></div>
+        </div>
+        <div class="pl-row">
+          <button class="pl-btn pl-play" aria-label="Play">
+            <svg class="pl-icon-play" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+            <svg class="pl-icon-pause" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 5h4v14H6zm8 0h4v14h-4z" />
+            </svg>
+          </button>
+          <span class="pl-time"><span class="pl-time-now">0:00</span> / <span class="pl-time-total">0:00</span></span>
+          <span class="pl-spacer"></span>
+          <button class="pl-btn pl-mute" aria-label="Mute">
+            <svg class="pl-icon-loud" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 2v2a8 8 0 0 1 0 16v2a10 10 0 0 0 0-20z" />
+            </svg>
+            <svg class="pl-icon-muted" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 9v6h4l5 5V4L7 9H3zm18.6 3l2.1-2.1-1.4-1.4-2.1 2.1-2.1-2.1-1.4 1.4 2.1 2.1-2.1 2.1 1.4 1.4 2.1-2.1 2.1 2.1 1.4-1.4z" />
+            </svg>
+          </button>
+          <input class="pl-vol" type="range" min="0" max="1" step="0.05" value="1" aria-label="Volume" />
+          <button class="pl-btn pl-fs" aria-label="Fullscreen">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- The Curriculum -->
-  <section>
+  <section class="wide" id="curriculum">
     <h2>The curriculum</h2>
     <p class="section-lead">
       At the white-hot center of every world-class set is a relaxed,
@@ -563,22 +1206,95 @@
             <span class="module-week">Week 1</span>
             <h3>Sound</h3>
           </div>
-          <p class="module-outcome">
-            Understand what sound actually is and how it exists in the physical world.
-          </p>
-          <p class="module-desc">
-            Build the mental framework behind everything else in the course.
-            Sound as a physical phenomenon&mdash;energy moving through a medium
-            as a pressure wave&mdash;and how the body hears and feels it. Then
-            follow sound through the full audio chain: from a vibrating object,
-            to an electrical signal, to a loudspeaker, and ultimately to the
-            listener's body.
-          </p>
-          <ul class="module-points">
-            <li>How sound is created, transmitted, perceived, recorded, and reproduced</li>
-            <li>How frequency, amplitude, and wavelength shape pitch, loudness, and sensation</li>
-            <li>The 20 Hz&ndash;20 kHz spectrum&mdash;what's felt vs. heard, and why systems split into lows, mids, and highs</li>
-          </ul>
+          <div class="module-cols">
+            <div class="player" data-video="m1-sound" tabindex="0" role="region" aria-label="Video: Module 1, Sound">
+              <video playsinline preload="none"></video>
+              <button class="pl-bigplay" aria-label="Play video: Module 1, Sound">
+                <span><svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M8 5v14l11-7z" />
+                  </svg></span>
+              </button>
+              <div class="pl-spinner" aria-hidden="true"></div>
+              <div class="pl-error" role="alert"></div>
+              <div class="pl-controls">
+                <div class="pl-bar" role="slider" tabindex="0" aria-label="Seek" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                  <div class="pl-buffered"></div>
+                  <div class="pl-played"></div>
+                  <div class="pl-knob"></div>
+                </div>
+                <div class="pl-row">
+                  <button class="pl-btn pl-play" aria-label="Play">
+                    <svg class="pl-icon-play" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                    <svg class="pl-icon-pause" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M6 5h4v14H6zm8 0h4v14h-4z" />
+                    </svg>
+                  </button>
+                  <span class="pl-time"><span class="pl-time-now">0:00</span> / <span class="pl-time-total">0:00</span></span>
+                  <span class="pl-spacer"></span>
+                  <button class="pl-btn pl-mute" aria-label="Mute">
+                    <svg class="pl-icon-loud" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 2v2a8 8 0 0 1 0 16v2a10 10 0 0 0 0-20z" />
+                    </svg>
+                    <svg class="pl-icon-muted" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M3 9v6h4l5 5V4L7 9H3zm18.6 3l2.1-2.1-1.4-1.4-2.1 2.1-2.1-2.1-1.4 1.4 2.1 2.1-2.1 2.1 1.4 1.4 2.1-2.1 2.1 2.1 1.4-1.4z" />
+                    </svg>
+                  </button>
+                  <input class="pl-vol" type="range" min="0" max="1" step="0.05" value="1" aria-label="Volume" />
+                  <button class="pl-btn pl-fs" aria-label="Fullscreen">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div>
+              <p class="module-outcome">
+                Understand what sound actually is and how it exists in the physical world.
+              </p>
+              <ul class="module-points">
+                <li>How sound is created, transmitted, perceived, recorded, and reproduced</li>
+                <li>How frequency, amplitude, and wavelength shape pitch, loudness, and physical sensation</li>
+                <li>The 20 Hz&ndash;20 kHz spectrum&mdash;what&rsquo;s felt vs. heard</li>
+                <li>Microphones, analog signal on a wire, and how digital systems sample and play back</li>
+              </ul>
+              <button class="read-more" data-module="m1">
+                Read more
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="module-full" hidden>
+            <p>In this module, students build a foundational understanding of sound. They learn how sound is created,
+              transmitted, perceived, recorded, and reproduced, creating the mental framework needed to understand every
+              other topic in the course&mdash;from gain staging and EQs to mixers, speakers, signal flow, and digital
+              audio systems.</p>
+            <p>Students begin by exploring sound as a physical phenomenon: energy moving through a medium as a pressure
+              wave. They learn how the human body hears and feels sound, and how frequency, amplitude, and wavelength
+              shape our perception of pitch, loudness, and physical sensation.</p>
+            <p>Students examine how vibrating objects&mdash;from musical instruments to loudspeakers&mdash;create sound
+              waves in the air. They learn how simple waveforms combine through superposition to create the complex
+              sounds we hear in music, and how multiple sounds are summed together both acoustically in physical space
+              and electrically within audio systems.</p>
+            <p>This module also explores how frequency ranges, from 20 Hz to 20 kHz, are felt vs. heard. It sets the
+              stage for why sound systems and mixers are generally stacked into low-, mid-, and high-range frequencies
+              and the impact each of those ranges has on the audience.</p>
+            <p>The module then follows sound as it travels through the audio chain. Students learn how microphones
+              convert pressure waves into electrical signals, how analog audio is carried over a wire, and how digital
+              systems capture, store, and reproduce sound through sampling and playback.</p>
+            <p>By the end of the module, students will understand not only what sound is, but how sound moves through
+              every stage of a modern audio system&mdash;from a vibrating object, to an electrical signal, to a
+              loudspeaker, and ultimately to the listener&rsquo;s body.</p>
+            <h4>Example assignment</h4>
+            <p class="assignment">Pick a specific sound that you encounter during the week and trace its complete journey
+              from the source to the listener. Bonus points for identifying ways in which the physical world affects the
+              sound and changes how it&rsquo;s perceived.</p>
+          </div>
         </div>
       </div>
 
@@ -598,26 +1314,98 @@
             <span class="module-week">Week 2</span>
             <h3>Signal Flow</h3>
           </div>
-          <p class="module-outcome">
-            Trace an audio signal through a system and know what each piece of gear is doing to it.
-          </p>
-          <p class="module-desc">
-            How audio is represented, transmitted, processed, and reproduced
-            across modern systems. Why signal format and signal level make the
-            difference between a vibey dance floor and a shouting match. Once you
-            see audio as information moving through a chain of devices,
-            troubleshooting and unfamiliar setups stop being intimidating.
-          </p>
-          <ul class="module-points">
-            <li>Analog vs. digital, balanced vs. unbalanced, mono vs. stereo</li>
-            <li>Line-, mic-, and speaker-level signals</li>
-            <li>What's really happening when a signal is gained, clipped, EQ'd, filtered, routed, and mixed</li>
-            <li>Identify, trace, and diagram signal flow through any DJ, studio, or live rig</li>
-          </ul>
+          <div class="module-cols">
+            <div class="player" data-video="m2-signal-flow" tabindex="0" role="region" aria-label="Video: Module 2, Signal Flow">
+              <video playsinline preload="none"></video>
+              <button class="pl-bigplay" aria-label="Play video: Module 2, Signal Flow">
+                <span><svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M8 5v14l11-7z" />
+                  </svg></span>
+              </button>
+              <div class="pl-spinner" aria-hidden="true"></div>
+              <div class="pl-error" role="alert"></div>
+              <div class="pl-controls">
+                <div class="pl-bar" role="slider" tabindex="0" aria-label="Seek" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                  <div class="pl-buffered"></div>
+                  <div class="pl-played"></div>
+                  <div class="pl-knob"></div>
+                </div>
+                <div class="pl-row">
+                  <button class="pl-btn pl-play" aria-label="Play">
+                    <svg class="pl-icon-play" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                    <svg class="pl-icon-pause" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M6 5h4v14H6zm8 0h4v14h-4z" />
+                    </svg>
+                  </button>
+                  <span class="pl-time"><span class="pl-time-now">0:00</span> / <span class="pl-time-total">0:00</span></span>
+                  <span class="pl-spacer"></span>
+                  <button class="pl-btn pl-mute" aria-label="Mute">
+                    <svg class="pl-icon-loud" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 2v2a8 8 0 0 1 0 16v2a10 10 0 0 0 0-20z" />
+                    </svg>
+                    <svg class="pl-icon-muted" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M3 9v6h4l5 5V4L7 9H3zm18.6 3l2.1-2.1-1.4-1.4-2.1 2.1-2.1-2.1-1.4 1.4 2.1 2.1-2.1 2.1 1.4 1.4 2.1-2.1 2.1 2.1 1.4-1.4z" />
+                    </svg>
+                  </button>
+                  <input class="pl-vol" type="range" min="0" max="1" step="0.05" value="1" aria-label="Volume" />
+                  <button class="pl-btn pl-fs" aria-label="Fullscreen">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div>
+              <p class="module-outcome">
+                Trace an audio signal through a system and know what each piece of gear is doing to it.
+              </p>
+              <ul class="module-points">
+                <li>Analog vs. digital, balanced vs. unbalanced, mono vs. stereo</li>
+                <li>Line-, mic-, and speaker-level signals</li>
+                <li>What&rsquo;s really happening when a signal is gained, clipped, EQ&rsquo;d, filtered, routed, and mixed</li>
+                <li>Ground loops, hum, and adapting to unfamiliar environments</li>
+                <li>Identify, trace, and diagram signal flow through any DJ, studio, or live rig</li>
+              </ul>
+              <button class="read-more" data-module="m2">
+                Read more
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="module-full" hidden>
+            <p>Building directly on the concepts introduced in Module 1, students learn how sound is represented,
+              transmitted, processed, and reproduced throughout modern audio systems.</p>
+            <p>Students begin by exploring the relationship between sound and audio signals, learning how acoustic energy
+              is converted into analog and digital representations that can be stored, transmitted, manipulated, and
+              reproduced. They will develop a practical understanding of how audio moves through a system and how signal
+              flow serves as the foundation of every DJ setup, recording studio, sound system, and live performance
+              environment.</p>
+            <p>Students will learn how signals travel between devices, how different types of connections and cables
+              carry audio, and why signal format and signal level make the difference between a vibey dance floor and a
+              shouting match. Students will be introduced to common audio connections and learn the differences between
+              analog and digital transmission, balanced and unbalanced connections, mono and stereo signals, and
+              line-level, microphone-level, and speaker-level signals.</p>
+            <p>The module also explores how signals are modified and combined within an audio system. Students will learn
+              what is happening fundamentally when a signal is gained, attenuated, clipped, EQ&rsquo;d, filtered, routed,
+              and mixed. By understanding audio as information moving through a chain of devices, it will become second
+              nature for students to quickly troubleshoot equipment, feel at home in unfamiliar setups, and reason
+              through signal-path problems.</p>
+            <p>By the end of the module, students will be able to identify, trace, and diagram signal flow through common
+              DJ, studio, and live sound systems.</p>
+            <h4>Example assignment</h4>
+            <p class="assignment">Draw the signal paths for the following systems: (1) phone to Bluetooth speaker, (2)
+              laptop to controller to PA, (3) CDJ to mixer to speakers.</p>
+          </div>
         </div>
       </div>
 
-      <!-- Week 3: Equipment -->
+      <!-- Week 3: Gear -->
       <div class="module">
         <div class="module-icon">
           <svg viewBox="0 0 32 32">
@@ -633,29 +1421,103 @@
         <div class="module-body">
           <div class="module-head">
             <span class="module-week">Week 3</span>
-            <h3>Equipment</h3>
+            <h3>Gear</h3>
           </div>
-          <p class="module-outcome">
-            Reason about unfamiliar gear, understand its role, and feel comfortable on it without prior experience.
-          </p>
-          <p class="module-desc">
-            The specific gear you'll meet in the booth&mdash;from approachable
-            controllers to intimidating standalone players&mdash;and the real
-            tradeoffs between laptop-only, controller, all-in-one, and CDJ
-            workflows. When and why to add a mixer, how to set a proper booth
-            reference, and how DIY rigs scale from a travel kit to a
-            block-party system that still fits in a car.
-          </p>
-          <ul class="module-points">
-            <li>Players, mixers, and configuring a proper booth</li>
-            <li>Stereo fields, crossovers, dynamic range, and detail across system types</li>
-            <li>Thinking modularly and staying adaptable on any setup</li>
-            <li>Building the adapter-and-cable go-bag you never gig without</li>
-          </ul>
+          <div class="module-cols">
+            <div class="player" data-video="m3-gear" tabindex="0" role="region" aria-label="Video: Module 3, Gear">
+              <video playsinline preload="none"></video>
+              <button class="pl-bigplay" aria-label="Play video: Module 3, Gear">
+                <span><svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M8 5v14l11-7z" />
+                  </svg></span>
+              </button>
+              <div class="pl-spinner" aria-hidden="true"></div>
+              <div class="pl-error" role="alert"></div>
+              <div class="pl-controls">
+                <div class="pl-bar" role="slider" tabindex="0" aria-label="Seek" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                  <div class="pl-buffered"></div>
+                  <div class="pl-played"></div>
+                  <div class="pl-knob"></div>
+                </div>
+                <div class="pl-row">
+                  <button class="pl-btn pl-play" aria-label="Play">
+                    <svg class="pl-icon-play" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                    <svg class="pl-icon-pause" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M6 5h4v14H6zm8 0h4v14h-4z" />
+                    </svg>
+                  </button>
+                  <span class="pl-time"><span class="pl-time-now">0:00</span> / <span class="pl-time-total">0:00</span></span>
+                  <span class="pl-spacer"></span>
+                  <button class="pl-btn pl-mute" aria-label="Mute">
+                    <svg class="pl-icon-loud" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 2v2a8 8 0 0 1 0 16v2a10 10 0 0 0 0-20z" />
+                    </svg>
+                    <svg class="pl-icon-muted" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M3 9v6h4l5 5V4L7 9H3zm18.6 3l2.1-2.1-1.4-1.4-2.1 2.1-2.1-2.1-1.4 1.4 2.1 2.1-2.1 2.1 1.4 1.4 2.1-2.1 2.1 2.1 1.4-1.4z" />
+                    </svg>
+                  </button>
+                  <input class="pl-vol" type="range" min="0" max="1" step="0.05" value="1" aria-label="Volume" />
+                  <button class="pl-btn pl-fs" aria-label="Fullscreen">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div>
+              <p class="module-outcome">
+                Reason about unfamiliar gear, understand its role in the stack, and feel at home on it without prior
+                experience.
+              </p>
+              <ul class="module-points">
+                <li>The tradeoffs between laptop-only, controller, all-in-one, and CDJ setups</li>
+                <li>When and why to add a mixer, plus booth reference and multi-DJ setups</li>
+                <li>Power distribution, batteries, and generators for house parties and renegades</li>
+                <li>Stereo fields, crossovers, and dynamic range across different system types</li>
+                <li>Ergonomics, portability, backups, and the go-bag you never gig without</li>
+              </ul>
+              <button class="read-more" data-module="m3">
+                Read more
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="module-full" hidden>
+            <p>With the basics of sound and signal flow covered, Module 3 delves into specific pieces of equipment DJs
+              are likely to encounter in club setups.</p>
+            <p>Players can range from cheap (and approachable) controllers to expensive (and equally intimidating)
+              standalone machines. Students will learn the key tradeoffs between playing on laptop-only, controller,
+              all-in-one, and CDJs.</p>
+            <p>Students will learn when and why to add an additional mixer to the signal path and how to properly
+              configure reference sources and multi-performer situations to improve performance continuity.</p>
+            <p>For house parties and renegades, we&rsquo;ll cover the basics of power distribution, batteries, and
+              generators&mdash;how to set things up to prevent blow ups or shut downs.</p>
+            <p>In addition to covering the kinds of systems students will find in clubs, Module 3 also covers DIY setups
+              from small travel-sized kits to block-party-sized setups that can still travel in the back of a car.
+              It&rsquo;s crucial for DJs to understand the differences in sound reproduction across different types of
+              systems: why it&rsquo;s important to create a stereo field, how crossovers can be used to maximize dynamic
+              range, increase detail, and create more energy.</p>
+            <p>It&rsquo;s also important to protect gear and set it up comfortably. We&rsquo;ll spend some time talking
+              about the importance of ergonomics and how to optimize for portability without sacrificing quality. Along
+              the same vein, students will learn about battery-powered speaker setups and wireless setups too.</p>
+            <p>Students will learn the importance of being adaptable with different equipment as well as how to think
+              modularly about each piece of gear in the chain. They&rsquo;ll also develop their go bag of adapters and
+              cables they never go to a gig without.</p>
+            <h4>Example assignment</h4>
+            <p class="assignment">Your friend has a house in Costa Rica and he loves to throw parties. You have a budget
+              of $3,000 to provide all the equipment he might need&mdash;mixers, speakers, players, etc. What do you buy
+              and why?</p>
+          </div>
         </div>
       </div>
 
-      <!-- Week 4: Music -->
+      <!-- Week 4: Tracks -->
       <div class="module">
         <div class="module-icon">
           <svg viewBox="0 0 32 32">
@@ -667,28 +1529,103 @@
         <div class="module-body">
           <div class="module-head">
             <span class="module-week">Week 4</span>
-            <h3>Music</h3>
+            <h3>Tracks</h3>
           </div>
-          <p class="module-outcome">
-            Understand how music is structured, composed, and organized&mdash;and how it's stored in digital files.
-          </p>
-          <p class="module-desc">
-            The defining characteristics of a song: notes into bars, bars into
-            phrases, phrases into structure, and how different genres are
-            composed and blended for variety. Then the fundamentals of digital
-            files and why quality matters on big systems, which expose details
-            you'll never hear on headphones or a car stereo.
-          </p>
-          <ul class="module-points">
-            <li>Song structure and how genres are built and mixed</li>
-            <li>Pitch, tempo, and Master Tempo&mdash;and whether the beat-sync controversy is warranted</li>
-            <li>File formats and encoders: what compression loses&mdash;transients, reverb tails, spatial detail</li>
-            <li>ID3 tags for portability, less data loss, and a smoother workflow</li>
-          </ul>
+          <div class="module-cols">
+            <div class="player" data-video="m4-tracks" tabindex="0" role="region" aria-label="Video: Module 4, Tracks">
+              <video playsinline preload="none"></video>
+              <button class="pl-bigplay" aria-label="Play video: Module 4, Tracks">
+                <span><svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M8 5v14l11-7z" />
+                  </svg></span>
+              </button>
+              <div class="pl-spinner" aria-hidden="true"></div>
+              <div class="pl-error" role="alert"></div>
+              <div class="pl-controls">
+                <div class="pl-bar" role="slider" tabindex="0" aria-label="Seek" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                  <div class="pl-buffered"></div>
+                  <div class="pl-played"></div>
+                  <div class="pl-knob"></div>
+                </div>
+                <div class="pl-row">
+                  <button class="pl-btn pl-play" aria-label="Play">
+                    <svg class="pl-icon-play" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                    <svg class="pl-icon-pause" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M6 5h4v14H6zm8 0h4v14h-4z" />
+                    </svg>
+                  </button>
+                  <span class="pl-time"><span class="pl-time-now">0:00</span> / <span class="pl-time-total">0:00</span></span>
+                  <span class="pl-spacer"></span>
+                  <button class="pl-btn pl-mute" aria-label="Mute">
+                    <svg class="pl-icon-loud" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 2v2a8 8 0 0 1 0 16v2a10 10 0 0 0 0-20z" />
+                    </svg>
+                    <svg class="pl-icon-muted" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M3 9v6h4l5 5V4L7 9H3zm18.6 3l2.1-2.1-1.4-1.4-2.1 2.1-2.1-2.1-1.4 1.4 2.1 2.1-2.1 2.1 1.4 1.4 2.1-2.1 2.1 2.1 1.4-1.4z" />
+                    </svg>
+                  </button>
+                  <input class="pl-vol" type="range" min="0" max="1" step="0.05" value="1" aria-label="Volume" />
+                  <button class="pl-btn pl-fs" aria-label="Fullscreen">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div>
+              <p class="module-outcome">
+                Understand how music is structured, composed, and organized&mdash;and how it&rsquo;s stored in digital
+                files.
+              </p>
+              <ul class="module-points">
+                <li>Notes into bars, bars into phrases, phrases into structure&mdash;and how genres differ</li>
+                <li>Pitch, tempo, Master Tempo, and whether the beat-sync debate is warranted</li>
+                <li>Beatgrids, hot cues, and what quantize is actually doing</li>
+                <li>File formats and encoders: what compression loses&mdash;transients, reverb tails, spatial detail</li>
+                <li>ID3 tags for portability, less data loss, and a smoother workflow</li>
+              </ul>
+              <button class="read-more" data-module="m4">
+                Read more
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="module-full" hidden>
+            <p>Module 4 focuses on the defining characteristics of a track. This is the prerequisite to Module 5, which
+              then uses these characteristics to develop music preparation skills.</p>
+            <p>Students will first cover the very basics of how notes are put together into bars/measures and how bars
+              build into phrases and ultimately compose the entire song&rsquo;s structure. Electronic music is
+              particularly formulaic but this module will explore how other genres are composed and how different genres
+              can be mixed to create dynamic range and variety.</p>
+            <p>Module 4 covers the nuances of pitch and tempo: the intricacies of when and why to use Master Tempo, when
+              and how to naturally speed up or slow down and by how much, and if all the controversy around beat sync and
+              being able to beat match by ear is warranted.</p>
+            <p>Module 4 introduces the fundamentals of digital files: why there are different formats, and what the
+              differences are between them. Core to this understanding is explaining how an encoder works to compress
+              music and how quiet details, transients, reverb tails, and spatial information are lost in the process. A
+              DJ is ultimately responsible for the way the dance floor feels. Big systems expose details that are often
+              missed on headphones, car stereos, and small sound systems. With sound as a DJ&rsquo;s medium, every step
+              of the chain matters and the quality of the audio signal is critical. Lossless files can even reduce
+              psycho-acoustic fatigue during long sets.</p>
+            <p>Beyond signal quality differences, choosing the right file format also affects track preparation as
+              certain file formats don&rsquo;t always read and write track metadata consistently across devices. In this
+              module, students will learn what an ID3 tag is and how it can be used to create more portability, reduce
+              data loss, and improve workflow efficiency.</p>
+            <h4>Example assignment</h4>
+            <p class="assignment">Listen to your favorite song of the moment and identify the key sonic elements. Try and
+              list them all out and note when they appear and disappear and the result it creates for the listener.
+              What&rsquo;s happening sonically at your favorite moment?</p>
+          </div>
         </div>
       </div>
 
-      <!-- Week 5: Workflow -->
+      <!-- Week 5: Library -->
       <div class="module">
         <div class="module-icon">
           <svg viewBox="0 0 32 32">
@@ -702,30 +1639,101 @@
         <div class="module-body">
           <div class="module-head">
             <span class="module-week">Week 5</span>
-            <h3>Workflow</h3>
+            <h3>Library</h3>
           </div>
-          <p class="module-outcome">
-            Build systems that create confidence, reduce cognitive load, and induce flow during a set.
-          </p>
-          <p class="module-desc">
-            Turn a messy library into a performance instrument. File-system
-            hygiene so you always know where your music and metadata live, track
-            prep that unlocks ease behind the decks, and smart playlists that let
-            you improvise or play prepared. Finish with a "pre-flight
-            checklist"&mdash;like a pilot's&mdash;so you're locked in the moment
-            you press play.
-          </p>
-          <ul class="module-points">
-            <li>File hygiene and a library that travels between ecosystems</li>
-            <li>Track prep&mdash;beat grids, hot cues, and tools like Platinum Notes and Mixed In Key</li>
-            <li>Smart playlists by tempo, key, lyrics, vibe, tag, and acoustic similarity</li>
-            <li>A pre-flight checklist so you're locked in from the first track</li>
-            <li class="optional">Optional add-on: AI workflows that auto-acquire newly discovered music</li>
-          </ul>
+          <div class="module-cols">
+            <div class="player" data-video="m5-library" tabindex="0" role="region" aria-label="Video: Module 5, Library">
+              <video playsinline preload="none"></video>
+              <button class="pl-bigplay" aria-label="Play video: Module 5, Library">
+                <span><svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M8 5v14l11-7z" />
+                  </svg></span>
+              </button>
+              <div class="pl-spinner" aria-hidden="true"></div>
+              <div class="pl-error" role="alert"></div>
+              <div class="pl-controls">
+                <div class="pl-bar" role="slider" tabindex="0" aria-label="Seek" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                  <div class="pl-buffered"></div>
+                  <div class="pl-played"></div>
+                  <div class="pl-knob"></div>
+                </div>
+                <div class="pl-row">
+                  <button class="pl-btn pl-play" aria-label="Play">
+                    <svg class="pl-icon-play" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                    <svg class="pl-icon-pause" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M6 5h4v14H6zm8 0h4v14h-4z" />
+                    </svg>
+                  </button>
+                  <span class="pl-time"><span class="pl-time-now">0:00</span> / <span class="pl-time-total">0:00</span></span>
+                  <span class="pl-spacer"></span>
+                  <button class="pl-btn pl-mute" aria-label="Mute">
+                    <svg class="pl-icon-loud" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 2v2a8 8 0 0 1 0 16v2a10 10 0 0 0 0-20z" />
+                    </svg>
+                    <svg class="pl-icon-muted" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M3 9v6h4l5 5V4L7 9H3zm18.6 3l2.1-2.1-1.4-1.4-2.1 2.1-2.1-2.1-1.4 1.4 2.1 2.1-2.1 2.1 1.4 1.4 2.1-2.1 2.1 2.1 1.4-1.4z" />
+                    </svg>
+                  </button>
+                  <input class="pl-vol" type="range" min="0" max="1" step="0.05" value="1" aria-label="Volume" />
+                  <button class="pl-btn pl-fs" aria-label="Fullscreen">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div>
+              <p class="module-outcome">
+                Master your DJ chores and build systems that create confidence, reduce cognitive load, and induce flow
+                during a set.
+              </p>
+              <ul class="module-points">
+                <li>File hygiene: knowing where your music and metadata live, and keeping it portable</li>
+                <li>Systematic track prep with tools like Platinum Notes and Mixed In Key</li>
+                <li>Smart playlists by tempo, key, lyrics, vibe, tag, and acoustic similarity</li>
+                <li>How many tracks to prepare for different kinds of gigs</li>
+                <li>A pre-flight checklist so you&rsquo;re locked in from the first track</li>
+                <li class="optional">Optional add-on: AI workflows that auto-acquire newly discovered music</li>
+              </ul>
+              <button class="read-more" data-module="m5">
+                Read more
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="module-full" hidden>
+            <p>Module 5 covers file system hygiene: why it&rsquo;s important to know where your music files live and
+              where the metadata about those tracks lives. Students will be able to apply these skills to prevent data
+              loss, improve sanity and efficiency, as well as to make their library more portable between ecosystems.</p>
+            <p>Students will learn how to systematically prepare tracks to unlock ease and flow behind the decks. From
+              using pre-library tools like Platinum Notes or Mixed In Key to ensuring proper beat grids and hot cues,
+              students will dramatically improve their performing experience.</p>
+            <p>In this module, students will learn how to organize the tracks in their library. This module unlocks the
+              power of intelligent/smart playlists and how they can be used in conjunction with static playlists to
+              improvise or to play a more prepared setlist. By the end of this module, students will gain confidence in
+              knowing how many tracks to prepare for different styles of gigs and have new organizational systems that
+              eliminate stress while improvising. These systems include being able to find tracks by concrete attributes
+              like lyrics, genre, tempo, key, but also by more subjective attributes like vibe, tag, and acoustic
+              similarity.</p>
+            <p>Finally, for when it comes time to play, this module introduces the &ldquo;pre-flight checklist.&rdquo;
+              Just like pilots don&rsquo;t take off without checking all critical systems, in this module students will
+              learn how to systematically check in before they start playing to ensure that they&rsquo;re locked in from
+              the moment they press play.</p>
+            <h4>Example assignment</h4>
+            <p class="assignment">Evaluate the last 100 tracks in your library to determine if there are any new
+              commonalities. Capture these similarities in the track metadata and build 5&ndash;10 intelligent/smart
+              playlists based on the metadata.</p>
+          </div>
         </div>
       </div>
 
-      <!-- Week 6: Mixing -->
+      <!-- Week 6: Playing -->
       <div class="module">
         <div class="module-icon">
           <svg viewBox="0 0 32 32">
@@ -740,28 +1748,99 @@
         <div class="module-body">
           <div class="module-head">
             <span class="module-week">Week 6</span>
-            <h3>Mixing</h3>
+            <h3>Playing</h3>
           </div>
-          <p class="module-outcome">
-            Create clean, intentional transitions across genres and tempos, build and hold energy, and get the most out of any system.
-          </p>
-          <p class="module-desc">
-            You already know how to mix&mdash;now go deeper. Phrase matching,
-            EQ-based mixing, and effects, all studied through the lens of
-            deliberately titrating energy on the dance floor. When to reach for
-            more than two decks to preserve the sounds holding the room, and the
-            sound-engineering basics that make every mix cleaner.
-          </p>
-          <ul class="module-points">
-            <li>Phrase-, EQ-, and effects-based mixing</li>
-            <li>Multi-deck techniques for continuity and energy</li>
-            <li>Reliable transitions across broader genres and tempo ranges</li>
-            <li>Gain staging, EQing for a room, and using your headphones to mix better</li>
-          </ul>
+          <div class="module-cols">
+            <div class="player" data-video="m6-playing" tabindex="0" role="region" aria-label="Video: Module 6, Playing">
+              <video playsinline preload="none"></video>
+              <button class="pl-bigplay" aria-label="Play video: Module 6, Playing">
+                <span><svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M8 5v14l11-7z" />
+                  </svg></span>
+              </button>
+              <div class="pl-spinner" aria-hidden="true"></div>
+              <div class="pl-error" role="alert"></div>
+              <div class="pl-controls">
+                <div class="pl-bar" role="slider" tabindex="0" aria-label="Seek" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                  <div class="pl-buffered"></div>
+                  <div class="pl-played"></div>
+                  <div class="pl-knob"></div>
+                </div>
+                <div class="pl-row">
+                  <button class="pl-btn pl-play" aria-label="Play">
+                    <svg class="pl-icon-play" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                    <svg class="pl-icon-pause" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M6 5h4v14H6zm8 0h4v14h-4z" />
+                    </svg>
+                  </button>
+                  <span class="pl-time"><span class="pl-time-now">0:00</span> / <span class="pl-time-total">0:00</span></span>
+                  <span class="pl-spacer"></span>
+                  <button class="pl-btn pl-mute" aria-label="Mute">
+                    <svg class="pl-icon-loud" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 2v2a8 8 0 0 1 0 16v2a10 10 0 0 0 0-20z" />
+                    </svg>
+                    <svg class="pl-icon-muted" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M3 9v6h4l5 5V4L7 9H3zm18.6 3l2.1-2.1-1.4-1.4-2.1 2.1-2.1-2.1-1.4 1.4 2.1 2.1-2.1 2.1 1.4 1.4 2.1-2.1 2.1 2.1 1.4-1.4z" />
+                    </svg>
+                  </button>
+                  <input class="pl-vol" type="range" min="0" max="1" step="0.05" value="1" aria-label="Volume" />
+                  <button class="pl-btn pl-fs" aria-label="Fullscreen">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div>
+              <p class="module-outcome">
+                Fill the gaps in your self-taught technique&mdash;wider genre range, more dynamic mixes, and energy you
+                can build on demand.
+              </p>
+              <ul class="module-points">
+                <li>A tour of common players and mixers, Pioneer/AlphaTheta and beyond</li>
+                <li>Phrase matching, EQ-based mixing, and effects</li>
+                <li>Using more than two decks for deeper continuity and energy</li>
+                <li>Reliable transitions across broader genres and tempo ranges</li>
+                <li>Advanced looping: auto-loops, loop rolls, hot-cue jumping, and loop builds</li>
+              </ul>
+              <button class="read-more" data-module="m6">
+                Read more
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="module-full" hidden>
+            <p>This module will start with a fairly exhaustive review of common music players: DDJ-FLX4, XDJ-RX3,
+              CDJ-3000. We&rsquo;ll also look at non-Pioneer/AlphaTheta products to compare and contrast features.
+              Versatility is important and it&rsquo;s important for students to understand the tools they want and need
+              and seek them out vs. accept what a company decides they need and be content.</p>
+            <p>Students will also be exposed to different styles of mixers. Mixers differ by far more than simply how
+              many channels are available. We&rsquo;ll look into all the features that may or may not exist on a mixer to
+              further deepen the student&rsquo;s adaptability.</p>
+            <p>There are an infinite number of ways to mix two tracks together, largely dependent on performance style,
+              environment, and genre, however, Module 6 covers the core concepts that can be adapted by each student. For
+              example, students will learn when and how using more than two decks can create deeper continuity and
+              increase energy by preserving sounds that are holding the dance floor. Students will also learn reliable
+              methods to transition between broader genres and tempo ranges.</p>
+            <p>This module also covers more advanced looping and positioning techniques like auto-looping, loop rolls,
+              hot-cue jumping, and loop builds.</p>
+            <p>This module will not teach every possible mixing trick because there are infinite, but it will point
+              students to external resources to further their practice.</p>
+            <h4>Example assignment</h4>
+            <p class="assignment">Pick two tracks that you really like and have never mixed together. Practice going back
+              and forth between the two tracks 10 times using deliberately different techniques. Make it a continuous
+              mix&mdash;don&rsquo;t stop and start, just keep playing.</p>
+          </div>
         </div>
       </div>
 
-      <!-- Week 7: Relating -->
+      <!-- Week 7: Attunement -->
       <div class="module">
         <div class="module-icon">
           <svg viewBox="0 0 32 32">
@@ -774,62 +1853,195 @@
         <div class="module-body">
           <div class="module-head">
             <span class="module-week">Week 7</span>
-            <h3>Relating</h3>
+            <h3>Attunement</h3>
           </div>
-          <p class="module-outcome">
-            Develop the awareness, communication, and etiquette to navigate high-stakes, shared performance spaces with confidence and ease.
-          </p>
-          <p class="module-desc">
-            The most overlooked DJ skill is working with people. Treat equipment
-            like an extension of someone's body, apply the principles of consent
-            to the decks for smoother hand-offs, and build the reputation that
-            gets you invited back. Then turn to the crowd&mdash;meeting an
-            audience where it is and earning the trust to take it on a journey.
-          </p>
-          <ul class="module-points">
-            <li>Smooth hand-offs and booth etiquette between DJs</li>
-            <li>Being easy to work with&mdash;and getting invited to play more</li>
-            <li>"Playing what I want" vs. "playing what they want," authentically</li>
-            <li>Reading the room and earning a crowd's trust</li>
-          </ul>
+          <div class="module-cols">
+            <div class="player" data-video="m7-attunement" tabindex="0" role="region" aria-label="Video: Module 7, Attunement">
+              <video playsinline preload="none"></video>
+              <button class="pl-bigplay" aria-label="Play video: Module 7, Attunement">
+                <span><svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M8 5v14l11-7z" />
+                  </svg></span>
+              </button>
+              <div class="pl-spinner" aria-hidden="true"></div>
+              <div class="pl-error" role="alert"></div>
+              <div class="pl-controls">
+                <div class="pl-bar" role="slider" tabindex="0" aria-label="Seek" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                  <div class="pl-buffered"></div>
+                  <div class="pl-played"></div>
+                  <div class="pl-knob"></div>
+                </div>
+                <div class="pl-row">
+                  <button class="pl-btn pl-play" aria-label="Play">
+                    <svg class="pl-icon-play" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                    <svg class="pl-icon-pause" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M6 5h4v14H6zm8 0h4v14h-4z" />
+                    </svg>
+                  </button>
+                  <span class="pl-time"><span class="pl-time-now">0:00</span> / <span class="pl-time-total">0:00</span></span>
+                  <span class="pl-spacer"></span>
+                  <button class="pl-btn pl-mute" aria-label="Mute">
+                    <svg class="pl-icon-loud" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 2v2a8 8 0 0 1 0 16v2a10 10 0 0 0 0-20z" />
+                    </svg>
+                    <svg class="pl-icon-muted" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M3 9v6h4l5 5V4L7 9H3zm18.6 3l2.1-2.1-1.4-1.4-2.1 2.1-2.1-2.1-1.4 1.4 2.1 2.1-2.1 2.1 1.4 1.4 2.1-2.1 2.1 2.1 1.4-1.4z" />
+                    </svg>
+                  </button>
+                  <input class="pl-vol" type="range" min="0" max="1" step="0.05" value="1" aria-label="Volume" />
+                  <button class="pl-btn pl-fs" aria-label="Fullscreen">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div>
+              <p class="module-outcome">
+                Develop the awareness, communication, and etiquette to navigate high-stakes, shared performance spaces
+                with confidence and ease.
+              </p>
+              <ul class="module-points">
+                <li>Treating equipment like an extension of someone&rsquo;s body</li>
+                <li>Applying the principles of consent to the decks for smoother hand-offs</li>
+                <li>Being easy to work with&mdash;and building the reputation that gets you invited back</li>
+                <li>Meeting the crowd where it is and earning the trust to take it on a journey</li>
+                <li>&ldquo;Playing what I want&rdquo; vs. &ldquo;playing what they want,&rdquo; authentically</li>
+              </ul>
+              <button class="read-more" data-module="m7">
+                Read more
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="module-full" hidden>
+            <p>In the crowded, chaotic, and often over-hyped world of being a DJ, interacting with others is a core
+              competency that is often overlooked. In this module, students will learn how to present themselves and
+              interact with their colleagues and peers in ways that open doors.</p>
+            <p>Starting at the decks, students will learn how to treat equipment like an extension of a person&rsquo;s
+              body. Students will learn how to apply the principles of consent to the decks, resulting in smoother
+              hand-offs between DJs. These principles will also give students a leg up in being easy to work with and
+              result in developing better reputations and being invited to play more gigs.</p>
+            <p>Module 7 will also cover the relationship between the DJ and the crowd. Students will learn the importance
+              of always meeting their audience where they are at and how to earn their trust in taking them on a journey.
+              At the core of this lesson is understanding the differences between &ldquo;playing what I want to
+              play&rdquo; vs. &ldquo;playing what they want to play&rdquo; and how to mix these two modalities to stay
+              authentic and connect to the audience.</p>
+            <h4>Example assignment</h4>
+            <p class="assignment">Create an opportunity to play with another DJ. Observe the differences in system setup
+              between you both. Focus on creating a shared flow and take note of what issues get in the way. How could
+              you overcome these issues in the future?</p>
+          </div>
         </div>
       </div>
 
-      <!-- Week 8: Real-World Systems -->
+      <!-- Week 8: Showtime -->
       <div class="module">
         <div class="module-icon">
           <svg viewBox="0 0 32 32">
-            <circle cx="16" cy="18" r="9" />
-            <line x1="16" y1="6" x2="16" y2="9" />
-            <line x1="7" y1="18" x2="25" y2="18" />
-            <line x1="9.5" y1="12" x2="22.5" y2="12" />
-            <line x1="9.5" y1="24" x2="22.5" y2="24" />
-            <line x1="16" y1="9" x2="16" y2="27" />
-            <path d="M11 10.5c-2 4-2 11 0 15" />
-            <path d="M21 10.5c2 4 2 11 0 15" />
+            <rect x="12" y="4" width="8" height="14" rx="4" />
+            <path d="M8 15a8 8 0 0 0 16 0" />
+            <line x1="16" y1="23" x2="16" y2="28" />
+            <line x1="11" y1="28" x2="21" y2="28" />
           </svg>
         </div>
         <div class="module-body">
           <div class="module-head">
             <span class="module-week">Week 8</span>
-            <h3>Real-World Systems</h3>
+            <h3>Showtime</h3>
           </div>
-          <p class="module-outcome">
-            Confidently operate in real-world environments.
-          </p>
-          <p class="module-desc">
-            Bring it all together and take it into the world&mdash;clubs,
-            festivals, renegade stages, and house parties, each with its own
-            advantages and pitfalls. What to show up with, how to work with the
-            system that's already there, and how to stay connected to a
-            dancefloor you can't always hear or feel.
-          </p>
-          <ul class="module-points">
-            <li>Clubs and festivals&mdash;essential gear and working with house systems</li>
-            <li>House parties and renegades&mdash;power distribution, batteries, and generators without blow-ups</li>
-            <li>Staying connected to a crowd you can't necessarily hear</li>
-            <li>The basics of recording and live-streaming your sets</li>
-          </ul>
+          <div class="module-cols">
+            <div class="player" data-video="m8-showtime" tabindex="0" role="region" aria-label="Video: Module 8, Showtime">
+              <video playsinline preload="none"></video>
+              <button class="pl-bigplay" aria-label="Play video: Module 8, Showtime">
+                <span><svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M8 5v14l11-7z" />
+                  </svg></span>
+              </button>
+              <div class="pl-spinner" aria-hidden="true"></div>
+              <div class="pl-error" role="alert"></div>
+              <div class="pl-controls">
+                <div class="pl-bar" role="slider" tabindex="0" aria-label="Seek" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                  <div class="pl-buffered"></div>
+                  <div class="pl-played"></div>
+                  <div class="pl-knob"></div>
+                </div>
+                <div class="pl-row">
+                  <button class="pl-btn pl-play" aria-label="Play">
+                    <svg class="pl-icon-play" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                    <svg class="pl-icon-pause" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M6 5h4v14H6zm8 0h4v14h-4z" />
+                    </svg>
+                  </button>
+                  <span class="pl-time"><span class="pl-time-now">0:00</span> / <span class="pl-time-total">0:00</span></span>
+                  <span class="pl-spacer"></span>
+                  <button class="pl-btn pl-mute" aria-label="Mute">
+                    <svg class="pl-icon-loud" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 2v2a8 8 0 0 1 0 16v2a10 10 0 0 0 0-20z" />
+                    </svg>
+                    <svg class="pl-icon-muted" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M3 9v6h4l5 5V4L7 9H3zm18.6 3l2.1-2.1-1.4-1.4-2.1 2.1-2.1-2.1-1.4 1.4 2.1 2.1-2.1 2.1 1.4 1.4 2.1-2.1 2.1 2.1 1.4-1.4z" />
+                    </svg>
+                  </button>
+                  <input class="pl-vol" type="range" min="0" max="1" step="0.05" value="1" aria-label="Volume" />
+                  <button class="pl-btn pl-fs" aria-label="Fullscreen">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div>
+              <p class="module-outcome">
+                Become a true performer: how to prepare for a show, take the stage, engage the audience, and close.
+              </p>
+              <ul class="module-points">
+                <li>Pre-show routines&mdash;and what a rider is actually for</li>
+                <li>Taking the pulse of the room and taking the reins from the previous performer</li>
+                <li>Building a slot-appropriate set and taking moments for promotion</li>
+                <li>How to close: the comedown vs. the big finish, and when each one fits</li>
+                <li>Teardown, post-show self-care, and what to do after the lights come up</li>
+              </ul>
+              <button class="read-more" data-module="m8">
+                Read more
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="module-full" hidden>
+            <p>The last module is dedicated to the performance aspect of being a DJ, which is often overlooked by amateur
+              and self-taught DJs, who have no training as performers.</p>
+            <p>Students will learn how to prepare themselves for a show. This goes beyond set prep. How do you practice
+              your set and key moments? What is your day-before/day-of routine to get into the right headspace? A rider
+              isn&rsquo;t about being VIP, it&rsquo;s about acknowledging that you&rsquo;re about to really give of
+              yourself to a group and that it takes something to do that. We&rsquo;ll look at examples of ways performers
+              can stay grounded and students will be inspired to develop their own preparatory routines.</p>
+            <p>Students will then learn how to take the stage: how to take the pulse of the room before getting onstage
+              and how to take the reins from a previous performer. We&rsquo;ll discuss the advantages and disadvantages
+              of playing continuously through from a previous set.</p>
+            <p>Students will then learn how to create an engaging, slot-appropriate performance as well as how to take
+              moments for self- or other-promotion (e.g., getting on the mic, acknowledging openers).</p>
+            <p>Students will also learn how to close. This isn&rsquo;t just about choosing the last track. This is about
+              the difference between a comedown close and a big-finish close and how the choice depends on the slot and
+              the event.</p>
+            <p>Lastly, students will learn how to tear down and handle post-show self-care. How to nourish themselves and
+              also what post-show actions may be necessary (e.g., posting a recording of the set, social media).</p>
+            <h4>Example assignment</h4>
+            <p class="assignment">Develop your own personal rider. What&rsquo;s your pre-set routine? What makes you feel
+              prepared and resourced to play a great show?</p>
+          </div>
         </div>
       </div>
 
@@ -840,7 +2052,7 @@
   <section>
     <h2>Your instructor</h2>
     <p class="section-lead">
-      I’m Avand&mdash;a DJ and software engineer who has spent over a decade
+      I&rsquo;m Avand&mdash;a DJ and software engineer who has spent over a decade
       obsessing over how sound systems work so the music sounds exactly right.
     </p>
 
@@ -848,17 +2060,17 @@
       <img class="instructor-photo" src="avand.jpg" alt="Avand" />
       <div>
         <p>
-          I’ve played everywhere from Burning Man art cars and mobile rigs that I set up
-          myself to nightclubs around the world. I’ve used CDJs, controllers,
-          all-in-ones, Traktor, rekordbox, and laptop-only setups. I don’t have one
-          ”right way”&mdash;I just have some well-formed opinions born from real-world
+          I&rsquo;ve played everywhere from Burning Man art cars and mobile rigs that I set up
+          myself to nightclubs around the world. I&rsquo;ve used CDJs, controllers,
+          all-in-ones, Traktor, rekordbox, and laptop-only setups. I don&rsquo;t have one
+          &rdquo;right way&rdquo;&mdash;I just have some well-formed opinions born from real-world
           experience across the full range of gear and environments.
         </p>
         <p style="margin-top: 1em;">
           I was an instructor at <a href="https://generalassemb.ly/" target="_blank" style="color: var(--text); text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 0.2em;">General Assembly</a>, where I logged
           700+ hours in front of students and designed my own curriculum from
-          scratch. I love to teach and share my experience with others. I’ve
-          also worked in software for long time so technical details are my jam.
+          scratch. I love to teach and share my experience with others. I&rsquo;ve
+          also worked in software for a long time so technical details are my jam.
         </p>
 
         <div class="credential-grid">
@@ -868,7 +2080,7 @@
           </div>
           <div class="credential">
             <div class="number">700+ hours</div>
-            <div class="label">in-class teaching & curriculum design</div>
+            <div class="label">in-class teaching &amp; curriculum design</div>
           </div>
           <div class="credential">
             <div class="number">20+ years</div>
@@ -893,15 +2105,15 @@
       </div>
       <div class="format-item">
         <div class="value">2 hrs / wk</div>
-        <div class="desc">Lectures, demos, and hands-on work, plus ~30 min of homework each week</div>
+        <div class="desc">Live online&mdash;lectures, demos, and hands-on work, plus ~30 min of homework each week</div>
       </div>
       <div class="format-item">
         <div class="value">10&ndash;15 people</div>
         <div class="desc">Small, focused, plenty of space for answering your specific questions</div>
       </div>
       <div class="format-item">
-        <div class="value"><s style="color: var(--text-muted); font-weight: 400; text-decoration-thickness: 1px;">$1,800</s> $900</div>
-        <div class="desc">Introductory price with a full, money-back guarantee</div>
+        <div class="value"><s class="price-was" style="font-weight: 400;">$1,600</s> $800</div>
+        <div class="desc">Launch price for the first cohort, with a full money-back guarantee</div>
       </div>
     </div>
   </section>
@@ -911,29 +2123,258 @@
     <div class="guarantee">
       <h2>Money-back guarantee</h2>
       <p>
-        This is the first cohort, and while I’m confident it will be great,
+        This is the first cohort, and while I&rsquo;m confident it will be great,
         there may also be some rough edges. If the course falls below your
-        expectations for any reason, I’ll refund up to 100% of your tuition.
+        expectations for any reason, I&rsquo;ll refund up to 100% of your tuition.
       </p>
     </div>
   </section>
 
   <!-- Final CTA -->
-  <div class="final-cta" id="book">
-    <h2>Interested?</h2>
+  <div class="final-cta" id="notify">
+    <h2>Applications open soon</h2>
     <p>
-      Book a quick intro call. We’ll talk about your experience level,
-      what you want to get out of the course, and whether it's a good fit.
+      The first cohort is small and launches October 1st at $800&mdash;half of what
+      it will cost from here on out. Leave your email and I&rsquo;ll let you know the
+      moment applications open.
     </p>
-    <a class="btn-primary" href="https://calendar.app.google/2dhPnZHUngrQUUoF7" target="_blank">Book an intro call</a>
+
+    <form class="signup" id="signup" novalidate>
+      <div class="signup-fields">
+        <label class="sr-only" for="su-name">First name</label>
+        <input id="su-name" name="firstName" type="text" placeholder="First name" autocomplete="given-name" required />
+        <label class="sr-only" for="su-email">Email address</label>
+        <input id="su-email" name="email" type="email" placeholder="you@example.com" autocomplete="email" required />
+        <button class="btn-primary" type="submit">Notify me</button>
+      </div>
+      <!-- Bots fill this in; people never see it. -->
+      <div class="hp" aria-hidden="true">
+        <label>Company <input type="text" name="company" tabindex="-1" autocomplete="off" /></label>
+      </div>
+      <p class="signup-note">Be the first to know when applications open. No spam, and you can unsubscribe any time.</p>
+      <p class="signup-status" role="status" aria-live="polite"></p>
+    </form>
   </div>
+
+  <!-- Bloopers -->
+  <section class="bloopers">
+    <h2>You made it this far</h2>
+    <p>
+      So here&rsquo;s the blooper reel. Recovering from mistakes is half the job
+      anyway.
+    </p>
+
+    <div class="player" data-video="bloopers" tabindex="0" role="region" aria-label="Video: blooper reel">
+      <video playsinline preload="none"></video>
+      <button class="pl-bigplay" aria-label="Play video: blooper reel">
+        <span><svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M8 5v14l11-7z" />
+          </svg></span>
+      </button>
+      <div class="pl-spinner" aria-hidden="true"></div>
+      <div class="pl-error" role="alert"></div>
+      <div class="pl-controls">
+        <div class="pl-bar" role="slider" tabindex="0" aria-label="Seek" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div class="pl-buffered"></div>
+          <div class="pl-played"></div>
+          <div class="pl-knob"></div>
+        </div>
+        <div class="pl-row">
+          <button class="pl-btn pl-play" aria-label="Play">
+            <svg class="pl-icon-play" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+            <svg class="pl-icon-pause" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 5h4v14H6zm8 0h4v14h-4z" />
+            </svg>
+          </button>
+          <span class="pl-time"><span class="pl-time-now">0:00</span> / <span class="pl-time-total">0:00</span></span>
+          <span class="pl-spacer"></span>
+          <button class="pl-btn pl-mute" aria-label="Mute">
+            <svg class="pl-icon-loud" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 2v2a8 8 0 0 1 0 16v2a10 10 0 0 0 0-20z" />
+            </svg>
+            <svg class="pl-icon-muted" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 9v6h4l5 5V4L7 9H3zm18.6 3l2.1-2.1-1.4-1.4-2.1 2.1-2.1-2.1-1.4 1.4 2.1 2.1-2.1 2.1 1.4 1.4 2.1-2.1 2.1 2.1 1.4-1.4z" />
+            </svg>
+          </button>
+          <input class="pl-vol" type="range" min="0" max="1" step="0.05" value="1" aria-label="Volume" />
+          <button class="pl-btn pl-fs" aria-label="Fullscreen">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <footer>
     <a href="../">avand.fm</a> &middot; Headroom &middot; 2026
   </footer>
 
+  <!-- Module detail modal -->
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
+    <button class="modal-backdrop" tabindex="-1" aria-label="Close"></button>
+    <div class="modal-panel">
+      <button class="modal-close" aria-label="Close">&#10005;</button>
+      <span class="modal-week" id="modal-week"></span>
+      <h3 id="modal-title"></h3>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <script src="player.js" defer></script>
   <script>
-    (function() {
+    /* ---------- Module "read more" modal ---------- */
+    (function () {
+      var modal = document.getElementById("modal");
+      var panel = modal.querySelector(".modal-panel");
+      var titleEl = document.getElementById("modal-title");
+      var weekEl = document.getElementById("modal-week");
+      var bodyEl = document.getElementById("modal-body");
+      var lastFocused = null;
+
+      function open(button) {
+        var module = button.closest(".module");
+        lastFocused = button;
+
+        weekEl.textContent = module.querySelector(".module-week").textContent;
+        titleEl.textContent = module.querySelector("h3").textContent;
+        bodyEl.innerHTML = module.querySelector(".module-full").innerHTML;
+
+        modal.hidden = false;
+        modal.classList.add("is-open");
+        document.body.classList.add("modal-open");
+        panel.scrollTop = 0;
+        modal.querySelector(".modal-close").focus();
+      }
+
+      function close() {
+        modal.classList.remove("is-open");
+        modal.hidden = true;
+        document.body.classList.remove("modal-open");
+        if (lastFocused) lastFocused.focus();
+      }
+
+      document.querySelectorAll(".read-more").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          open(btn);
+        });
+      });
+
+      modal.querySelector(".modal-close").addEventListener("click", close);
+      modal.querySelector(".modal-backdrop").addEventListener("click", close);
+
+      document.addEventListener("keydown", function (e) {
+        if (modal.hidden) return;
+        if (e.key === "Escape") {
+          close();
+          return;
+        }
+        // Keep Tab inside the dialog while it is open.
+        if (e.key !== "Tab") return;
+        var focusable = panel.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (!focusable.length) return;
+        var first = focusable[0];
+        var last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          last.focus();
+          e.preventDefault();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          first.focus();
+          e.preventDefault();
+        }
+      });
+    })();
+
+    /* ---------- Newsletter signup ---------- */
+    (function () {
+      /*
+       * Paste the High Level inbound-webhook URL here. In High Level:
+       * Automation > Workflows > new workflow > add the "Inbound Webhook"
+       * trigger, then copy the URL it generates. It looks like:
+       *
+       *   https://services.leadconnectorhq.com/hooks/<location>/webhook-trigger/<id>
+       *
+       * A webhook URL is meant to be public, so unlike an API key it is safe to
+       * ship in a page anyone can view the source of. Until this is filled in,
+       * the form falls back to email so no signup is quietly dropped.
+       */
+      var CRM_WEBHOOK_URL = "";
+
+      var FALLBACK_EMAIL = "wave@avand.fm";
+
+      var form = document.getElementById("signup");
+      var status = form.querySelector(".signup-status");
+      var button = form.querySelector('button[type="submit"]');
+
+      function say(message, kind) {
+        status.textContent = message;
+        status.className = "signup-status" + (kind ? " " + kind : "");
+      }
+
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        var name = form.elements.firstName.value.trim();
+        var email = form.elements.email.value.trim();
+
+        if (!name) {
+          say("What should I call you?", "err");
+          form.elements.firstName.focus();
+          return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          say("That email doesn't look right.", "err");
+          form.elements.email.focus();
+          return;
+        }
+        // Honeypot tripped — quietly accept and drop it.
+        if (form.elements.company.value) {
+          say("Thanks! You're on the list.", "ok");
+          form.reset();
+          return;
+        }
+
+        if (!CRM_WEBHOOK_URL) {
+          say("Signups aren't wired up yet — email me at " + FALLBACK_EMAIL + " and I'll add you.", "err");
+          return;
+        }
+
+        button.disabled = true;
+        say("Adding you…");
+
+        fetch(CRM_WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            firstName: name,
+            email: email,
+            source: "headroom-website",
+            tag: "headroom-waitlist",
+            page: window.location.href,
+          }),
+        })
+          .then(function (res) {
+            if (!res.ok) throw new Error("bad status " + res.status);
+            say("You're on the list. I'll be in touch when applications open.", "ok");
+            form.reset();
+            if (window.fathom) window.fathom.trackEvent("headroom waitlist signup");
+          })
+          .catch(function () {
+            say("That didn't go through. Email me at " + FALLBACK_EMAIL + " and I'll add you.", "err");
+          })
+          .finally(function () {
+            button.disabled = false;
+          });
+      });
+    })();
+
+    /* ---------- Spinning record favicon ---------- */
+    (function () {
       var size = 32;
       var frames = 36;
       var urls = [];
@@ -983,7 +2424,7 @@
 
       var link = document.getElementById("favicon");
       var frame = 0;
-      setInterval(function() {
+      setInterval(function () {
         frame = (frame + 1) % frames;
         link.href = urls[frame];
       }, 1800 / frames);
