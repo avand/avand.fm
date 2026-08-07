@@ -106,19 +106,40 @@
     observer.observe(this.root);
   };
 
+  var SPEAKER_D =
+    "M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4z" +
+    "M14 2v2a8 8 0 0 1 0 16v2a10 10 0 0 0 0-20z";
+
+  var SPEAKER = '<path d="' + SPEAKER_D + '"/>';
+
+  var SLASH_D = "M3.4 2.8 21.2 20.6";
+
+  /* The slash reads as cutting through the speaker rather than lying on top of
+     it, which needs a gap around it. The gap is masked out rather than painted
+     in a matching colour: the button sits on video and turns accent on hover,
+     so there is no one colour to match. */
+  function mutedIcon(uid) {
+    return (
+      "<defs><mask id=\"" + uid + "\">" +
+      '<rect width="24" height="24" fill="#fff"/>' +
+      '<path d="' + SLASH_D + '" stroke="#000" stroke-width="4.6"' +
+      ' stroke-linecap="round" fill="none"/>' +
+      "</mask></defs>" +
+      '<path d="' + SPEAKER_D + '" mask="url(#' + uid + ')"/>' +
+      '<path d="' + SLASH_D + '" fill="none" stroke="currentColor"' +
+      ' stroke-width="2.1" stroke-linecap="round"/>'
+    );
+  }
+
   var ICONS = {
     play: '<path d="M8 5v14l11-7z"/>',
     pause: '<path d="M6 5h4v14H6zm8 0h4v14h-4z"/>',
     // Skip-to-start (⏮) rather than a reload arrow: this returns to the
     // beginning of the video, it doesn't replay or refresh anything.
     restart: '<path d="M6 6h2.5v12H6zm3.8 6l8.7 6V6z"/>',
-    loud:
-      '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 2v2a8 8 0 0 1 0 16v2a10 10 0 0 0 0-20z"/>',
-    muted:
-      '<path d="M3 9v6h4l5 5V4L7 9H3zm18.6 3l2.1-2.1-1.4-1.4-2.1 2.1-2.1-2.1-1.4 1.4 2.1 2.1-2.1 2.1 1.4 1.4 2.1-2.1 2.1 2.1 1.4-1.4z"/>',
-    fs: '<path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>',
-    cc:
-      '<path d="M3 5h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zm4.5 4.8a2.2 2.2 0 0 0-2.2 2.2 2.2 2.2 0 0 0 2.2 2.2c.8 0 1.5-.4 1.9-1l-1.1-.6a.9.9 0 0 1-.8.4 1 1 0 0 1 0-2c.35 0 .65.16.8.42l1.1-.62a2.2 2.2 0 0 0-1.9-1zm7 0a2.2 2.2 0 0 0-2.2 2.2 2.2 2.2 0 0 0 2.2 2.2c.8 0 1.5-.4 1.9-1l-1.1-.6a.9.9 0 0 1-.8.4 1 1 0 0 1 0-2c.35 0 .65.16.8.42l1.1-.62a2.2 2.2 0 0 0-1.9-1z"/>',
+    // Both states are the same speaker and two sound curves; muted lays a slash
+    // over it, and tapping takes the slash away.
+    loud: SPEAKER,
   };
 
   function svg(path, cls) {
@@ -149,9 +170,6 @@
       '"><span>' +
       svg(ICONS.play) +
       "</span></button>" +
-      '<button class="pl-unmute" aria-label="Turn on sound">' +
-      svg(ICONS.muted) +
-      "<span>Tap for sound</span></button>" +
       '<div class="pl-captions is-empty" aria-live="off"></div>' +
       '<div class="pl-spinner" aria-hidden="true"></div>' +
       '<div class="pl-error" role="alert"></div>' +
@@ -170,18 +188,9 @@
       "</button>" +
       '<span class="pl-time"><span class="pl-time-now">0:00</span> / <span class="pl-time-total">0:00</span></span>' +
       '<span class="pl-spacer"></span>' +
-      (captions
-        ? '<button class="pl-btn pl-cc" aria-label="Captions" aria-pressed="false">' +
-          svg(ICONS.cc) +
-          "</button>"
-        : "") +
-      '<button class="pl-btn pl-mute" aria-label="Mute">' +
+      '<button class="pl-btn pl-mute" aria-label="Unmute">' +
       svg(ICONS.loud, "pl-icon-loud") +
-      svg(ICONS.muted, "pl-icon-muted") +
-      "</button>" +
-      '<input class="pl-vol" type="range" min="0" max="1" step="0.05" value="1" aria-label="Volume">' +
-      '<button class="pl-btn pl-fs" aria-label="Fullscreen">' +
-      svg(ICONS.fs) +
+      svg(mutedIcon("mute-" + this.slug), "pl-icon-muted") +
       "</button>" +
       "</div></div>";
 
@@ -200,9 +209,6 @@
     this.playBtn = r.querySelector(".pl-play");
     this.restartBtn = r.querySelector(".pl-restart");
     this.muteBtn = r.querySelector(".pl-mute");
-    this.ccBtn = r.querySelector(".pl-cc");
-    this.fsBtn = r.querySelector(".pl-fs");
-    this.unmuteBtn = r.querySelector(".pl-unmute");
     this.bar = r.querySelector(".pl-bar");
     this.played = r.querySelector(".pl-played");
     this.buffered = r.querySelector(".pl-buffered");
@@ -211,7 +217,6 @@
     this.timeTotal = r.querySelector(".pl-time-total");
     this.errorEl = r.querySelector(".pl-error");
     this.captionBox = r.querySelector(".pl-captions");
-    this.volRange = r.querySelector(".pl-vol");
   };
 
   /*
@@ -441,10 +446,17 @@
     this.nudgeControls();
   };
 
+  // Turning sound on rewinds a little: whatever was just said went past in
+  // silence, so this hands it back rather than making them scrub for it.
+  var UNMUTE_REWIND = 5;
+
   Player.prototype.unmute = function () {
     this.userSetSound = true;
     this.video.muted = false;
     if (this.video.volume === 0) this.video.volume = 1;
+    if (this.video.currentTime > 0) {
+      this.video.currentTime = Math.max(0, this.video.currentTime - UNMUTE_REWIND);
+    }
     if (this.video.paused) this.play();
   };
 
@@ -513,26 +525,61 @@
     }
   };
 
+  /*
+   * Control visibility, on the conventions a video player is expected to
+   * follow: they appear on any sign of intent and retire after a few seconds
+   * of stillness, but never while there is a reason to keep them.
+   *
+   * The cursor hides with them. Leaving an arrow floating over playing video
+   * is the tell that a player was not finished.
+   */
+  var HIDE_DELAY = 3000;
+
+  Player.prototype.holdControls = function (reason, held) {
+    this.holds = this.holds || {};
+    if (held) this.holds[reason] = true;
+    else delete this.holds[reason];
+    this.nudgeControls();
+  };
+
+  Player.prototype.isHeld = function () {
+    // Reasons the controls must stay: nothing is playing, the pointer is on
+    // them, they have keyboard focus, or a scrub is in progress.
+    if (this.video.paused) return true;
+    if (this.holds) {
+      for (var key in this.holds) {
+        if (this.holds[key]) return true;
+      }
+    }
+    return this.root.contains(document.activeElement);
+  };
+
+  Player.prototype.showControls = function () {
+    this.root.classList.add("show-controls");
+  };
+
+  Player.prototype.hideControls = function () {
+    if (this.isHeld()) return;
+    this.root.classList.remove("show-controls");
+  };
+
   Player.prototype.nudgeControls = function () {
     var self = this;
-    this.root.classList.add("show-controls");
+    this.showControls();
     clearTimeout(this.hideTimer);
-    if (!this.video.paused) {
-      this.hideTimer = setTimeout(function () {
-        if (!self.root.contains(document.activeElement)) {
-          self.root.classList.remove("show-controls");
-        }
-      }, 2600);
-    }
+    if (this.isHeld()) return;
+    this.hideTimer = setTimeout(function () {
+      self.hideControls();
+    }, HIDE_DELAY);
   };
 
   /* Captions default on whenever sound is off, and off once sound is on —
      matching what the viewer can actually perceive. */
-  Player.prototype.syncCaptions = function (force) {
+  /* Captions are on exactly when the sound is off. Muted video is silent
+     video, so they carry it; once sound is on they are noise. */
+  Player.prototype.syncCaptions = function () {
     if (!this.cues || !this.cues.length) return;
-    var on = force === undefined ? this.video.muted : force;
-    this.root.classList.toggle("cc-on", on);
-    if (this.ccBtn) this.ccBtn.setAttribute("aria-pressed", on ? "true" : "false");
+    this.root.classList.toggle("cc-on", this.video.muted);
   };
 
   Player.prototype.hasCaptions = function () {
@@ -560,14 +607,22 @@
       });
     }
 
-    if (this.unmuteBtn) {
-      this.unmuteBtn.addEventListener("click", function (e) {
-        e.stopPropagation();
-        self.unmute();
-      });
-    }
+    var lastPointerType = "mouse";
+    this.root.addEventListener(
+      "pointerdown",
+      function (e) {
+        lastPointerType = e.pointerType || "mouse";
+      },
+      true
+    );
 
     v.addEventListener("click", function () {
+      // On a touch screen there is no hover, so the first tap is how the
+      // controls are summoned; it should not also do something.
+      if (lastPointerType === "touch" && !self.root.classList.contains("show-controls")) {
+        self.nudgeControls();
+        return;
+      }
       // While muted-autoplaying, a tap on the picture should turn sound on —
       // the behaviour people already expect from a muted feed video.
       if (!v.paused && v.muted && !self.userSetSound) self.unmute();
@@ -612,47 +667,22 @@
       var muted = v.muted || v.volume === 0;
       self.root.classList.toggle("is-muted", muted);
       self.muteBtn.setAttribute("aria-label", muted ? "Unmute" : "Mute");
-      if (self.volRange) self.volRange.value = muted ? 0 : v.volume;
       self.syncCaptions();
     });
 
     this.muteBtn.addEventListener("click", function () {
-      self.userSetSound = true;
-      v.muted = !v.muted;
-      if (!v.muted && v.volume === 0) v.volume = 1;
-    });
-
-    if (this.ccBtn) {
-      this.ccBtn.addEventListener("click", function () {
-        self.syncCaptions(!self.root.classList.contains("cc-on"));
-      });
-    }
-
-    if (this.volRange) {
-      this.volRange.addEventListener("input", function () {
+      if (v.muted) {
+        self.unmute();
+      } else {
         self.userSetSound = true;
-        v.volume = parseFloat(self.volRange.value);
-        v.muted = v.volume === 0;
-      });
-    }
-
-    this.fsBtn.addEventListener("click", function () {
-      var doc = document;
-      if (doc.fullscreenElement || doc.webkitFullscreenElement) {
-        (doc.exitFullscreen || doc.webkitExitFullscreen).call(doc);
-      } else if (self.root.requestFullscreen) {
-        self.root.requestFullscreen();
-      } else if (self.root.webkitRequestFullscreen) {
-        self.root.webkitRequestFullscreen();
-      } else if (v.webkitEnterFullscreen) {
-        // iPhone Safari only allows the video element itself to go fullscreen.
-        v.webkitEnterFullscreen();
+        v.muted = true;
       }
     });
 
     var dragging = false;
     this.bar.addEventListener("pointerdown", function (e) {
       dragging = true;
+      self.holdControls("scrub", true);
       self.bar.setPointerCapture(e.pointerId);
       self.seekFromPointer(e.clientX);
     });
@@ -661,7 +691,15 @@
     });
     this.bar.addEventListener("pointerup", function (e) {
       dragging = false;
+      self.holdControls("scrub", false);
       self.bar.releasePointerCapture(e.pointerId);
+    });
+
+    this.controls.addEventListener("pointerenter", function () {
+      self.holdControls("hover", true);
+    });
+    this.controls.addEventListener("pointerleave", function () {
+      self.holdControls("hover", false);
     });
 
     this.bar.addEventListener("keydown", function (e) {
@@ -694,18 +732,8 @@
         case "ArrowLeft":
           v.currentTime = Math.max(0, v.currentTime - 5);
           break;
-        case "ArrowUp":
-          v.volume = Math.min(1, v.volume + 0.1);
-          break;
-        case "ArrowDown":
-          v.volume = Math.max(0, v.volume - 0.1);
-          break;
         case "m":
-          self.userSetSound = true;
-          v.muted = !v.muted;
-          break;
-        case "f":
-          self.fsBtn.click();
+          self.muteBtn.click();
           break;
         case "0":
           self.restart();
@@ -724,10 +752,17 @@
         self.nudgeControls();
       });
     });
+
     this.root.addEventListener("pointerleave", function () {
-      if (!v.paused && !self.root.contains(document.activeElement)) {
-        self.root.classList.remove("show-controls");
-      }
+      clearTimeout(self.hideTimer);
+      self.hideControls();
+    });
+
+    this.root.addEventListener("focusout", function () {
+      // Focus may be moving between controls; let it settle first.
+      setTimeout(function () {
+        self.nudgeControls();
+      }, 0);
     });
   };
 

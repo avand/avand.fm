@@ -29,6 +29,34 @@
     return window.innerHeight;
   }
 
+  var video = stage.querySelector(".hero-video");
+  var introInner = stage.querySelector(".hero-intro-inner");
+
+  /* How far below its centred position the curriculum heading has to sit to
+     land a normal margin under the video. Measured rather than guessed: both
+     heights depend on the viewport, and on how the copy wraps. */
+  var sticky = stage.querySelector(".hero-sticky");
+
+  function measureDock() {
+    if (!video || !introInner || !sticky) return;
+
+    var vh = window.innerHeight;
+    var margin = Math.max(48, vh * 0.07);
+
+    // Where the heading actually comes to rest, measured with the transform
+    // off. Deriving it from the viewport centre instead would be wrong: the
+    // panel's padding is asymmetric, so its resting position is not the middle.
+    stage.classList.add("is-measuring");
+    var restTop =
+      introInner.getBoundingClientRect().top - sticky.getBoundingClientRect().top;
+    stage.classList.remove("is-measuring");
+
+    var videoBottom = (vh + video.offsetHeight) / 2;
+    var dock = Math.max(0, videoBottom + margin - restTop);
+
+    stage.style.setProperty("--dock", Math.round(dock) + "px");
+  }
+
   function brand() {
     return window.Headroom ? window.Headroom.get("brand") : null;
   }
@@ -87,6 +115,23 @@
     intro.classList.add("is-revealed");
   }
 
+  /* The chevron takes you to where the video locks, which is exactly one
+     viewport into the region -- the same place scrolling there by hand lands. */
+  var chevron = document.getElementById("hero-chevron");
+
+  function lockPosition() {
+    return stage.offsetTop + riseDistance();
+  }
+
+  if (chevron) {
+    chevron.addEventListener("click", function () {
+      window.scrollTo({
+        top: lockPosition(),
+        behavior: reduceMotion.matches ? "auto" : "smooth",
+      });
+    });
+  }
+
   var locked = false;
   var ticking = false;
 
@@ -100,7 +145,9 @@
     // How far the sticky child stays pinned before the region runs out.
     var travel = stage.offsetHeight - vh;
     var rise = riseDistance();
-    var lock = vh;
+    // The video holds for three quarters of a screen before the curriculum
+    // starts arriving.
+    var lock = vh * 0.75;
     var exit = vh;
 
     // The exit starts after the video has held for a beat, but never so late
@@ -109,6 +156,12 @@
 
     var p = Math.min(1, Math.max(0, travelled / rise));
     var q = Math.min(1, Math.max(0, (travelled - exitStart) / exit));
+
+    // Split the exit: the heading docks under the video over the first part,
+    // then both move over the second.
+    var DOCK_SHARE = 0.55;
+    var q1 = Math.min(1, q / DOCK_SHARE);
+    var q2 = Math.max(0, (q - DOCK_SHARE) / (1 - DOCK_SHARE));
 
     // How far into the intro's dwell we are, once it has finished arriving.
     // q saturates at 1 the moment the panel lands, so it cannot express
@@ -119,6 +172,8 @@
 
     stage.style.setProperty("--p", p.toFixed(4));
     stage.style.setProperty("--q", q.toFixed(4));
+    stage.style.setProperty("--q1", q1.toFixed(4));
+    stage.style.setProperty("--q2", q2.toFixed(4));
 
     if (window.Headroom) window.Headroom.hero = { p: p, q: q, d: d };
 
@@ -129,6 +184,19 @@
     if (nowLocked !== locked) {
       locked = nowLocked;
       stage.classList.toggle("is-locked", locked);
+    }
+
+    if (chevron) {
+      var gone = p > 0.24; // matches the opacity ramp in the stylesheet
+      if (gone !== chevron.hasAttribute("aria-hidden")) {
+        if (gone) {
+          chevron.setAttribute("aria-hidden", "true");
+          chevron.setAttribute("tabindex", "-1");
+        } else {
+          chevron.removeAttribute("aria-hidden");
+          chevron.removeAttribute("tabindex");
+        }
+      }
     }
 
     // Play once it has arrived, and stop once it is halfway out rather than
@@ -143,11 +211,17 @@
     window.requestAnimationFrame(update);
   }
 
+  function onResize() {
+    measureDock();
+    onScroll();
+  }
+
   function enable() {
     stage.classList.remove("is-static");
     splitWords();
+    measureDock();
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    window.addEventListener("resize", onResize);
     update();
   }
 
@@ -157,11 +231,13 @@
     stage.classList.add("is-static");
     stage.style.setProperty("--p", "1");
     stage.style.setProperty("--q", "1");
+    stage.style.setProperty("--q1", "1");
+    stage.style.setProperty("--q2", "1");
     if (window.Headroom) window.Headroom.hero = { p: 1, q: 1, d: 1 };
     // No build-in: the copy is simply there.
     revealIntro();
     window.removeEventListener("scroll", onScroll);
-    window.removeEventListener("resize", onScroll);
+    window.removeEventListener("resize", onResize);
 
     var player = brand();
     if (player) {

@@ -14,6 +14,8 @@
 
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  var items = Array.prototype.slice.call(footer.querySelectorAll(".thanks li"));
+
   /* ---------- Parallax on the way in ---------- */
 
   var ticking = false;
@@ -26,6 +28,19 @@
     // has risen a full screen further.
     var fp = Math.min(1, Math.max(0, (vh - rect.top) / vh));
     footer.style.setProperty("--fp", fp.toFixed(4));
+    revealPassed();
+  }
+
+  /* Anything already scrolled past is shown outright. The observer below only
+     fires on threshold crossings, and a jump straight to the bottom of the
+     page crosses nothing -- the acknowledgements would sit there invisible,
+     having gone from below the viewport to above it in one frame. */
+  function revealPassed() {
+    for (var i = items.length - 1; i >= 0; i--) {
+      var li = items[i];
+      if (li.classList.contains("is-in")) continue;
+      if (li.getBoundingClientRect().bottom < 0) li.classList.add("is-in");
+    }
   }
 
   function onScroll() {
@@ -42,8 +57,6 @@
 
   /* ---------- Acknowledgements ---------- */
 
-  var items = Array.prototype.slice.call(footer.querySelectorAll(".thanks li"));
-
   if (reduceMotion || !("IntersectionObserver" in window)) {
     items.forEach(function (li) {
       li.classList.add("is-in");
@@ -52,9 +65,13 @@
     var itemObserver = new IntersectionObserver(
       function (entries) {
         entries.forEach(function (entry) {
-          if (!entry.isIntersecting) return;
+          // Reveal on arrival, but also if it is already behind us: jumping
+          // straight to the bottom of the page would otherwise leave the
+          // acknowledgements permanently invisible, having never intersected.
+          var passed = entry.boundingClientRect.bottom < 0;
+          if (!entry.isIntersecting && !passed) return;
           entry.target.classList.add("is-in");
-          itemObserver.unobserve(entry.target); // once, then left alone
+          itemObserver.unobserve(entry.target);
         });
       },
       { threshold: 0.35, rootMargin: "0px 0px -8% 0px" }

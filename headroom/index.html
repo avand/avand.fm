@@ -142,9 +142,13 @@
        rest of the region scrolls past underneath. */
 
     .hero-stage {
-      /* --p is the rise, --q the exit; hero.js drives both. */
+      /* --p is the rise. --q1 brings the curriculum heading up to sit under the
+         video, --q2 then carries the video away and the heading to centre.
+         --q spans both, for anything that just wants overall exit progress. */
       --p: 0;
       --q: 0;
+      --q1: 0;
+      --q2: 0;
       position: relative;
       /* Rise, dwell, exit, then the curriculum intro's own dwell -- plus the
          viewport the sticky child itself occupies. */
@@ -191,7 +195,7 @@
       background: var(--bg);
       /* Finishes to solid on the way out, so once the video has gone the hero
          photograph isn't left scrolling away behind nothing. */
-      opacity: calc(var(--p) * 0.78 + var(--q) * 0.22);
+      opacity: calc(var(--p) * 0.78 + var(--q2) * 0.22);
     }
 
     .hero-content {
@@ -281,6 +285,21 @@
       opacity: clamp(0, calc(1 - var(--p) * 4), 1);
       color: var(--text-muted);
       animation: chevron-pulse 2.1s var(--ease) infinite;
+      background: none;
+      border: none;
+      padding: 0.6em 1.2em;
+      cursor: pointer;
+      transition: color 200ms;
+    }
+
+    .hero-chevron:hover {
+      color: var(--text);
+    }
+
+    /* Once it has faded it must stop being a target. */
+    .hero-stage.is-locked .hero-chevron,
+    .hero-chevron[aria-hidden="true"] {
+      pointer-events: none;
     }
 
     .hero-chevron svg {
@@ -316,9 +335,9 @@
       z-index: 4;
       width: min(calc(100vw - 3em), calc((100vh - 8em) * 16 / 9));
       transform:
-        translateY(calc((1 - var(--p)) * 100vh - var(--q) * 100vh))
-        scale(calc(0.94 + var(--p) * 0.06 - var(--q) * 0.06));
-      opacity: clamp(0, calc((var(--p) - var(--q)) * 1.5), 1);
+        translateY(calc((1 - var(--p)) * 100vh - var(--q2) * 100vh))
+        scale(calc(0.94 + var(--p) * 0.06 - var(--q2) * 0.06));
+      opacity: clamp(0, calc((var(--p) - var(--q2)) * 1.5), 1);
       will-change: transform;
     }
 
@@ -338,7 +357,17 @@
       justify-content: center;
       text-align: center;
       padding: 6em 2em 8em;
-      transform: translateY(calc((1 - var(--q)) * 100vh));
+      /* Two moves, not one. First the heading rises from below the fold until
+         it sits a normal margin under the video (--dock, measured in hero.js,
+         is that offset from its centred position). Only then does everything
+         travel up together: the video away, this to centre. */
+      transform: translateY(
+        calc((1 - var(--q1)) * (100vh - var(--dock, 60vh)) + (1 - var(--q2)) * var(--dock, 60vh)));
+    }
+
+    /* Used for a single measurement of the heading's resting position. */
+    .hero-stage.is-measuring .hero-intro {
+      transform: none !important;
     }
 
     .hero-intro-inner {
@@ -511,6 +540,10 @@
       background: #000;
     }
 
+    .player.is-playing.has-started:not(.show-controls) video {
+      cursor: none;
+    }
+
     .player:fullscreen video {
       object-fit: contain;
     }
@@ -527,7 +560,7 @@
       pointer-events: none;
       max-width: 88%;
       text-align: center;
-      font-size: clamp(0.7rem, 3.1cqw, 1.35rem);
+      font-size: clamp(1.05rem, 4.65cqw, 2rem);
       font-weight: 600;
       line-height: 1.35;
       color: #fff;
@@ -546,7 +579,7 @@
     /* Sit above the control bar rather than behind it while it is showing. */
     .player.show-controls .pl-captions,
     .player.has-started:not(.is-playing) .pl-captions {
-      bottom: calc(var(--ctl) * 5.4);
+      bottom: calc(var(--ctl) * 4.6 + 1.1em);
     }
 
     /* Big centred play button over the poster, before playback starts. */
@@ -590,70 +623,6 @@
       height: 1.6em;
       fill: #fff;
       margin-left: 0.18em;
-    }
-
-    /* Unmute affordance, the shape people already know from a muted feed
-       video: a large, obvious tap target that disappears once sound is on. */
-    .pl-unmute {
-      position: absolute;
-      top: 1em;
-      right: 1em;
-      z-index: 4;
-      display: none;
-      align-items: center;
-      gap: 0.6em;
-      padding: 0.7em 1.3em 0.7em 1em;
-      border: none;
-      border-radius: 3em;
-      background: rgba(10, 10, 15, 0.72);
-      backdrop-filter: blur(0.6em);
-      color: #fff;
-      font-family: inherit;
-      font-size: var(--ctl);
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: 0 0.5em 1.5em rgba(0, 0, 0, 0.5);
-      transition: background 200ms, transform 200ms;
-    }
-
-    /* Shown only while a muted video is actually playing. */
-    .player.is-playing.is-muted .pl-unmute {
-      display: flex;
-      animation: pl-pop 400ms var(--ease);
-    }
-
-    .pl-unmute:hover {
-      background: var(--accent);
-      transform: scale(1.04);
-    }
-
-    .pl-unmute svg {
-      width: 1.5em;
-      height: 1.5em;
-      fill: currentColor;
-      flex: none;
-    }
-
-    @keyframes pl-pop {
-      from {
-        opacity: 0;
-        transform: scale(0.85);
-      }
-
-      to {
-        opacity: 1;
-        transform: scale(1);
-      }
-    }
-
-    @container (max-width: 480px) {
-      .pl-unmute span {
-        display: none;
-      }
-
-      .pl-unmute {
-        padding: 0.7em;
-      }
     }
 
     /* Control bar */
@@ -801,44 +770,19 @@
       display: block;
     }
 
-    .pl-cc {
-      opacity: 0.8;
-    }
-
-    .player.cc-on .pl-cc {
-      opacity: 1;
-      background: var(--accent);
-    }
-
+    /* Plain text: it is a readout, not a control, and a slab around it read as
+       something to press. */
     .pl-time {
       font-size: 0.85em;
       font-variant-numeric: tabular-nums;
       color: #fff;
       white-space: nowrap;
-      background: rgba(10, 10, 15, 0.68);
-      backdrop-filter: blur(0.5em);
-      padding: 0.45em 0.7em;
-      border-radius: 0.5em;
+      padding-left: 0.3em;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
     }
 
     .pl-spacer {
       flex: 1;
-    }
-
-    .pl-vol {
-      font: inherit;
-      width: 5em;
-      accent-color: var(--accent);
-      cursor: pointer;
-    }
-
-    /* The control bar is sized against the player now, so the old root-font
-       breakpoints would fire at the wrong moments. Hide the volume slider on
-       players too narrow to carry it. */
-    @container (max-width: 560px) {
-      .pl-vol {
-        display: none;
-      }
     }
 
     /* Buffering spinner */
@@ -1113,7 +1057,7 @@
       .pl-controls,
       .pl-bigplay,
       .pl-bigplay span,
-      .pl-unmute {
+      .pl-mute {
         transition: none !important;
         animation: none !important;
       }
@@ -1878,11 +1822,12 @@
         </div>
         <a class="btn-primary" href="#notify">Come to a free class</a>
 
-        <div class="hero-chevron" aria-hidden="true">
-          <svg viewBox="0 0 24 24">
+        <button class="hero-chevron" id="hero-chevron" type="button"
+          aria-label="Skip to the video">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M6 9l6 6 6-6" />
           </svg>
-        </div>
+        </button>
       </div>
 
       <div class="hero-video">
