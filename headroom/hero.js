@@ -113,6 +113,10 @@
     stage.style.setProperty("--p", p.toFixed(4));
     stage.style.setProperty("--q", q.toFixed(4));
 
+    // The timeline needs to know how far the intro has arrived, since it
+    // fades in with it.
+    if (window.Headroom) window.Headroom.hero = { p: p, q: q };
+
     // Build the copy in once the intro is most of the way up, and leave it.
     if (q >= 0.55) revealIntro();
 
@@ -148,6 +152,7 @@
     stage.classList.add("is-static");
     stage.style.setProperty("--p", "1");
     stage.style.setProperty("--q", "1");
+    if (window.Headroom) window.Headroom.hero = { p: 1, q: 1 };
     // No build-in: the copy is simply there.
     revealIntro();
     window.removeEventListener("scroll", onScroll);

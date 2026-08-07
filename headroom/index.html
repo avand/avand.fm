@@ -349,12 +349,6 @@
       transform: none;
     }
 
-    /* The stepper appears with the intro, in the same spot it occupies over
-       each module, so the handoff between the two reads as one element. */
-    .hero-stage .step-rail {
-      opacity: clamp(0, calc(var(--q) * 1.6 - 0.35), 1);
-    }
-
     /* Reduced motion, or no JS: a plain hero with the video beneath it. */
     .hero-stage.is-static {
       height: auto;
@@ -398,12 +392,6 @@
       padding: 5em 2em 2em;
     }
 
-    .hero-stage.is-static .step-rail {
-      position: static;
-      transform: none;
-      margin: 0 auto 3em;
-      opacity: 1;
-    }
 
     @media (prefers-reduced-motion: reduce) {
       .hero-chevron {
@@ -994,10 +982,6 @@
       }
     }
 
-    .step-rail {
-      display: none;
-    }
-
     /* Switching into pinned mode would otherwise animate all eight slides from
        their stacked-list state down to hidden — a visible flash on load. */
     .curr-scroll.is-initialising .curr-slide,
@@ -1033,7 +1017,9 @@
       inset: 0;
       display: flex;
       align-items: center;
-      padding: 6em 2em 3em;
+      /* Top padding clears the timeline, which sits above the slide once the
+         curriculum takes over. */
+      padding: 10em 2em 3em;
       opacity: 0;
       visibility: hidden;
       transition: opacity 420ms var(--ease), visibility 420ms;
@@ -1096,52 +1082,6 @@
       transition-delay: 265ms;
     }
 
-    /* Week rail */
-    /* Laid out along the bottom rather than down the left edge: a vertical rail
-       can't reliably clear the 1140px content column without overlapping it
-       once the viewport narrows. Centred horizontally, it never collides. */
-    .curr-scroll.is-scroller .step-rail,
-    .hero-stage .step-rail {
-      display: flex;
-      align-items: center;
-      gap: 0.6em;
-      position: absolute;
-      left: 50%;
-      bottom: 2.2em;
-      transform: translateX(-50%);
-      /* Without this the box stretches to the viewport edge and, sitting above
-         the slide, silently eats clicks on the copy and the Read more button. */
-      width: max-content;
-      z-index: 6;
-    }
-
-    .step-rail button {
-      width: 2.1em;
-      height: 2.1em;
-      border-radius: 50%;
-      border: 1px solid var(--border);
-      background: rgba(19, 19, 26, 0.7);
-      color: var(--text-muted);
-      font-family: inherit;
-      font-size: 0.72em;
-      font-weight: 700;
-      cursor: pointer;
-      transition: color 220ms, border-color 220ms, background 220ms, transform 220ms;
-    }
-
-    .step-rail button:hover {
-      color: #fff;
-      border-color: var(--accent);
-    }
-
-    .step-rail button[aria-current="true"] {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #fff;
-      transform: scale(1.15);
-      box-shadow: 0 0 1.2em var(--accent-glow);
-    }
-
     @media (prefers-reduced-motion: reduce) {
 
       .curr-scroll .curr-media,
@@ -1156,6 +1096,150 @@
 
       .pl-spinner {
         animation-duration: 2s;
+      }
+    }
+
+    /* --- Course timeline ---
+       One element, fixed to the viewport, that serves as the footer of the
+       curriculum title and then the header of the week slides. It is fixed
+       rather than duplicated because it has to travel between two different
+       scroll regions, and a handoff between two copies would show a seam.
+       --tl-y is its vertical position, --t its progress, both set by
+       timeline.js. */
+
+    .timeline {
+      position: fixed;
+      top: var(--tl-y, 100vh);
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(1140px, calc(100vw - 3em));
+      z-index: 50;
+      display: flex;
+      align-items: flex-start;
+      gap: 1.1em;
+      opacity: var(--tl-vis, 0);
+      pointer-events: none;
+    }
+
+    .timeline.is-interactive {
+      pointer-events: auto;
+    }
+
+    .tl-cap {
+      font-size: 0.82em;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      white-space: nowrap;
+      padding-top: 0.1em;
+    }
+
+    .tl-track {
+      position: relative;
+      flex: 1;
+      height: 3.5em;
+      min-width: 0;
+    }
+
+    .tl-line,
+    .tl-progress {
+      position: absolute;
+      top: 0.62em;
+      height: 2px;
+      border-radius: 2px;
+    }
+
+    .tl-line {
+      left: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .tl-progress {
+      left: 0;
+      width: calc(var(--t, 0) * 100%);
+      background: linear-gradient(90deg, var(--accent), var(--warm));
+    }
+
+    .tl-mark {
+      position: absolute;
+      top: 0;
+      left: var(--at);
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5em;
+      background: none;
+      border: none;
+      padding: 0;
+      font: inherit;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .tl-dot {
+      width: 0.6em;
+      height: 0.6em;
+      margin-top: 0.33em;
+      border-radius: 50%;
+      background: var(--bg);
+      border: 2px solid rgba(255, 255, 255, 0.32);
+      transition: transform 240ms var(--ease), background 240ms, border-color 240ms;
+    }
+
+    .tl-label {
+      font-size: 0.72em;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      transition: color 240ms;
+    }
+
+    .tl-mark:hover .tl-dot {
+      border-color: var(--accent);
+    }
+
+    .tl-mark:hover .tl-label {
+      color: var(--text);
+    }
+
+    .tl-mark[aria-current="true"] .tl-dot {
+      background: var(--accent);
+      border-color: var(--accent);
+      transform: scale(1.4);
+      box-shadow: 0 0 0.9em var(--accent-glow);
+    }
+
+    .tl-mark[aria-current="true"] .tl-label {
+      color: #fff;
+    }
+
+    /* Rides the track continuously, so the scroll always has something to
+       show for itself even between checkpoints. */
+    .tl-cursor {
+      position: absolute;
+      top: 0.62em;
+      left: calc(var(--t, 0) * 100%);
+      width: 0.85em;
+      height: 0.85em;
+      margin: -0.42em 0 0 -0.42em;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 0 0.7em rgba(255, 255, 255, 0.65);
+    }
+
+    /* Too narrow for eight labels; the dots and the end dates still carry it,
+       and the active week is named in the slide itself. */
+    @media (max-width: 780px) {
+      .tl-label {
+        display: none;
+      }
+
+      .tl-track {
+        height: 1.6em;
       }
     }
 
@@ -1618,32 +1702,12 @@
         </div>
       </div>
 
-      <nav class="step-rail" aria-label="Jump to a module">
-        <button type="button" aria-current="false">1</button>
-        <button type="button" aria-current="false">2</button>
-        <button type="button" aria-current="false">3</button>
-        <button type="button" aria-current="false">4</button>
-        <button type="button" aria-current="false">5</button>
-        <button type="button" aria-current="false">6</button>
-        <button type="button" aria-current="false">7</button>
-        <button type="button" aria-current="false">8</button>
-      </nav>
     </div>
   </div>
 
   <!-- The Curriculum -->
   <div class="curr-scroll" id="curr-scroll" data-anchor="curriculum">
     <div class="curr-stage">
-      <nav class="curr-rail step-rail" id="curr-rail" aria-label="Jump to a module">
-        <button type="button" aria-current="true">1</button>
-        <button type="button" aria-current="false">2</button>
-        <button type="button" aria-current="false">3</button>
-        <button type="button" aria-current="false">4</button>
-        <button type="button" aria-current="false">5</button>
-        <button type="button" aria-current="false">6</button>
-        <button type="button" aria-current="false">7</button>
-        <button type="button" aria-current="false">8</button>
-      </nav>
 
       <div class="curr-slides">
 
@@ -2215,6 +2279,49 @@
     <a href="../">avand.fm</a> &middot; Headroom &middot; 2026
   </footer>
 
+  <!-- Course timeline: footer of the curriculum title, header of the weeks -->
+  <nav class="timeline" id="timeline" aria-label="Course timeline">
+    <span class="tl-cap">Oct 1</span>
+    <div class="tl-track">
+      <div class="tl-line"></div>
+      <div class="tl-progress"></div>
+      <button class="tl-mark" type="button" style="--at: 0.0%" aria-current="false">
+        <span class="tl-dot"></span>
+        <span class="tl-label"><span class="tl-word">Week </span>1</span>
+      </button>
+      <button class="tl-mark" type="button" style="--at: 14.2857%" aria-current="false">
+        <span class="tl-dot"></span>
+        <span class="tl-label"><span class="tl-word">Week </span>2</span>
+      </button>
+      <button class="tl-mark" type="button" style="--at: 28.5714%" aria-current="false">
+        <span class="tl-dot"></span>
+        <span class="tl-label"><span class="tl-word">Week </span>3</span>
+      </button>
+      <button class="tl-mark" type="button" style="--at: 42.8571%" aria-current="false">
+        <span class="tl-dot"></span>
+        <span class="tl-label"><span class="tl-word">Week </span>4</span>
+      </button>
+      <button class="tl-mark" type="button" style="--at: 57.1429%" aria-current="false">
+        <span class="tl-dot"></span>
+        <span class="tl-label"><span class="tl-word">Week </span>5</span>
+      </button>
+      <button class="tl-mark" type="button" style="--at: 71.4286%" aria-current="false">
+        <span class="tl-dot"></span>
+        <span class="tl-label"><span class="tl-word">Week </span>6</span>
+      </button>
+      <button class="tl-mark" type="button" style="--at: 85.7143%" aria-current="false">
+        <span class="tl-dot"></span>
+        <span class="tl-label"><span class="tl-word">Week </span>7</span>
+      </button>
+      <button class="tl-mark" type="button" style="--at: 100.0%" aria-current="false">
+        <span class="tl-dot"></span>
+        <span class="tl-label"><span class="tl-word">Week </span>8</span>
+      </button>
+      <div class="tl-cursor"></div>
+    </div>
+    <span class="tl-cap">Nov 19</span>
+  </nav>
+
   <!-- Module detail modal -->
   <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
     <button class="modal-backdrop" tabindex="-1" aria-label="Close"></button>
@@ -2229,6 +2336,7 @@
   <script src="player.js" defer></script>
   <script src="hero.js" defer></script>
   <script src="curriculum.js" defer></script>
+  <script src="timeline.js" defer></script>
   <script>
     /* ---------- Module "read more" modal ---------- */
     (function () {

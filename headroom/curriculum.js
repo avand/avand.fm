@@ -27,8 +27,6 @@
   var slides = Array.prototype.slice.call(
     scroller.querySelectorAll(".curr-slide")
   );
-  var rail = document.getElementById("curr-rail");
-  var dots = rail ? Array.prototype.slice.call(rail.querySelectorAll("button")) : [];
   if (!slides.length) return;
 
   // Pinning needs room: a wide enough viewport for the two-column slide, and a
@@ -66,10 +64,6 @@
     });
 
     if (direction) scroller.dataset.direction = direction;
-
-    dots.forEach(function (dot, i) {
-      dot.setAttribute("aria-current", i === index ? "true" : "false");
-    });
 
     if (previous >= 0) {
       var old = playerFor(slides[previous]);
@@ -184,19 +178,18 @@
     });
   }
 
-  // Jumping straight to a week from any stepper. There are two: the one over
-  // the modules, and the preview that appears with the curriculum intro at the
-  // end of the hero. Only the first tracks an active week; the preview shows
-  // none, because no module has been reached yet.
-  document.querySelectorAll(".step-rail").forEach(function (railEl) {
-    Array.prototype.slice
-      .call(railEl.querySelectorAll("button"))
-      .forEach(function (dot, i) {
-        dot.addEventListener("click", function () {
-          jumpTo(i);
-        });
-      });
-  });
+  // The timeline is the pagination now, and it lives outside this region
+  // because it also has to appear over the hero. Hand it what it needs.
+  if (window.Headroom) {
+    window.Headroom.curriculum = {
+      el: scroller,
+      count: slides.length,
+      jumpTo: jumpTo,
+      isPinned: function () {
+        return pinned;
+      },
+    };
+  }
 
   // Left/right arrows step through weeks while the region is pinned.
   document.addEventListener("keydown", function (e) {
