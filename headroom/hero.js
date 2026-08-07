@@ -110,12 +110,17 @@
     var p = Math.min(1, Math.max(0, travelled / rise));
     var q = Math.min(1, Math.max(0, (travelled - exitStart) / exit));
 
+    // How far into the intro's dwell we are, once it has finished arriving.
+    // q saturates at 1 the moment the panel lands, so it cannot express
+    // "a little beyond that" -- which is when the timeline is meant to build.
+    var dwellStart = exitStart + exit;
+    var dwellLength = Math.max(1, travel - dwellStart);
+    var d = Math.min(1, Math.max(0, (travelled - dwellStart) / dwellLength));
+
     stage.style.setProperty("--p", p.toFixed(4));
     stage.style.setProperty("--q", q.toFixed(4));
 
-    // The timeline needs to know how far the intro has arrived, since it
-    // fades in with it.
-    if (window.Headroom) window.Headroom.hero = { p: p, q: q };
+    if (window.Headroom) window.Headroom.hero = { p: p, q: q, d: d };
 
     // Build the copy in once the intro is most of the way up, and leave it.
     if (q >= 0.55) revealIntro();
@@ -152,7 +157,7 @@
     stage.classList.add("is-static");
     stage.style.setProperty("--p", "1");
     stage.style.setProperty("--q", "1");
-    if (window.Headroom) window.Headroom.hero = { p: 1, q: 1 };
+    if (window.Headroom) window.Headroom.hero = { p: 1, q: 1, d: 1 };
     // No build-in: the copy is simply there.
     revealIntro();
     window.removeEventListener("scroll", onScroll);

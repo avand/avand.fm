@@ -29,6 +29,18 @@
 
   var marks = Array.prototype.slice.call(el.querySelectorAll(".tl-mark"));
   var nav = document.querySelector(".site-nav");
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Drives the stagger of the build; the line sweeps left to right and each
+  // mark lands as it is passed.
+  marks.forEach(function (mark, i) {
+    mark.style.setProperty("--i", i);
+  });
+
+  // How far into the intro's dwell before the timeline draws itself. Far
+  // enough that the title has visibly settled first.
+  var BUILD_AT = 0.16;
+  var built = false;
 
   function clamp(n, lo, hi) {
     return Math.min(hi, Math.max(lo, n));
@@ -57,7 +69,6 @@
 
     var vh = window.innerHeight;
     var rect = curr.el.getBoundingClientRect();
-    var heroQ = (window.Headroom.hero && window.Headroom.hero.q) || 0;
     var pinned = curr.isPinned();
 
     // Vertical position: 0 parks it at the foot of the viewport, where it
@@ -67,15 +78,29 @@
     // carries it away again.
     var pos = pinned ? clamp((vh - rect.top) / vh, 0, 1) : 0;
 
+    /* The build is a one-shot: once the title has settled and been scrolled a
+       little past, the line draws itself left to right and the marks land
+       behind it. After that it is done animating -- scrolling back up hides it
+       again, but returning does not replay the build. */
+    var dwell = (window.Headroom.hero && window.Headroom.hero.d) || 0;
+    var settled = dwell >= BUILD_AT;
+
+    if (!built && settled) {
+      built = true;
+      el.classList.add("is-built");
+    }
+
     var visible;
-    if (rect.top >= vh) {
-      // Not there yet: fade in behind the curriculum title as it arrives.
-      visible = clamp((heroQ - 0.35) / 0.35, 0, 1);
+    if (!built) {
+      visible = 0;
     } else if (!pinned) {
-      // Stacked list: the weeks carry their own headings, so bow out.
-      visible = clamp(rect.top / vh, 0, 1);
+      // Stacked list: the weeks carry their own headings, so bow out as they
+      // arrive.
+      visible = rect.top >= vh ? 1 : clamp(rect.top / vh, 0, 1);
     } else {
-      visible = 1;
+      // Present over the curriculum title and over the weeks; gone if they
+      // scroll back up above it.
+      visible = settled || (rect.top < vh && rect.bottom > 0) ? 1 : 0;
     }
 
     var travelled = -rect.top;
@@ -121,6 +146,10 @@
   });
 
   function init() {
+    if (reduceMotion) {
+      // No build; it is simply there when it is wanted.
+      el.classList.add("is-built", "no-build");
+    }
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
     update();

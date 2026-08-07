@@ -1122,7 +1122,73 @@
       align-items: flex-start;
       gap: 1.1em;
       opacity: var(--tl-vis, 0);
+      transition: opacity 260ms var(--ease);
       pointer-events: none;
+    }
+
+    /* --- The build ---
+       A one-shot, not tied to scroll: the line sweeps left to right, each mark
+       lands as the sweep passes it, the end date arrives last, and the cursor
+       joins once the track exists. Runs when the curriculum title has settled
+       and been scrolled a little past, then never again. */
+
+    .tl-line {
+      transform: scaleX(0);
+      transform-origin: left center;
+      transition: transform 900ms cubic-bezier(0.33, 0.9, 0.3, 1);
+    }
+
+    .timeline.is-built .tl-line {
+      transform: scaleX(1);
+    }
+
+    .tl-cap {
+      opacity: 0;
+      transition: opacity 420ms var(--ease);
+    }
+
+    .timeline.is-built .tl-cap {
+      opacity: 1;
+    }
+
+    /* Lands as the sweep reaches it. */
+    .timeline.is-built .tl-end {
+      transition-delay: 820ms;
+    }
+
+    .tl-mark {
+      opacity: 0;
+      /* Positioning transform has to survive the animated one. */
+      transform: translateX(-50%) scale(0.3);
+      transition: opacity 320ms var(--ease), transform 420ms var(--ease);
+    }
+
+    .timeline.is-built .tl-mark {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+      transition-delay: calc(180ms + var(--i, 0) * 105ms);
+    }
+
+    .tl-progress,
+    .tl-cursor {
+      opacity: 0;
+      transition: opacity 400ms var(--ease);
+    }
+
+    .timeline.is-built .tl-progress,
+    .timeline.is-built .tl-cursor {
+      opacity: 1;
+      transition-delay: 980ms;
+    }
+
+    /* Reduced motion, and after a reload deep in the page: no sweep. */
+    .timeline.no-build .tl-line,
+    .timeline.no-build .tl-mark,
+    .timeline.no-build .tl-cap,
+    .timeline.no-build .tl-progress,
+    .timeline.no-build .tl-cursor {
+      transition: none;
+      transition-delay: 0ms;
     }
 
     .timeline.is-interactive {
@@ -1213,6 +1279,8 @@
     .tl-mark[aria-current="true"] .tl-dot {
       background: var(--accent);
       border-color: var(--accent);
+      /* On the dot, not the mark: the mark's transform carries its position
+         along the track and the build's scale. */
       transform: scale(1.4);
       box-shadow: 0 0 0.9em var(--accent-glow);
     }
@@ -2413,7 +2481,7 @@
 
   <!-- Course timeline: footer of the curriculum title, header of the weeks -->
   <nav class="timeline" id="timeline" aria-label="Course timeline">
-    <span class="tl-cap">Oct 1</span>
+    <span class="tl-cap tl-start">Oct 1</span>
     <div class="tl-track">
       <div class="tl-line"></div>
       <div class="tl-progress"></div>
@@ -2451,7 +2519,7 @@
       </button>
       <div class="tl-cursor"></div>
     </div>
-    <span class="tl-cap">Nov 19</span>
+    <span class="tl-cap tl-end">Nov 19</span>
   </nav>
 
   <!-- Module detail modal -->
