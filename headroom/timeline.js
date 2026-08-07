@@ -12,11 +12,14 @@
  * in normal flow can span both.
  *
  * The eight classes are the Thursdays from Oct 1 to Nov 19, so week i sits at
- * i/7 along the track. The curriculum's scroll travel is exactly 7 viewports,
- * which means a cursor moving linearly with scroll arrives at each mark on the
- * very scroll position where that week's content swaps in. The movement is
- * continuous so the scroll always has something to show for itself; the
- * content still changes in steps.
+ * i/7 along the track. Weeks turn over every viewport of scrolling, so a
+ * cursor moving linearly with scroll arrives at each mark on the very scroll
+ * position where that week's content swaps in: the movement is continuous, the
+ * content still changes in steps. The cursor reaches the far end as week eight
+ * arrives and rests there through its dwell.
+ *
+ * Once the region releases, the timeline rides its bottom edge up and off
+ * rather than hovering over whatever follows.
  */
 (function () {
   "use strict";
@@ -60,7 +63,8 @@
     // Vertical position: 0 parks it at the foot of the viewport, where it
     // closes the curriculum title; 1 lifts it to the top, where it heads each
     // week. The curriculum region entering the viewport is exactly the
-    // handoff, so its own offset drives the move.
+    // handoff, so its own offset drives the move, and its bottom edge later
+    // carries it away again.
     var pos = pinned ? clamp((vh - rect.top) / vh, 0, 1) : 0;
 
     var visible;
@@ -70,9 +74,6 @@
     } else if (!pinned) {
       // Stacked list: the weeks carry their own headings, so bow out.
       visible = clamp(rect.top / vh, 0, 1);
-    } else if (rect.bottom < vh) {
-      // Last week scrolling away.
-      visible = clamp(rect.bottom / vh, 0, 1);
     } else {
       visible = 1;
     }
@@ -91,6 +92,13 @@
     var topY = (nav ? nav.offsetHeight : 0) + 18;
     var bottomY = vh - height - 34;
     var y = bottomY + (topY - bottomY) * pos;
+
+    /* Past the last week the region releases and its final slide scrolls away.
+       The timeline goes with it rather than hovering over whatever comes next:
+       once the region's bottom edge rises above the fold, the timeline rides it
+       up and off, the way a sticky header stops sticking at the end of its
+       section. */
+    y += Math.min(0, rect.bottom - vh);
 
     el.style.setProperty("--tl-y", Math.round(y) + "px");
     el.style.setProperty("--t", t.toFixed(4));

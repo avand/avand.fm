@@ -993,7 +993,11 @@
     /* Pinned mode. The region is tall; a sticky stage holds one slide in place
        while the scroll offset inside it selects which module is showing. */
     .curr-scroll.is-scroller {
-      height: calc(var(--slides) * 100vh);
+      /* One viewport of pinned travel per week, plus the viewport the sticky
+         child itself occupies. Without the extra one the region only travels
+         slides - 1 viewports, and the last week becomes active exactly as the
+         region releases -- so it is never seen except on its way out. */
+      height: calc((var(--slides) + 1) * 100vh);
       position: relative;
     }
 
