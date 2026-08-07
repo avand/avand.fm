@@ -130,9 +130,9 @@
       --p: 0;
       --q: 0;
       position: relative;
-      /* One viewport of rise, one of dwell, one of exit, plus the viewport the
-         sticky child itself occupies. */
-      height: 400vh;
+      /* Rise, dwell, exit, then the curriculum intro's own dwell -- plus the
+         viewport the sticky child itself occupies. */
+      height: 480vh;
     }
 
     .hero-sticky {
@@ -306,6 +306,55 @@
       box-shadow: 0 2em 6em rgba(0, 0, 0, 0.75);
     }
 
+    /* The curriculum intro sits one viewport below and rides up on the same
+       value that carries the video away, so the heading arrives directly
+       beneath it rather than after a gap. */
+    .hero-intro {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 6em 2em 8em;
+      transform: translateY(calc((1 - var(--q)) * 100vh));
+    }
+
+    .hero-intro-inner {
+      max-width: 46ch;
+    }
+
+    .hero-intro h2 {
+      font-size: clamp(2em, 4.5vw, 3.2em);
+      margin-bottom: 0.45em;
+    }
+
+    .hero-intro .section-lead {
+      margin: 0 auto;
+      max-width: none;
+    }
+
+    /* Each word arrives on its own beat. Set once, on the way in, and left
+       alone after that. */
+    .hero-intro .word {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(0.45em);
+      transition: opacity 520ms var(--ease), transform 520ms var(--ease);
+    }
+
+    .hero-intro.is-revealed .word {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* The stepper appears with the intro, in the same spot it occupies over
+       each module, so the handoff between the two reads as one element. */
+    .hero-stage .step-rail {
+      opacity: clamp(0, calc(var(--q) * 1.6 - 0.35), 1);
+    }
+
     /* Reduced motion, or no JS: a plain hero with the video beneath it. */
     .hero-stage.is-static {
       height: auto;
@@ -343,6 +392,19 @@
       display: none;
     }
 
+    .hero-stage.is-static .hero-intro {
+      position: static;
+      transform: none;
+      padding: 5em 2em 2em;
+    }
+
+    .hero-stage.is-static .step-rail {
+      position: static;
+      transform: none;
+      margin: 0 auto 3em;
+      opacity: 1;
+    }
+
     @media (prefers-reduced-motion: reduce) {
       .hero-chevron {
         animation: none;
@@ -351,7 +413,7 @@
 
     @media (max-width: 640px) {
       .hero-stage {
-        height: 340vh;
+        height: 420vh;
       }
 
       .hero-content {
@@ -821,11 +883,6 @@
 
     /* --- Curriculum --- */
 
-    .curr-intro {
-      max-width: 1140px;
-      margin: 0 auto;
-      padding: 5em 2em 0;
-    }
 
     .module-week {
       font-size: 0.82em;
@@ -937,7 +994,7 @@
       }
     }
 
-    .curr-rail {
+    .step-rail {
       display: none;
     }
 
@@ -1043,7 +1100,8 @@
     /* Laid out along the bottom rather than down the left edge: a vertical rail
        can't reliably clear the 1140px content column without overlapping it
        once the viewport narrows. Centred horizontally, it never collides. */
-    .curr-scroll.is-scroller .curr-rail {
+    .curr-scroll.is-scroller .step-rail,
+    .hero-stage .step-rail {
       display: flex;
       align-items: center;
       gap: 0.6em;
@@ -1057,7 +1115,7 @@
       z-index: 6;
     }
 
-    .curr-rail button {
+    .step-rail button {
       width: 2.1em;
       height: 2.1em;
       border-radius: 50%;
@@ -1071,12 +1129,12 @@
       transition: color 220ms, border-color 220ms, background 220ms, transform 220ms;
     }
 
-    .curr-rail button:hover {
+    .step-rail button:hover {
       color: #fff;
       border-color: var(--accent);
     }
 
-    .curr-rail button[aria-current="true"] {
+    .step-rail button[aria-current="true"] {
       background: var(--accent);
       border-color: var(--accent);
       color: #fff;
@@ -1481,9 +1539,6 @@
         padding: 3em 1.2em;
       }
 
-      .curr-intro {
-        padding: 3em 1.2em 0;
-      }
 
       .curr-slide {
         padding: 2em 1.2em;
@@ -1549,24 +1604,37 @@
         <div class="player" data-video="brand" data-manual data-captions
           data-label="Why I built Headroom"></div>
       </div>
+
+      <div class="hero-intro" id="hero-intro">
+        <div class="hero-intro-inner">
+          <h2 class="reveal">The Curriculum</h2>
+          <p class="section-lead reveal">
+            At the white-hot center of every world-class set is a relaxed,
+            composed DJ. Headroom distills decades of experience into eight
+            focused modules&mdash;one per week&mdash;covering the technical
+            foundations, preparation techniques, and relational dynamics that
+            turn capable DJs into confident performers.
+          </p>
+        </div>
+      </div>
+
+      <nav class="step-rail" aria-label="Jump to a module">
+        <button type="button" aria-current="false">1</button>
+        <button type="button" aria-current="false">2</button>
+        <button type="button" aria-current="false">3</button>
+        <button type="button" aria-current="false">4</button>
+        <button type="button" aria-current="false">5</button>
+        <button type="button" aria-current="false">6</button>
+        <button type="button" aria-current="false">7</button>
+        <button type="button" aria-current="false">8</button>
+      </nav>
     </div>
   </div>
 
   <!-- The Curriculum -->
-  <section class="curr-intro" id="curriculum">
-    <h2>The curriculum</h2>
-    <p class="section-lead">
-      At the white-hot center of every world-class set is a relaxed,
-      composed DJ. Headroom distills decades of experience into eight
-      focused modules&mdash;one per week&mdash;covering the technical
-      foundations, preparation techniques, and relational dynamics that
-      turn capable DJs into confident performers.
-    </p>
-  </section>
-
-  <div class="curr-scroll" id="curr-scroll">
+  <div class="curr-scroll" id="curr-scroll" data-anchor="curriculum">
     <div class="curr-stage">
-      <nav class="curr-rail" id="curr-rail" aria-label="Jump to a module">
+      <nav class="curr-rail step-rail" id="curr-rail" aria-label="Jump to a module">
         <button type="button" aria-current="true">1</button>
         <button type="button" aria-current="false">2</button>
         <button type="button" aria-current="false">3</button>

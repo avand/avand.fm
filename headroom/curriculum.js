@@ -173,16 +173,29 @@
     else disablePinned();
   }
 
-  // Jumping straight to a week from the rail.
-  dots.forEach(function (dot, i) {
-    dot.addEventListener("click", function () {
-      if (!pinned) {
-        slides[i].scrollIntoView({ behavior: "smooth", block: "start" });
-        return;
-      }
-      var top = scroller.offsetTop + i * window.innerHeight;
-      window.scrollTo({ top: top, behavior: "smooth" });
+  function jumpTo(i) {
+    if (!pinned) {
+      slides[i].scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+    window.scrollTo({
+      top: scroller.offsetTop + i * window.innerHeight,
+      behavior: "smooth",
     });
+  }
+
+  // Jumping straight to a week from any stepper. There are two: the one over
+  // the modules, and the preview that appears with the curriculum intro at the
+  // end of the hero. Only the first tracks an active week; the preview shows
+  // none, because no module has been reached yet.
+  document.querySelectorAll(".step-rail").forEach(function (railEl) {
+    Array.prototype.slice
+      .call(railEl.querySelectorAll("button"))
+      .forEach(function (dot, i) {
+        dot.addEventListener("click", function () {
+          jumpTo(i);
+        });
+      });
   });
 
   // Left/right arrows step through weeks while the region is pinned.

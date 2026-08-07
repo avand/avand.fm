@@ -53,6 +53,40 @@
     }
   }
 
+  /* Split the intro copy into words so they can arrive one at a time. Done
+     once, up front, so nothing is rebuilding DOM mid-scroll. */
+  var intro = document.getElementById("hero-intro");
+
+  function splitWords() {
+    if (!intro) return;
+    var index = 0;
+
+    intro.querySelectorAll(".reveal").forEach(function (el) {
+      var words = el.textContent.trim().split(/\s+/);
+      el.textContent = "";
+
+      words.forEach(function (word, i) {
+        var span = document.createElement("span");
+        span.className = "word";
+        span.textContent = word;
+        // A short, even beat: long enough to read as a build, short enough
+        // that the last word isn't still arriving after the reader is done.
+        span.style.transitionDelay = index * 38 + "ms";
+        el.appendChild(span);
+        if (i < words.length - 1) el.appendChild(document.createTextNode(" "));
+        index++;
+      });
+    });
+  }
+
+  var revealed = false;
+
+  function revealIntro() {
+    if (revealed || !intro) return;
+    revealed = true;
+    intro.classList.add("is-revealed");
+  }
+
   var locked = false;
   var ticking = false;
 
@@ -66,17 +100,21 @@
     // How far the sticky child stays pinned before the region runs out.
     var travel = stage.offsetHeight - vh;
     var rise = riseDistance();
+    var lock = vh;
     var exit = vh;
 
-    // Where the exit begins. The max() keeps the two phases from overlapping
-    // if the region is ever too short to hold both.
-    var exitStart = Math.max(rise, travel - exit);
+    // The exit starts after the video has held for a beat, but never so late
+    // that it couldn't finish before the region runs out.
+    var exitStart = Math.min(rise + lock, Math.max(rise, travel - exit));
 
     var p = Math.min(1, Math.max(0, travelled / rise));
     var q = Math.min(1, Math.max(0, (travelled - exitStart) / exit));
 
     stage.style.setProperty("--p", p.toFixed(4));
     stage.style.setProperty("--q", q.toFixed(4));
+
+    // Build the copy in once the intro is most of the way up, and leave it.
+    if (q >= 0.55) revealIntro();
 
     var nowLocked = p > 0.65;
     if (nowLocked !== locked) {
@@ -98,6 +136,7 @@
 
   function enable() {
     stage.classList.remove("is-static");
+    splitWords();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
     update();
@@ -108,7 +147,9 @@
     // comes into view like any other.
     stage.classList.add("is-static");
     stage.style.setProperty("--p", "1");
-    stage.style.setProperty("--q", "0");
+    stage.style.setProperty("--q", "1");
+    // No build-in: the copy is simply there.
+    revealIntro();
     window.removeEventListener("scroll", onScroll);
     window.removeEventListener("resize", onScroll);
 
