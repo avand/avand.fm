@@ -335,7 +335,12 @@
       z-index: 4;
       width: min(calc(100vw - 3em), calc((100vh - 8em) * 16 / 9));
       transform:
-        translateY(calc((1 - var(--p)) * 100vh - var(--q2) * 100vh))
+        /* In the second move the video travels exactly as far as the heading
+           does, so the space between them is fixed once the heading has
+           arrived: it closes to its margin and then the pair rises together,
+           the heading pushing the video off the top. Moving the video a whole
+           viewport instead would open the gap back up on the way out. */
+        translateY(calc((1 - var(--p)) * 100vh - var(--q2) * var(--dock, 60vh)))
         scale(calc(0.94 + var(--p) * 0.06 - var(--q2) * 0.06));
       opacity: clamp(0, calc((var(--p) - var(--q2)) * 1.5), 1);
       will-change: transform;
@@ -540,7 +545,7 @@
       background: #000;
     }
 
-    .player.is-playing.has-started:not(.show-controls) video {
+    .player.is-playing:not(.show-controls) video {
       cursor: none;
     }
 
@@ -578,51 +583,8 @@
 
     /* Sit above the control bar rather than behind it while it is showing. */
     .player.show-controls .pl-captions,
-    .player.has-started:not(.is-playing) .pl-captions {
+    .player:not(.is-playing) .pl-captions {
       bottom: calc(var(--ctl) * 4.6 + 1.1em);
-    }
-
-    /* Big centred play button over the poster, before playback starts. */
-    .pl-bigplay {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.45));
-      border: none;
-      cursor: pointer;
-      transition: opacity 250ms;
-      z-index: 2;
-    }
-
-    .player.is-playing .pl-bigplay {
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .pl-bigplay span {
-      width: 4.2em;
-      height: 4.2em;
-      border-radius: 50%;
-      background: var(--accent);
-      box-shadow: 0 0 2em var(--accent-glow);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 200ms, box-shadow 200ms;
-    }
-
-    .pl-bigplay:hover span {
-      transform: scale(1.07);
-      box-shadow: 0 0 3em var(--accent-glow);
-    }
-
-    .pl-bigplay svg {
-      width: 1.6em;
-      height: 1.6em;
-      fill: #fff;
-      margin-left: 0.18em;
     }
 
     /* Control bar */
@@ -648,10 +610,10 @@
       pointer-events: none;
     }
 
-    /* Before the first play the big play button owns the surface. After that,
-       controls show while paused, and while the viewer is interacting. */
-    .player.has-started.show-controls .pl-controls,
-    .player.has-started:not(.is-playing) .pl-controls {
+    /* Visible whenever nothing is playing -- including before the first play,
+       which is what invites it -- and whenever the viewer is interacting. */
+    .player.show-controls .pl-controls,
+    .player:not(.is-playing) .pl-controls {
       opacity: 1;
       transform: translateY(0);
       pointer-events: auto;
@@ -828,7 +790,6 @@
       display: block;
     }
 
-    .player.is-failed .pl-bigplay,
     .player.is-failed .pl-spinner {
       display: none;
     }
@@ -844,6 +805,10 @@
       color: var(--warm);
       white-space: nowrap;
       display: block;
+    }
+
+    .curr-head .module-week {
+      margin-bottom: 0.3em;
     }
 
     .curr-slide h3 {
@@ -928,10 +893,6 @@
     }
 
     .curr-slide-inner {
-      display: grid;
-      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-      gap: 3em;
-      align-items: center;
       width: 100%;
       /* Pinned slides are inset:0 on the full viewport, which overrides the
          wrapper's max-width, so the content column is constrained here. */
@@ -939,10 +900,41 @@
       margin: 0 auto;
     }
 
+    /* The week, title and outcome run the full width above; only the video and
+       the bullets are columns. */
+    .curr-head {
+      text-align: left;
+      margin-bottom: 1.7em;
+    }
+
+    .curr-cols {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+      gap: 3em;
+      align-items: center;
+    }
+
     @media (max-width: 900px) {
-      .curr-slide-inner {
+      .curr-cols {
         grid-template-columns: minmax(0, 1fr);
         gap: 1.5em;
+      }
+
+      .curr-head {
+        margin-bottom: 1.2em;
+      }
+    }
+
+    /* The timeline names the week on desktop, so the slide doesn't repeat it.
+       Below 901px the curriculum is a stacked list with no timeline, and this
+       is the only thing that says which week it is. */
+    .module-week {
+      display: none;
+    }
+
+    @media (max-width: 900px) {
+      .module-week {
+        display: block;
       }
     }
 
@@ -1015,39 +1007,42 @@
     }
 
     /* Copy flies in behind it, staggered line by line. */
+    .curr-scroll.is-scroller .curr-head>*,
     .curr-scroll.is-scroller .curr-copy>* {
       transform: translateY(1.6em);
       opacity: 0;
       transition: transform 560ms var(--ease), opacity 420ms var(--ease);
     }
 
+    .curr-scroll.is-scroller .curr-slide.is-before .curr-head>*,
     .curr-scroll.is-scroller .curr-slide.is-before .curr-copy>* {
       transform: translateY(-1.6em);
     }
 
+    .curr-scroll.is-scroller .curr-slide.is-active .curr-head>*,
     .curr-scroll.is-scroller .curr-slide.is-active .curr-copy>* {
       transform: none;
       opacity: 1;
     }
 
-    .curr-scroll.is-scroller .curr-slide.is-active .curr-copy>*:nth-child(1) {
+    .curr-scroll.is-scroller .curr-slide.is-active .curr-head>*:nth-child(1) {
       transition-delay: 60ms;
     }
 
-    .curr-scroll.is-scroller .curr-slide.is-active .curr-copy>*:nth-child(2) {
+    .curr-scroll.is-scroller .curr-slide.is-active .curr-head>*:nth-child(2) {
       transition-delay: 110ms;
     }
 
-    .curr-scroll.is-scroller .curr-slide.is-active .curr-copy>*:nth-child(3) {
+    .curr-scroll.is-scroller .curr-slide.is-active .curr-head>*:nth-child(3) {
       transition-delay: 165ms;
     }
 
-    .curr-scroll.is-scroller .curr-slide.is-active .curr-copy>*:nth-child(4) {
+    .curr-scroll.is-scroller .curr-slide.is-active .curr-copy>*:nth-child(1) {
       transition-delay: 215ms;
     }
 
-    .curr-scroll.is-scroller .curr-slide.is-active .curr-copy>*:nth-child(5) {
-      transition-delay: 265ms;
+    .curr-scroll.is-scroller .curr-slide.is-active .curr-copy>*:nth-child(2) {
+      transition-delay: 275ms;
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -1055,8 +1050,6 @@
       .curr-scroll .curr-media,
       .curr-scroll .curr-copy>*,
       .pl-controls,
-      .pl-bigplay,
-      .pl-bigplay span,
       .pl-mute {
         transition: none !important;
         animation: none !important;
@@ -1871,28 +1864,33 @@
         <!-- Week 1: Sound -->
         <article class="curr-slide">
           <div class="curr-slide-inner">
-            <div class="curr-media">
-              <div class="player" data-video="m1-sound" data-autoplay data-manual data-captions
-                data-label="Module 1, Sound"></div>
-            </div>
-            <div class="curr-copy">
+            <header class="curr-head">
               <span class="module-week">Week 1</span>
               <h3>Sound</h3>
               <p class="module-outcome">
-                Understand what sound actually is and how it exists in the physical world.
+              Understand what sound actually is and how it exists in the physical world.
               </p>
-              <ul class="module-points">
+            </header>
+
+            <div class="curr-cols">
+              <div class="curr-media">
+              <div class="player" data-video="m1-sound" data-manual data-captions
+              data-label="Module 1, Sound"></div>
+              </div>
+              <div class="curr-copy">
+                <ul class="module-points">
                 <li>How sound is created, transmitted, perceived, recorded, and reproduced</li>
                 <li>How frequency, amplitude, and wavelength shape pitch, loudness, and physical sensation</li>
                 <li>The 20 Hz&ndash;20 kHz spectrum&mdash;what&rsquo;s felt vs. heard</li>
                 <li>Microphones, analog signal on a wire, and how digital systems sample and play back</li>
-              </ul>
-              <button class="read-more">
+                </ul>
+                <button class="read-more">
                 Read more
                 <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M9 6l6 6-6 6" />
+                <path d="M9 6l6 6-6 6" />
                 </svg>
-              </button>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -1927,30 +1925,35 @@
         <!-- Week 2: Signal Flow -->
         <article class="curr-slide">
           <div class="curr-slide-inner">
-            <div class="curr-media">
-              <div class="player" data-video="m2-signal-flow" data-autoplay data-manual data-captions
-                data-label="Module 2, Signal Flow"></div>
-            </div>
-            <div class="curr-copy">
+            <header class="curr-head">
               <span class="module-week">Week 2</span>
               <h3>Signal Flow</h3>
               <p class="module-outcome">
-                Trace an audio signal through a system and know what each piece of gear is doing to it.
+              Trace an audio signal through a system and know what each piece of gear is doing to it.
               </p>
-              <ul class="module-points">
+            </header>
+
+            <div class="curr-cols">
+              <div class="curr-media">
+              <div class="player" data-video="m2-signal-flow" data-manual data-captions
+              data-label="Module 2, Signal Flow"></div>
+              </div>
+              <div class="curr-copy">
+                <ul class="module-points">
                 <li>Analog vs. digital, balanced vs. unbalanced, mono vs. stereo</li>
                 <li>Line-, mic-, and speaker-level signals</li>
                 <li>What&rsquo;s really happening when a signal is gained, clipped, EQ&rsquo;d, filtered, routed, and
-                  mixed</li>
+                mixed</li>
                 <li>Ground loops, hum, and adapting to unfamiliar environments</li>
                 <li>Identify, trace, and diagram signal flow through any DJ, studio, or live rig</li>
-              </ul>
-              <button class="read-more">
+                </ul>
+                <button class="read-more">
                 Read more
                 <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M9 6l6 6-6 6" />
+                <path d="M9 6l6 6-6 6" />
                 </svg>
-              </button>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -1983,30 +1986,35 @@
         <!-- Week 3: Gear -->
         <article class="curr-slide">
           <div class="curr-slide-inner">
-            <div class="curr-media">
-              <div class="player" data-video="m3-gear" data-autoplay data-manual data-captions
-                data-label="Module 3, Gear"></div>
-            </div>
-            <div class="curr-copy">
+            <header class="curr-head">
               <span class="module-week">Week 3</span>
               <h3>Gear</h3>
               <p class="module-outcome">
-                Reason about unfamiliar gear, understand its role in the stack, and feel at home on it without prior
-                experience.
+              Reason about unfamiliar gear, understand its role in the stack, and feel at home on it without prior
+              experience.
               </p>
-              <ul class="module-points">
+            </header>
+
+            <div class="curr-cols">
+              <div class="curr-media">
+              <div class="player" data-video="m3-gear" data-manual data-captions
+              data-label="Module 3, Gear"></div>
+              </div>
+              <div class="curr-copy">
+                <ul class="module-points">
                 <li>The tradeoffs between laptop-only, controller, all-in-one, and CDJ setups</li>
                 <li>When and why to add a mixer, plus booth reference and multi-DJ setups</li>
                 <li>Power distribution, batteries, and generators for house parties and renegades</li>
                 <li>Stereo fields, crossovers, and dynamic range across different system types</li>
                 <li>Ergonomics, portability, backups, and the go-bag you never gig without</li>
-              </ul>
-              <button class="read-more">
+                </ul>
+                <button class="read-more">
                 Read more
                 <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M9 6l6 6-6 6" />
+                <path d="M9 6l6 6-6 6" />
                 </svg>
-              </button>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -2041,30 +2049,35 @@
         <!-- Week 4: Tracks -->
         <article class="curr-slide">
           <div class="curr-slide-inner">
-            <div class="curr-media">
-              <div class="player" data-video="m4-tracks" data-autoplay data-manual data-captions
-                data-label="Module 4, Tracks"></div>
-            </div>
-            <div class="curr-copy">
+            <header class="curr-head">
               <span class="module-week">Week 4</span>
               <h3>Tracks</h3>
               <p class="module-outcome">
-                Understand how music is structured, composed, and organized&mdash;and how it&rsquo;s stored in digital
-                files.
+              Understand how music is structured, composed, and organized&mdash;and how it&rsquo;s stored in digital
+              files.
               </p>
-              <ul class="module-points">
+            </header>
+
+            <div class="curr-cols">
+              <div class="curr-media">
+              <div class="player" data-video="m4-tracks" data-manual data-captions
+              data-label="Module 4, Tracks"></div>
+              </div>
+              <div class="curr-copy">
+                <ul class="module-points">
                 <li>Notes into bars, bars into phrases, phrases into structure&mdash;and how genres differ</li>
                 <li>Pitch, tempo, Master Tempo, and whether the beat-sync debate is warranted</li>
                 <li>Beatgrids, hot cues, and what quantize is actually doing</li>
                 <li>File formats and encoders: what compression loses&mdash;transients, reverb tails, spatial detail</li>
                 <li>ID3 tags for portability, less data loss, and a smoother workflow</li>
-              </ul>
-              <button class="read-more">
+                </ul>
+                <button class="read-more">
                 Read more
                 <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M9 6l6 6-6 6" />
+                <path d="M9 6l6 6-6 6" />
                 </svg>
-              </button>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -2099,31 +2112,36 @@
         <!-- Week 5: Library -->
         <article class="curr-slide">
           <div class="curr-slide-inner">
-            <div class="curr-media">
-              <div class="player" data-video="m5-library" data-autoplay data-manual data-captions
-                data-label="Module 5, Library"></div>
-            </div>
-            <div class="curr-copy">
+            <header class="curr-head">
               <span class="module-week">Week 5</span>
               <h3>Library</h3>
               <p class="module-outcome">
-                Master your DJ chores and build systems that create confidence, reduce cognitive load, and induce flow
-                during a set.
+              Master your DJ chores and build systems that create confidence, reduce cognitive load, and induce flow
+              during a set.
               </p>
-              <ul class="module-points">
+            </header>
+
+            <div class="curr-cols">
+              <div class="curr-media">
+              <div class="player" data-video="m5-library" data-manual data-captions
+              data-label="Module 5, Library"></div>
+              </div>
+              <div class="curr-copy">
+                <ul class="module-points">
                 <li>File hygiene: knowing where your music and metadata live, and keeping it portable</li>
                 <li>Systematic track prep with tools like Platinum Notes and Mixed In Key</li>
                 <li>Smart playlists by tempo, key, lyrics, vibe, tag, and acoustic similarity</li>
                 <li>How many tracks to prepare for different kinds of gigs</li>
                 <li>A pre-flight checklist so you&rsquo;re locked in from the first track</li>
                 <li class="optional">Optional add-on: AI workflows that auto-acquire newly discovered music</li>
-              </ul>
-              <button class="read-more">
+                </ul>
+                <button class="read-more">
                 Read more
                 <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M9 6l6 6-6 6" />
+                <path d="M9 6l6 6-6 6" />
                 </svg>
-              </button>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -2155,30 +2173,35 @@
         <!-- Week 6: Playing -->
         <article class="curr-slide">
           <div class="curr-slide-inner">
-            <div class="curr-media">
-              <div class="player" data-video="m6-playing" data-autoplay data-manual data-captions
-                data-label="Module 6, Playing"></div>
-            </div>
-            <div class="curr-copy">
+            <header class="curr-head">
               <span class="module-week">Week 6</span>
               <h3>Playing</h3>
               <p class="module-outcome">
-                Fill the gaps in your self-taught technique&mdash;wider genre range, more dynamic mixes, and energy you
-                can build on demand.
+              Fill the gaps in your self-taught technique&mdash;wider genre range, more dynamic mixes, and energy you
+              can build on demand.
               </p>
-              <ul class="module-points">
+            </header>
+
+            <div class="curr-cols">
+              <div class="curr-media">
+              <div class="player" data-video="m6-playing" data-manual data-captions
+              data-label="Module 6, Playing"></div>
+              </div>
+              <div class="curr-copy">
+                <ul class="module-points">
                 <li>A tour of common players and mixers, Pioneer/AlphaTheta and beyond</li>
                 <li>Phrase matching, EQ-based mixing, and effects</li>
                 <li>Using more than two decks for deeper continuity and energy</li>
                 <li>Reliable transitions across broader genres and tempo ranges</li>
                 <li>Advanced looping: auto-loops, loop rolls, hot-cue jumping, and loop builds</li>
-              </ul>
-              <button class="read-more">
+                </ul>
+                <button class="read-more">
                 Read more
                 <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M9 6l6 6-6 6" />
+                <path d="M9 6l6 6-6 6" />
                 </svg>
-              </button>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -2209,30 +2232,35 @@
         <!-- Week 7: Attunement -->
         <article class="curr-slide">
           <div class="curr-slide-inner">
-            <div class="curr-media">
-              <div class="player" data-video="m7-attunement" data-autoplay data-manual data-captions
-                data-label="Module 7, Attunement"></div>
-            </div>
-            <div class="curr-copy">
+            <header class="curr-head">
               <span class="module-week">Week 7</span>
               <h3>Attunement</h3>
               <p class="module-outcome">
-                Develop the awareness, communication, and etiquette to navigate high-stakes, shared performance spaces
-                with confidence and ease.
+              Develop the awareness, communication, and etiquette to navigate high-stakes, shared performance spaces
+              with confidence and ease.
               </p>
-              <ul class="module-points">
+            </header>
+
+            <div class="curr-cols">
+              <div class="curr-media">
+              <div class="player" data-video="m7-attunement" data-manual data-captions
+              data-label="Module 7, Attunement"></div>
+              </div>
+              <div class="curr-copy">
+                <ul class="module-points">
                 <li>Treating equipment like an extension of someone&rsquo;s body</li>
                 <li>Applying the principles of consent to the decks for smoother hand-offs</li>
                 <li>Being easy to work with&mdash;and building the reputation that gets you invited back</li>
                 <li>Meeting the crowd where it is and earning the trust to take it on a journey</li>
                 <li>&ldquo;Playing what I want&rdquo; vs. &ldquo;playing what they want,&rdquo; authentically</li>
-              </ul>
-              <button class="read-more">
+                </ul>
+                <button class="read-more">
                 Read more
                 <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M9 6l6 6-6 6" />
+                <path d="M9 6l6 6-6 6" />
                 </svg>
-              </button>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -2259,29 +2287,34 @@
         <!-- Week 8: Showtime -->
         <article class="curr-slide">
           <div class="curr-slide-inner">
-            <div class="curr-media">
-              <div class="player" data-video="m8-showtime" data-autoplay data-manual data-captions
-                data-label="Module 8, Showtime"></div>
-            </div>
-            <div class="curr-copy">
+            <header class="curr-head">
               <span class="module-week">Week 8</span>
               <h3>Showtime</h3>
               <p class="module-outcome">
-                Become a true performer: how to prepare for a show, take the stage, engage the audience, and close.
+              Become a true performer: how to prepare for a show, take the stage, engage the audience, and close.
               </p>
-              <ul class="module-points">
+            </header>
+
+            <div class="curr-cols">
+              <div class="curr-media">
+              <div class="player" data-video="m8-showtime" data-manual data-captions
+              data-label="Module 8, Showtime"></div>
+              </div>
+              <div class="curr-copy">
+                <ul class="module-points">
                 <li>Pre-show routines&mdash;and what a rider is actually for</li>
                 <li>Taking the pulse of the room and taking the reins from the previous performer</li>
                 <li>Building a slot-appropriate set and taking moments for promotion</li>
                 <li>How to close: the comedown vs. the big finish, and when each one fits</li>
                 <li>Teardown, post-show self-care, and what to do after the lights come up</li>
-              </ul>
-              <button class="read-more">
+                </ul>
+                <button class="read-more">
                 Read more
                 <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M9 6l6 6-6 6" />
+                <path d="M9 6l6 6-6 6" />
                 </svg>
-              </button>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -2428,18 +2461,18 @@
     <div class="footer-inner">
       <h2>Thank you</h2>
       <p class="footer-lede">
-        None of this happened alone. A few of the people and places that got it
-        here.
+        None of this happened alone. I want to thank a few of the people that
+        helped me get here.
       </p>
 
       <ul class="thanks">
-        <li><strong><a href="https://www.tashablank.com/" target="_blank" rel="noopener">Tasha Blank</a> and <a href="https://phdj.dance" target="_blank" rel="noopener">PhDJ</a></strong> &mdash; for the inspiration, and for the backdrop that made it feel possible to offer this at all.</li>
-        <li><strong><a href="https://www.ericheiland.com/" target="_blank" rel="noopener">Eric Heiland</a></strong> &mdash; for the support along the way, and for every frame of video on this site and everywhere else.</li>
-        <li><strong><a href="https://soundcloud.com/ziadmtl" target="_blank" rel="noopener">Ziad</a>, Garrett, Jamie, Olive, Adam, Nick, and Levi</strong> &mdash; for inspiration, feedback, and constructive criticism.</li>
-        <li><strong>Jonny</strong> &mdash; for introducing me to Eric. And Gili, for introducing me to Jonny.</li>
-        <li><strong>Anthropic and Claude Code</strong> &mdash; for making it easy to build this site and keep editing it without writing a single line of code. I still could. I just didn&rsquo;t have to.</li>
+        <li><strong><a href="https://www.tashablank.com/" target="_blank" rel="noopener">Tasha Blank</a></strong> and <strong><a href="https://phdj.dance" target="_blank" rel="noopener">PhDJ</a></strong> &mdash; for blazing a trail for me to follow and giving me the knowledge, courage, and inspiration to bring this course to life.</li>
+        <li><strong><a href="https://www.ericheiland.com/" target="_blank" rel="noopener">Eric Heiland</a></strong> &mdash; for supporting me in the creative journey, holding me accountable, and for every frame of video on this site.</li>
+        <li><strong><a href="https://soundcloud.com/ziadmtl" target="_blank" rel="noopener">Ziad</a></strong>, <strong>Garrett</strong>, <strong>Jamie</strong>, <strong>Olive</strong>, <strong>Adam</strong>, <strong>Nick</strong>, <strong>Levi</strong>, <strong>Jonny</strong>, and <strong>Gili</strong> &mdash; for inspiration, feedback, connections, and constructive criticism.</li>
+        <li><strong>Anthropic</strong> and <strong>Claude Code</strong> &mdash; for making it easy to build this site and keep editing it without writing a single line of code. I still could. I just didn&rsquo;t have to.</li>
         <li><strong><a href="https://jessedodds.com/" target="_blank" rel="noopener">Jesse Dodds</a></strong> &mdash; for handing me a two-channel mixer back in 2013 and starting this whole thing.</li>
-        <li><strong><a href="https://burningman.org/" target="_blank" rel="noopener">Burning Man Project</a> and <a href="https://goldenvoice.com/" target="_blank" rel="noopener">Goldenvoice</a></strong> &mdash; for building the kind of spaces where a person can get <em>really</em> inspired.</li>
+        <li><strong><a href="https://www.generalassemb.ly/" target="_blank" rel="noopener">General Assembly</a></strong> &mdash; for creating an opportunity for me to learn that I love to teach!</li>
+        <li><strong><a href="https://burningman.org/" target="_blank" rel="noopener">Burning Man Project</a></strong> and <strong><a href="https://goldenvoice.com/" target="_blank" rel="noopener">Goldenvoice</a></strong> &mdash; for building the kind of spaces where a person can get <em>really</em> inspired.</li>
       </ul>
 
       <p class="reward-cue">Still here?</p>
@@ -2525,13 +2558,30 @@
       var titleEl = document.getElementById("modal-title");
       var weekEl = document.getElementById("modal-week");
       var bodyEl = document.getElementById("modal-body");
+      var slides = Array.prototype.slice.call(document.querySelectorAll(".curr-slide"));
       var lastFocused = null;
+      var openIndex = -1;
 
-      function open(button) {
-        var slide = button.closest(".curr-slide");
-        lastFocused = button;
+      /* Each module is addressable as #module-1 … #module-8, so a particular
+         week can be linked to directly. The hash is the state: opening sets it,
+         closing clears it, and the back button therefore closes the dialog the
+         way people expect on a phone. */
+      function indexFromHash() {
+        var m = /^#module-(\d+)$/.exec(window.location.hash);
+        if (!m) return -1;
+        var i = parseInt(m[1], 10) - 1;
+        return i >= 0 && i < slides.length ? i : -1;
+      }
 
-        weekEl.textContent = slide.querySelector(".module-week").textContent;
+      // Whether this page put the hash there, so closing knows if going back
+      // would leave the site entirely.
+      var pushedHash = false;
+
+      function render(index) {
+        var slide = slides[index];
+        if (!slide) return;
+
+        weekEl.textContent = "Week " + (index + 1);
         titleEl.textContent = slide.querySelector("h3").textContent;
         bodyEl.innerHTML = slide.querySelector(".module-full").innerHTML;
 
@@ -2540,22 +2590,79 @@
         document.body.classList.add("modal-open");
         panel.scrollTop = 0;
         modal.querySelector(".modal-close").focus();
+        openIndex = index;
       }
 
-      function close() {
+      function open(index, viaHash) {
+        if (openIndex === index) return;
+        if (!viaHash) {
+          pushedHash = true;
+          // Setting the hash re-enters through hashchange, which renders.
+          window.location.hash = "module-" + (index + 1);
+          return;
+        }
+        render(index);
+      }
+
+      function dismiss() {
         modal.classList.remove("is-open");
         modal.hidden = true;
         document.body.classList.remove("modal-open");
+        openIndex = -1;
         if (lastFocused) lastFocused.focus();
       }
 
+      function close() {
+        if (indexFromHash() < 0) {
+          dismiss();
+          return;
+        }
+        if (pushedHash) {
+          pushedHash = false;
+          window.history.back(); // hashchange dismisses
+        } else {
+          // Arrived here directly: drop the hash without adding history.
+          window.history.replaceState(
+            null,
+            "",
+            window.location.pathname + window.location.search
+          );
+          dismiss();
+        }
+      }
+
+      function syncFromHash(initial) {
+        var index = indexFromHash();
+        if (index >= 0) {
+          // Bring the matching week up behind the dialog, so closing it leaves
+          // you on the module you linked to.
+          if (initial && window.Headroom && window.Headroom.curriculum) {
+            window.Headroom.curriculum.jumpTo(index, { instant: true });
+          }
+          open(index, true);
+        } else if (openIndex >= 0) {
+          dismiss();
+        }
+      }
+
+      window.addEventListener("hashchange", function () {
+        syncFromHash(false);
+      });
+
       document.addEventListener("click", function (e) {
         var btn = e.target.closest(".read-more");
-        if (btn) open(btn);
+        if (!btn) return;
+        lastFocused = btn;
+        open(slides.indexOf(btn.closest(".curr-slide")), false);
       });
 
       modal.querySelector(".modal-close").addEventListener("click", close);
       modal.querySelector(".modal-backdrop").addEventListener("click", close);
+
+      // Runs after the curriculum registers, so a deep link can position it.
+      window.addEventListener("load", function () {
+        syncFromHash(true);
+      });
 
       document.addEventListener("keydown", function (e) {
         if (modal.hidden) return;

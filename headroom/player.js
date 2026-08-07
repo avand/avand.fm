@@ -165,11 +165,6 @@
     // means the video element needs no crossorigin attribute.
     var html =
       "<video playsinline preload=\"none\"></video>" +
-      '<button class="pl-bigplay" aria-label="Play video: ' +
-      label +
-      '"><span>' +
-      svg(ICONS.play) +
-      "</span></button>" +
       '<div class="pl-captions is-empty" aria-live="off"></div>' +
       '<div class="pl-spinner" aria-hidden="true"></div>' +
       '<div class="pl-error" role="alert"></div>' +
@@ -204,7 +199,6 @@
     var r = this.root;
 
     this.video = r.querySelector("video");
-    this.bigPlay = r.querySelector(".pl-bigplay");
     this.controls = r.querySelector(".pl-controls");
     this.playBtn = r.querySelector(".pl-play");
     this.restartBtn = r.querySelector(".pl-restart");
@@ -544,14 +538,26 @@
 
   Player.prototype.isHeld = function () {
     // Reasons the controls must stay: nothing is playing, the pointer is on
-    // them, they have keyboard focus, or a scrub is in progress.
+    // them, a scrub is in progress, or they hold keyboard focus.
     if (this.video.paused) return true;
     if (this.holds) {
       for (var key in this.holds) {
         if (this.holds[key]) return true;
       }
     }
-    return this.root.contains(document.activeElement);
+
+    var focused = document.activeElement;
+    if (!focused || !this.root.contains(focused)) return false;
+
+    /* Keyboard focus holds them; a mouse click does not. Clicking a button
+       focuses it, so treating any focus as a hold meant that pressing pause or
+       unmute pinned the controls open for good, however far the pointer then
+       moved away. :focus-visible is exactly that distinction. */
+    try {
+      return focused.matches(":focus-visible");
+    } catch (e) {
+      return true; // no support: keep them, rather than strand a keyboard user
+    }
   };
 
   Player.prototype.showControls = function () {
@@ -590,14 +596,11 @@
     var self = this;
     var v = this.video;
 
-    this.bigPlay.addEventListener("click", function () {
-      self.userPaused = false;
-      self.userSetSound = true; // an explicit press means they want it properly
-      v.muted = false;
-      self.play();
-    });
-
     this.playBtn.addEventListener("click", function () {
+      if (v.paused && !self.root.classList.contains("has-started")) {
+        self.userSetSound = true;
+        v.muted = false;
+      }
       self.toggle();
     });
 
@@ -754,6 +757,11 @@
     });
 
     this.root.addEventListener("pointerleave", function () {
+      /* The pointer is off the player entirely, so it cannot be on the
+         controls. Clearing the hold outright means a missing pointerleave from
+         the controls -- the pointer leaving the window, or a curriculum slide
+         hiding beneath it -- cannot strand them open. */
+      self.holdControls("hover", false);
       clearTimeout(self.hideTimer);
       self.hideControls();
     });

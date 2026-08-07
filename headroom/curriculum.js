@@ -71,12 +71,11 @@
     }
   }
 
-  /* Starting playback is deliberately not done in setActive.
-     Player.play() is async — it resolves an HLS attach before the media
-     element actually starts — so a synchronous pause issued straight after it
-     lands first and then loses to the play that arrives later. Deciding
-     playback in exactly one place, from the state the scroller is actually in,
-     removes that race. Keyed so it only acts on a real change. */
+  /* The module clips do not start on their own: eight of them firing as you
+     scroll was chaos, and each one is a deliberate thing to watch rather than
+     atmosphere. They still stop themselves -- leaving a slide, or scrolling
+     clear of the region, pauses whatever was playing so nothing carries on off
+     screen. */
   var playbackKey = "";
 
   function syncPlayback(index, offScreen) {
@@ -84,11 +83,9 @@
     if (key === playbackKey) return;
     playbackKey = key;
 
+    if (!offScreen) return;
     var current = playerFor(slides[index]);
-    if (!current) return;
-
-    if (offScreen) current.pause({ auto: true });
-    else if (!current.userPaused) current.play({ muted: true });
+    if (current) current.pause({ auto: true });
   }
 
   function measure() {
@@ -167,14 +164,18 @@
     else disablePinned();
   }
 
-  function jumpTo(i) {
+  function jumpTo(i, opts) {
+    // A deep link should land already there, not glide in from the top.
+    var behavior = opts && opts.instant ? "auto" : "smooth";
     if (!pinned) {
-      slides[i].scrollIntoView({ behavior: "smooth", block: "start" });
+      slides[i].scrollIntoView({ behavior: behavior, block: "start" });
       return;
     }
     window.scrollTo({
-      top: scroller.offsetTop + i * window.innerHeight,
-      behavior: "smooth",
+      // A pixel inside the band, not exactly on its edge: landing on the
+      // boundary can floor to the week before.
+      top: scroller.offsetTop + i * window.innerHeight + 2,
+      behavior: behavior,
     });
   }
 

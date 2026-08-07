@@ -41,7 +41,9 @@
     if (!video || !introInner || !sticky) return;
 
     var vh = window.innerHeight;
-    var margin = Math.max(48, vh * 0.07);
+    // This is now the gap for the entire second move, not a moment in passing,
+    // so it is set for comfort rather than for the tightest point.
+    var margin = Math.max(64, vh * 0.1);
 
     // Where the heading actually comes to rest, measured with the transform
     // off. Deriving it from the viewport centre instead would be wrong: the
@@ -160,7 +162,7 @@
     // Split the exit: the heading docks under the video over the first part,
     // then both move over the second. The dock is deliberately the shorter of
     // the two -- the heading arriving is a beat, the pair moving is the move.
-    var DOCK_SHARE = 0.41;
+    var DOCK_SHARE = 0.31;
     var q1 = Math.min(1, q / DOCK_SHARE);
     var q2 = Math.max(0, (q - DOCK_SHARE) / (1 - DOCK_SHARE));
 
