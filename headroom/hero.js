@@ -54,7 +54,7 @@
     var videoBottom = (vh + video.offsetHeight) / 2;
     var dock = Math.max(0, videoBottom + margin - restTop);
 
-    stage.style.setProperty("--dock", Math.round(dock) + "px");
+    stage.style.setProperty("--dock", Math.max(0, Math.round(dock)) + "px");
   }
 
   function brand() {
@@ -158,8 +158,9 @@
     var q = Math.min(1, Math.max(0, (travelled - exitStart) / exit));
 
     // Split the exit: the heading docks under the video over the first part,
-    // then both move over the second.
-    var DOCK_SHARE = 0.55;
+    // then both move over the second. The dock is deliberately the shorter of
+    // the two -- the heading arriving is a beat, the pair moving is the move.
+    var DOCK_SHARE = 0.41;
     var q1 = Math.min(1, q / DOCK_SHARE);
     var q2 = Math.max(0, (q - DOCK_SHARE) / (1 - DOCK_SHARE));
 
