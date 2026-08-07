@@ -58,6 +58,7 @@
     activeIndex = index;
     marks.forEach(function (mark, i) {
       mark.setAttribute("aria-current", i === index ? "true" : "false");
+      mark.classList.toggle("is-past", i < index);
     });
   }
 

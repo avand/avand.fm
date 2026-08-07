@@ -1232,6 +1232,17 @@
       transition: color 240ms;
     }
 
+    /* Weeks already passed read as filled, so the track shows how far along
+       the course you have scrolled rather than only where you are. */
+    .tl-mark.is-past .tl-dot {
+      background: var(--text-muted);
+      border-color: var(--text-muted);
+    }
+
+    .tl-mark.is-past .tl-label {
+      color: var(--text-muted);
+    }
+
     .tl-mark:hover .tl-dot {
       border-color: var(--accent);
     }
