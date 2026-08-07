@@ -204,8 +204,12 @@
       text-align: center;
       z-index: 3;
       padding: 7em 2em 6em;
-      opacity: clamp(0, calc(1 - var(--p) * 1.6), 1);
-      transform: translateY(calc(var(--p) * -8vh));
+      /* The copy is gone by the time the video is about a third of the way in,
+         rather than lingering at half opacity over it. Fade and lift share one
+         progress value so they finish together. */
+      --tp: clamp(0, calc(var(--p) * 3), 1);
+      opacity: calc(1 - var(--tp));
+      transform: translateY(calc(var(--tp) * -8vh));
     }
 
     /* Once the video owns the stage the faded copy must stop intercepting
