@@ -21,10 +21,12 @@
   // page knows where the media lives.
   var VIDEO_BASE = "https://avand.github.io/headroom-video/";
 
-  // Served from localhost? Use the local video server that serve.sh starts, so
-  // previewing works without hand-editing this file.
-  if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) {
-    VIDEO_BASE = "http://127.0.0.1:8101/";
+  // Anywhere that isn't the real site is a preview -- localhost, a phone on the
+  // LAN, a tunnel -- and the preview server mounts the video alongside the
+  // site. Same-origin means a preview works from any host that can reach the
+  // machine, where a hardcoded 127.0.0.1 would mean nothing.
+  if (!/(^|\.)avand\.fm$/.test(location.hostname)) {
+    VIDEO_BASE = "/video/";
   }
 
   var HLS_LIB = "hls.min.js";
