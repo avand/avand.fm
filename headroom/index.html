@@ -1576,13 +1576,15 @@
 
     .signup {
       position: relative;
-      max-width: 520px;
+      max-width: 640px;
       margin: 0 auto;
     }
 
     .signup-fields {
       display: grid;
-      grid-template-columns: 1fr 1fr auto;
+      /* The email needs more room than the first name, or its placeholder
+         truncates once the button has taken its share. */
+      grid-template-columns: 0.75fr 1.2fr auto;
       gap: 0.6em;
     }
 
@@ -1844,7 +1846,7 @@
   <nav class="site-nav">
     <div class="brand"><a href="../">avand.fm</a> <span class="brand-sep">/</span> <span class="brand-here">headroom</span></div>
     <div class="cta-nav">
-      <a href="#notify">Get notified</a>
+      <a href="#notify">Free class</a>
     </div>
   </nav>
 
@@ -1870,7 +1872,7 @@
           <span>12 students</span>
           <span><s class="price-was">$1,600</s>&nbsp;<span class="price-now">$800</span></span>
         </div>
-        <a class="btn-primary" href="#notify">Be the first to know</a>
+        <a class="btn-primary" href="#notify">Come to a free class</a>
 
         <div class="hero-chevron" aria-hidden="true">
           <svg viewBox="0 0 24 24">
@@ -2435,11 +2437,12 @@
 
   <!-- Final CTA -->
   <div class="final-cta" id="notify">
-    <h2>Applications open soon</h2>
+    <h2>Start with a free class</h2>
     <p>
-      The first cohort is small and launches October 1st at $800&mdash;half of what
-      it will cost from here on out. Leave your email and I&rsquo;ll let you know the
-      moment applications open.
+      One free hour before the cohort starts. I&rsquo;ll teach you the AI workflow I
+      use to find, buy, and import new music automatically&mdash;yours to keep
+      either way&mdash;then answer anything you want to ask. Join the list for the
+      dates, and first word when the 12 spots open at $800.
     </p>
 
     <form class="signup" id="signup" novalidate>
@@ -2448,13 +2451,13 @@
         <input id="su-name" name="firstName" type="text" placeholder="First name" autocomplete="given-name" required />
         <label class="sr-only" for="su-email">Email address</label>
         <input id="su-email" name="email" type="email" placeholder="you@example.com" autocomplete="email" required />
-        <button class="btn-primary" type="submit">Notify me</button>
+        <button class="btn-primary" type="submit">Send me the dates</button>
       </div>
       <!-- Bots fill this in; people never see it. -->
       <div class="hp" aria-hidden="true">
         <label>Company <input type="text" name="company" tabindex="-1" autocomplete="off" /></label>
       </div>
-      <p class="signup-note">Be the first to know when applications open. No spam, and you can unsubscribe any time.</p>
+      <p class="signup-note">Free class dates and first word on the 12 spots. No spam, unsubscribe any time.</p>
       <p class="signup-status" role="status" aria-live="polite"></p>
     </form>
   </div>
@@ -2688,7 +2691,7 @@
         })
           .then(function (res) {
             if (!res.ok) throw new Error("bad status " + res.status);
-            say("You're on the list. I'll be in touch when applications open.", "ok");
+            say("You're in. I'll send the class dates shortly.", "ok");
             form.reset();
             if (window.fathom) window.fathom.trackEvent("headroom waitlist signup");
           })
