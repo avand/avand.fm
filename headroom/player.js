@@ -107,8 +107,9 @@
   var ICONS = {
     play: '<path d="M8 5v14l11-7z"/>',
     pause: '<path d="M6 5h4v14H6zm8 0h4v14h-4z"/>',
-    restart:
-      '<path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/>',
+    // Skip-to-start (⏮) rather than a reload arrow: this returns to the
+    // beginning of the video, it doesn't replay or refresh anything.
+    restart: '<path d="M6 6h2.5v12H6zm3.8 6l8.7 6V6z"/>',
     loud:
       '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 2v2a8 8 0 0 1 0 16v2a10 10 0 0 0 0-20z"/>',
     muted:
