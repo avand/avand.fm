@@ -96,9 +96,25 @@
       text-transform: uppercase;
     }
 
+    /* The site name is context, the page name is the point: knocking the
+       former back lets "headroom" carry the header. */
     .site-nav .brand a {
-      color: var(--text);
+      color: var(--text-muted);
       text-decoration: none;
+      transition: color 200ms;
+    }
+
+    .site-nav .brand a:hover {
+      color: var(--text);
+    }
+
+    .site-nav .brand-sep {
+      color: var(--text-muted);
+      opacity: 0.55;
+    }
+
+    .site-nav .brand-here {
+      color: var(--text);
     }
 
     .site-nav .cta-nav a {
@@ -1826,7 +1842,7 @@
 
 <body>
   <nav class="site-nav">
-    <div class="brand"><a href="../">avand.fm</a> / headroom</div>
+    <div class="brand"><a href="../">avand.fm</a> <span class="brand-sep">/</span> <span class="brand-here">headroom</span></div>
     <div class="cta-nav">
       <a href="#notify">Get notified</a>
     </div>
