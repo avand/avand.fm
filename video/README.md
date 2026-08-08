@@ -1,7 +1,7 @@
 # Headroom video
 
 The HLS ladder behind the [Headroom](https://avand.fm/headroom/) page: the
-scripts that build it, the local preview server, and the one that publishes it.
+scripts that build it and the one that publishes it.
 
 Everything here is tracked. What passes through it is not: `src/` is a drop box
 for camera masters on their way in, `dist/` is the ladder built from them, and
@@ -99,17 +99,20 @@ npx wrangler r2 object delete headroom-video/<old-slug>/<file> --remote
 ../bin/dev      # then open http://localhost:8100/headroom/
 ```
 
-Serves the site from the repo. **Video comes from R2**, in preview exactly as in
-production — the same bucket, the same URLs, the real cross-origin path.
+Python's stock static server over the repo, nothing custom. **Video comes from
+R2**, in preview exactly as in production — the same bucket, the same URLs, the
+real cross-origin path.
 
-Preview used to read video from a local `dist/`, which meant only a machine that
-had built it could show the page. A second Mac would pull the repo, run the
-site, and get every module video 404ing, because `dist/` is gitignored and its
-sources are 2GB of camera masters. Reading from R2 costs nothing and works
-everywhere: a fresh clone, a phone on the LAN, the tunnel.
+Preview used to read video from a local `dist/` served by a purpose-built
+script, which meant only a machine that had built the renditions could show the
+page. A second Mac would pull the repo, run the site, and get every video
+404ing, because `dist/` is gitignored and its sources are 2GB of camera
+masters. Reading from R2 costs nothing, works everywhere — fresh clone, phone
+on the LAN, tunnel — and removed the reason for the custom server along with
+the bug.
 
 The tradeoff is that a new video has to be uploaded before it can be previewed.
-That is the right way round — upload is one command, and it means what you
+That is the right way round: upload is one command, and it means what you
 preview is what visitors get.
 
 `NO_TUNNEL=1 ../bin/dev` skips the tunnel, if local is all you want.

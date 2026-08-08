@@ -9,6 +9,10 @@
 # preview exactly as in production, so any machine can show the page without
 # first building 400MB of renditions it has no sources for.
 #
+# If a stale asset ever bites -- an edit that does not show up, most likely on
+# a phone where you cannot open devtools -- it is the browser's heuristic
+# caching, not this script. Hard-reload, or add a ?v=2 to the URL.
+#
 # A tunnel only exists while a cloudflared process is running: it holds an
 # outbound connection to Cloudflare, and requests for the hostname are routed
 # down that live connection. No process, no tunnel.
@@ -24,12 +28,6 @@ cd "$(dirname "$0")/.."
 SITE_PORT="${SITE_PORT:-8100}"
 HOSTNAME_FM="fm.avand.dev"
 TUNNEL_CONFIG="$HOME/.cloudflared/avand-fm.yml"
-VIDEO_DIR="video"
-
-if [ ! -f "$VIDEO_DIR/preview.py" ]; then
-  echo "Can't find $VIDEO_DIR/preview.py" >&2
-  exit 1
-fi
 
 started_tunnel=""
 
@@ -42,7 +40,10 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-python3 "$VIDEO_DIR/preview.py" "$SITE_PORT" &
+# Python's stock static server, binding every interface so a phone on the LAN
+# and the tunnel can both reach it. Nothing custom: the site is plain files, and
+# the video it references is fetched from R2 by the browser, not served here.
+python3 -m http.server "$SITE_PORT" -d . >/dev/null 2>&1 &
 server_pid=$!
 
 echo "  local   http://localhost:$SITE_PORT/headroom/"
