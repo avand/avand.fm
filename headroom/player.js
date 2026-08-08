@@ -358,6 +358,9 @@
           startLevel: -1,
           capLevelToPlayerSize: true,
           maxBufferLength: 30,
+          // Demux off the main thread, so parsing a segment cannot land in the
+          // middle of an animation frame.
+          enableWorker: true,
         });
         self.hls.loadSource(src);
         self.hls.attachMedia(self.video);
@@ -377,6 +380,17 @@
         self.fail(err.message || "This video didn't load.");
         throw err;
       });
+  };
+
+  /* Get everything ready without playing: fetch the library, the playlist and
+     the first segments, and let the decoder warm up. Doing this at the moment
+     a video is wanted costs a visible stall -- measured at about 110ms on a
+     throttled phone, which lands as a stutter right where the eye is. Called
+     early by whatever knows the video is coming. */
+  Player.prototype.warm = function () {
+    if (this.ready) return;
+    this.video.preload = "auto";
+    this.attach();
   };
 
   Player.prototype.fail = function (message) {

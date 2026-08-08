@@ -74,6 +74,7 @@
      frame doesn't stack up play() calls — each one resolves an HLS attach
      asynchronously, and overlapping them races. */
   var playbackKey = "";
+  var playTimer = null;
 
   function syncPlayback(shouldPlay) {
     var key = String(shouldPlay);
@@ -83,8 +84,16 @@
     if (!player) return; // players not registered yet; try again next frame
 
     playbackKey = key;
+    window.clearTimeout(playTimer);
+
     if (shouldPlay) {
-      if (!player.userPaused) player.play({ muted: true });
+      /* Wait for it to settle rather than starting the instant it arrives.
+         A flick down the page passes through the locked position in a couple
+         of frames, and starting playback there only to stop it again is both
+         wasted work and a visible flicker. */
+      playTimer = window.setTimeout(function () {
+        if (!player.userPaused) player.play({ muted: true });
+      }, 160);
     } else {
       player.pause({ auto: true });
     }
@@ -200,6 +209,15 @@
 
     if (window.Headroom) window.Headroom.hero = { p: p, q: q, d: d };
 
+    /* Start loading well before it is wanted. The rise takes a whole viewport
+       of scrolling; doing this at the end of it puts the cost exactly where the
+       eye is. A quarter of the way up is early enough to be ready and late
+       enough that someone who never scrolls never pays for it. */
+    if (p > 0.25) {
+      var warming = brand();
+      if (warming) warming.warm();
+    }
+
     // Build the copy in once the intro is most of the way up, and leave it.
     if (q >= 0.55) revealIntro();
 
@@ -239,10 +257,28 @@
     onScroll();
   }
 
+  /* Warming during the scroll only moves the stall earlier in the same gesture.
+     The brand video is the one thing on this page everybody sees, so its cost
+     is paid up front, while the page is idle and nothing is moving. */
+  function warmEarly() {
+    var player = brand();
+    if (player) player.warm();
+  }
+
+  function scheduleWarm() {
+    if (window.requestIdleCallback) {
+      window.requestIdleCallback(warmEarly, { timeout: 2000 });
+    } else {
+      window.setTimeout(warmEarly, 600);
+    }
+  }
+
   function enable() {
     stage.classList.remove("is-static");
     splitWords();
     measureDock();
+    if (document.readyState === "complete") scheduleWarm();
+    else window.addEventListener("load", scheduleWarm);
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onResize);
     update();

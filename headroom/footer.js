@@ -28,7 +28,9 @@
     // has risen a full screen further.
     var fp = Math.min(1, Math.max(0, (vh - rect.top) / vh));
     footer.style.setProperty("--fp", fp.toFixed(4));
-    revealPassed();
+    // Measuring seven list items every frame is wasted work while the footer is
+    // still a screen away, and each read forces layout.
+    if (rect.top < vh * 1.5) revealPassed();
   }
 
   /* Anything already scrolled past is shown outright. The observer below only
