@@ -1,6 +1,11 @@
 .DS_Store
 
-# Camera masters for the Headroom videos (~4.4GB). These are the originals the
-# HLS renditions are transcoded from; the renditions are published from the
-# separate headroom-video repo, so neither belongs in this repo's history.
+# Camera masters for the Headroom videos (~2.1GB) and the HLS ladder built from
+# them (~400MB). Neither belongs in git: the masters are the originals, and the
+# renditions are derived output published to Cloudflare R2 by video/upload.sh.
+# The scripts that produce them are tracked; what they produce is not.
 headroom/Videos/
+video/dist/
+
+# Local wrangler state (account cache), written when video/upload.sh runs.
+video/.wrangler/

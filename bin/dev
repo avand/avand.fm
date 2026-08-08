@@ -21,11 +21,10 @@ SITE_PORT="${SITE_PORT:-8100}"
 VIDEO_PORT="${VIDEO_PORT:-8101}"
 HOSTNAME_FM="fm.avand.dev"
 TUNNEL_CONFIG="$HOME/.cloudflared/avand-fm.yml"
-VIDEO_REPO="${VIDEO_REPO:-$HOME/Code/headroom-video}"
+VIDEO_DIR="video"
 
-if [ ! -f "$VIDEO_REPO/preview.py" ]; then
-  echo "Can't find the video repo at $VIDEO_REPO" >&2
-  echo "Set VIDEO_REPO=/path/to/headroom-video" >&2
+if [ ! -f "$VIDEO_DIR/preview.py" ]; then
+  echo "Can't find $VIDEO_DIR/preview.py" >&2
   exit 1
 fi
 
@@ -40,7 +39,7 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-python3 "$VIDEO_REPO/preview.py" "$SITE_PORT" "$VIDEO_PORT" &
+python3 "$VIDEO_DIR/preview.py" "$SITE_PORT" "$VIDEO_PORT" &
 server_pid=$!
 
 echo "  local   http://localhost:$SITE_PORT/headroom/"

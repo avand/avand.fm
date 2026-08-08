@@ -17,9 +17,11 @@
 (function () {
   "use strict";
 
-  // Swap this one string to move the video to a CDN later; nothing else in the
-  // page knows where the media lives.
-  var VIDEO_BASE = "https://avand.github.io/headroom-video/";
+  // Swap this one string to move the video; nothing else in the page knows
+  // where the media lives. Cloudflare R2 behind a custom domain: no egress
+  // charge, honours Range requests (which the byte-range HLS depends on), and
+  // its CORS rules allow this origin.
+  var VIDEO_BASE = "https://video.avand.fm/";
 
   // Anywhere that isn't the real site is a preview -- localhost, a phone on the
   // LAN, a tunnel -- and the preview server mounts the video alongside the
