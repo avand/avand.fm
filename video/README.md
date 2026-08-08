@@ -3,9 +3,10 @@
 The HLS ladder behind the [Headroom](https://avand.fm/headroom/) page: the
 scripts that build it, the local preview server, and the one that publishes it.
 
-Everything here is tracked. What it produces — `dist/`, about 400MB — is not,
-and neither are the camera masters it is built from. Derived output lives in
-Cloudflare R2, not in git.
+Everything here is tracked. What passes through it is not: `src/` is a drop box
+for camera masters on their way in, `dist/` is the ladder built from them, and
+both are working space. The masters are archived in Google Drive and the
+renditions live in R2, so once a video is uploaded, both local copies can go.
 
 ## Where the video is served from
 
@@ -45,9 +46,8 @@ host has to honour `Range` requests. A server that ignores them and returns
 
 ## Rebuilding
 
-Sources are the camera masters in `src/` (~2.1GB, gitignored). **They are the
-only copy** — nothing else has them, and everything else here is derived from
-them, so they are worth backing up somewhere off this machine.
+Sources are camera masters pulled from Google Drive into `src/` (gitignored).
+They only need to be there while a video is being built.
 
 ```sh
 ./build.sh                                   # all ten videos, ~2 minutes
@@ -74,9 +74,24 @@ Playlists upload with a 5-minute cache so a re-cut ladder is picked up the same
 day. Media, captions, and posters get a year, since they only ever change by
 being replaced under a new name.
 
-Adding a video is: drop the master in `src/`, add a line to `build.sh`,
-`./build.sh`, `./upload.sh <slug>`, then reference the slug in
-`../headroom/index.html`.
+### Adding or replacing a video
+
+1. Pull the master from Google Drive into `src/`.
+2. Add a line to `build.sh` — slug, poster timestamp, filename.
+3. `./build.sh` (or `./transcode.sh <file> <slug> <poster>` for just the one).
+4. `./upload.sh <slug>`.
+5. Reference the slug in `../headroom/index.html`.
+6. Delete the master from `src/` and the build from `dist/`. R2 has what
+   matters and Drive has the original.
+
+A replacement is a **new slug**, not an overwrite. Objects are cached for a
+year, so reusing a name means some visitors keep the old video and some get the
+new one, with no way to tell which. Ship the new slug, then delete the old one's
+objects from the bucket once the site is deployed:
+
+```sh
+npx wrangler r2 object delete headroom-video/<old-slug>/<file> --remote
+```
 
 ## Previewing
 
@@ -84,10 +99,18 @@ Adding a video is: drop the master in `src/`, add a line to `build.sh`,
 ../bin/dev      # then open http://localhost:8100/headroom/
 ```
 
-Serves the site on one port and the video on another, with the CORS and
-byte-range headers R2 sends, so a local preview exercises the real cross-origin
-path. `player.js` points at `/video/` on any host that isn't `avand.fm`, so
-nothing needs editing to preview — and that includes a phone on the tunnel.
+Serves the site from the repo. **Video comes from R2**, in preview exactly as in
+production — the same bucket, the same URLs, the real cross-origin path.
+
+Preview used to read video from a local `dist/`, which meant only a machine that
+had built it could show the page. A second Mac would pull the repo, run the
+site, and get every module video 404ing, because `dist/` is gitignored and its
+sources are 2GB of camera masters. Reading from R2 costs nothing and works
+everywhere: a fresh clone, a phone on the LAN, the tunnel.
+
+The tradeoff is that a new video has to be uploaded before it can be previewed.
+That is the right way round — upload is one command, and it means what you
+preview is what visitors get.
 
 `NO_TUNNEL=1 ../bin/dev` skips the tunnel, if local is all you want.
 

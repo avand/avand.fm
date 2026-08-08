@@ -2,8 +2,12 @@
 #
 # Serve avand.fm locally, and over the tunnel if one is available.
 #
-#   bin/dev              site on :8100, video on :8101, plus the tunnel
+#   bin/dev              site on :8100, plus the tunnel
 #   NO_TUNNEL=1 bin/dev  local only
+#
+# Video is not served from here. It comes from https://video.avand.fm in
+# preview exactly as in production, so any machine can show the page without
+# first building 400MB of renditions it has no sources for.
 #
 # A tunnel only exists while a cloudflared process is running: it holds an
 # outbound connection to Cloudflare, and requests for the hostname are routed
@@ -18,7 +22,6 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 SITE_PORT="${SITE_PORT:-8100}"
-VIDEO_PORT="${VIDEO_PORT:-8101}"
 HOSTNAME_FM="fm.avand.dev"
 TUNNEL_CONFIG="$HOME/.cloudflared/avand-fm.yml"
 VIDEO_DIR="video"
@@ -39,7 +42,7 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-python3 "$VIDEO_DIR/preview.py" "$SITE_PORT" "$VIDEO_PORT" &
+python3 "$VIDEO_DIR/preview.py" "$SITE_PORT" &
 server_pid=$!
 
 echo "  local   http://localhost:$SITE_PORT/headroom/"

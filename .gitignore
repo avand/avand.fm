@@ -1,12 +1,12 @@
 .DS_Store
 
-# Camera masters for the Headroom videos (~2.1GB) and the HLS ladder built from
-# them (~400MB). Neither belongs in git: the masters are the originals, and the
-# renditions are derived output published to Cloudflare R2 by video/upload.sh.
-# The scripts that produce them are tracked; what they produce is not.
-#
-# src/ is the only copy of the masters -- nothing else has them. Back it up.
-video/src/
+# video/src/ is a drop box for camera masters on their way to R2, and
+# video/dist/ is the HLS ladder built from them. Both are working space, not
+# content: the masters are archived in Google Drive, and the renditions live in
+# the R2 bucket once uploaded. The scripts that do the work are tracked; what
+# passes through them is not. Keep src/ itself so there is somewhere to drop.
+video/src/*
+!video/src/.gitkeep
 video/dist/
 
 # Local wrangler state (account cache), written when video/upload.sh runs.

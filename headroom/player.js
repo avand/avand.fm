@@ -17,19 +17,21 @@
 (function () {
   "use strict";
 
-  // Swap this one string to move the video; nothing else in the page knows
-  // where the media lives. Cloudflare R2 behind a custom domain: no egress
-  // charge, honours Range requests (which the byte-range HLS depends on), and
-  // its CORS rules allow this origin.
-  var VIDEO_BASE = "https://video.avand.fm/";
+  /* Where the media lives -- the only place the page knows it, so moving hosts
+     is this one string.
 
-  // Anywhere that isn't the real site is a preview -- localhost, a phone on the
-  // LAN, a tunnel -- and the preview server mounts the video alongside the
-  // site. Same-origin means a preview works from any host that can reach the
-  // machine, where a hardcoded 127.0.0.1 would mean nothing.
-  if (!/(^|\.)avand\.fm$/.test(location.hostname)) {
-    VIDEO_BASE = "/video/";
-  }
+     Cloudflare R2 behind a custom domain: no egress charge, honours Range
+     requests (which the byte-range HLS depends on -- each rendition is one file
+     that players seek into by offset), and CORS allows any origin, so this
+     works from the real site, localhost, a phone on the LAN, and the tunnel
+     alike.
+
+     Preview reads from the same bucket as production on purpose. Serving video
+     out of a local directory meant only a machine that had built it could show
+     the page, and the build needs the camera masters -- so a second machine, or
+     a fresh clone, got a site with no video and no hint why. A new video is a
+     new asset: upload it, then preview it. */
+  var VIDEO_BASE = "https://video.avand.fm/";
 
   var HLS_LIB = "hls.min.js";
 
