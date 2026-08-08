@@ -115,8 +115,12 @@
       left: 0;
       right: 0;
       z-index: 100;
-      background: rgba(10, 10, 15, 0.85);
-      backdrop-filter: blur(1em);
+      /* Deliberately not backdrop-filter. A blur behind a fixed bar has to be
+         recomputed against whatever is moving underneath it, every frame, for
+         the whole length of the page -- the single most expensive thing on a
+         phone here. Nearly opaque looks the same on a dark page and costs
+         nothing. */
+      background: rgba(10, 10, 15, 0.94);
       border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
@@ -214,12 +218,16 @@
     }
 
     /* The vignette the hero has always had. */
+    /* A gradient rather than inset box-shadow: the shadow's blur radius is
+       about 150px across the whole viewport, and it has to be repainted as the
+       hero moves. This composites instead. */
     .hero-sticky::after {
       content: "";
       position: absolute;
       inset: 0;
       z-index: 1;
-      box-shadow: inset 0 0 8em 2em var(--bg);
+      background: radial-gradient(120% 100% at 50% 50%,
+          rgba(10, 10, 15, 0) 55%, var(--bg) 100%);
       pointer-events: none;
     }
 
@@ -510,6 +518,13 @@
         transform: none;
         will-change: auto;
       }
+
+      /* The video scales as it arrives and leaves, and every rescale
+         re-rasterises its layer -- a 110px shadow makes that far more
+         expensive than the shadow is worth on a small screen. */
+      .hero-video .player {
+        box-shadow: 0 1em 2em rgba(0, 0, 0, 0.6);
+      }
     }
 
     .btn-primary {
@@ -732,8 +747,7 @@
       font: inherit;
       width: 2.3em;
       height: 2.3em;
-      background: rgba(10, 10, 15, 0.68);
-      backdrop-filter: blur(0.5em);
+      background: rgba(10, 10, 15, 0.78);
       border: none;
       padding: 0;
       cursor: pointer;
@@ -1603,7 +1617,8 @@
       content: "";
       position: absolute;
       inset: 0;
-      box-shadow: inset 0 0 8em 2em var(--bg);
+      background: radial-gradient(120% 100% at 50% 50%,
+          rgba(10, 10, 15, 0) 55%, var(--bg) 100%);
       pointer-events: none;
     }
 
