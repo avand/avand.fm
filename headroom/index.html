@@ -925,17 +925,15 @@
       }
     }
 
-    /* The timeline names the week on desktop, so the slide doesn't repeat it.
-       Below 901px the curriculum is a stacked list with no timeline, and this
-       is the only thing that says which week it is. */
+    /* The timeline names the week wherever it is pinned, so the slide doesn't
+       repeat it. Only the stacked fallback -- which has no timeline -- needs to
+       say which week it is. */
     .module-week {
       display: none;
     }
 
-    @media (max-width: 900px) {
-      .module-week {
-        display: block;
-      }
+    .curr-scroll:not(.is-scroller) .module-week {
+      display: block;
     }
 
     /* Switching into pinned mode would otherwise animate all eight slides from
@@ -1280,6 +1278,55 @@
 
       .tl-track {
         height: 1.6em;
+      }
+    }
+
+    /* Pinned on a phone: the same slide-by-slide sequence as on a desktop,
+       but the copy has to fit one screen without scrolling inside it. These
+       only apply while pinned -- the stacked fallback keeps its roomier
+       setting. */
+    @media (max-width: 900px) {
+      .curr-scroll.is-scroller .curr-slide {
+        padding: 7em 1.2em 2em;
+      }
+
+      .curr-scroll.is-scroller .curr-head {
+        margin-bottom: 0.9em;
+      }
+
+      .curr-scroll.is-scroller .curr-slide h3 {
+        font-size: clamp(1.55em, 7vw, 2.1em);
+        margin: 0.05em 0 0.35em;
+      }
+
+      .curr-scroll.is-scroller .module-outcome {
+        font-size: 1em;
+        line-height: 1.4;
+        margin-bottom: 0;
+      }
+
+      .curr-scroll.is-scroller .curr-cols {
+        gap: 1.1em;
+      }
+
+      /* A little narrower buys back vertical space at 16:9. */
+      .curr-scroll.is-scroller .curr-media {
+        width: 84%;
+        margin: 0 auto;
+      }
+
+      .curr-scroll.is-scroller .module-points {
+        gap: 0.2em;
+      }
+
+      .curr-scroll.is-scroller .module-points li {
+        font-size: 0.92em;
+        line-height: 1.4;
+      }
+
+      .curr-scroll.is-scroller .read-more {
+        margin-top: 0.9em;
+        padding: 0.4em 1em;
       }
     }
 

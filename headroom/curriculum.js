@@ -14,9 +14,11 @@
  * trackpad momentum and all, and Escape-hatch behaviours like find-in-page and
  * jumping to an anchor keep working.
  *
- * It also switches itself off where it would do more harm than good: on narrow
- * screens, and for anyone who asked for reduced motion. Both fall back to the
- * plain stacked list, with each video playing as it scrolls into view.
+ * A phone gets the same sequence, on a compacted type scale that keeps a slide
+ * inside one screen. It switches off only where a slide genuinely cannot fit --
+ * very small or very short viewports -- and for anyone who asked for reduced
+ * motion. Those fall back to the plain stacked list, with each video playing as
+ * it scrolls into view.
  */
 (function () {
   "use strict";
@@ -29,11 +31,11 @@
   );
   if (!slides.length) return;
 
-  // Pinning needs room: a wide enough viewport for the two-column slide, and a
-  // tall enough one that a slide fits without being clipped by the sticky
-  // stage. Anything else gets the plain stacked list.
+  // Pinning needs room for a whole slide on one screen. Measured against the
+  // tallest of them, a 390x844 phone clears it with the compact scale; below
+  // that there is not enough height, so the stacked list takes over.
   var pinnedQuery = window.matchMedia(
-    "(min-width: 901px) and (min-height: 620px) and (prefers-reduced-motion: no-preference)"
+    "(min-width: 380px) and (min-height: 620px) and (prefers-reduced-motion: no-preference)"
   );
 
   var pinned = false;
