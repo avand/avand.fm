@@ -68,7 +68,11 @@
     var curr = curriculum();
     if (!curr) return;
 
-    var vh = window.innerHeight;
+    // Progress is measured in the locked unit the curriculum is sized in;
+    // placement uses the live height, so it sits correctly on screen whatever
+    // the browser chrome is doing.
+    var vh = window.__vh || window.innerHeight;
+    var screenH = window.innerHeight;
     var rect = curr.el.getBoundingClientRect();
     var pinned = curr.isPinned();
 
@@ -116,7 +120,7 @@
 
     var height = el.offsetHeight;
     var topY = (nav ? nav.offsetHeight : 0) + 18;
-    var bottomY = vh - height - 34;
+    var bottomY = screenH - height - 34;
     var y = bottomY + (topY - bottomY) * pos;
 
     /* Past the last week the region releases and its final slide scrolls away.
@@ -124,7 +128,7 @@
        once the region's bottom edge rises above the fold, the timeline rides it
        up and off, the way a sticky header stops sticking at the end of its
        section. */
-    y += Math.min(0, rect.bottom - vh);
+    y += Math.min(0, rect.bottom - screenH);
 
     el.style.setProperty("--tl-y", Math.round(y) + "px");
     el.style.setProperty("--t", t.toFixed(4));

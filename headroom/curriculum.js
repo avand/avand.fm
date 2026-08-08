@@ -94,6 +94,43 @@
     // One viewport of scrolling per module, with the last one getting a full
     // viewport of dwell before the page moves on.
     scroller.style.setProperty("--slides", slides.length);
+    fitSlides();
+  }
+
+  /* A pinned slide has exactly one screen, and its copy is written by hand --
+     a couple of extra bullets, or a phone's toolbar eating a hundred pixels,
+     and it would run under the timeline. Rather than tune the type for the
+     longest module and hope, each slide is measured and scaled down only if it
+     needs it. Almost always this is 1.
+
+     Two passes with a reflow between: the first clears any previous scale so
+     the natural height can be read, the second applies what is needed. */
+  function fitSlides() {
+    if (!pinned) return;
+
+    var stage = scroller.querySelector(".curr-stage");
+    if (!stage) return;
+
+    var inners = slides.map(function (slide) {
+      var inner = slide.querySelector(".curr-slide-inner");
+      if (inner) inner.style.setProperty("--fit", "1");
+      return inner;
+    });
+
+    var available = stage.clientHeight;
+    void stage.offsetHeight; // flush the reset before measuring
+
+    inners.forEach(function (inner, i) {
+      if (!inner) return;
+      var style = window.getComputedStyle(slides[i]);
+      var padding =
+        parseFloat(style.paddingTop || 0) + parseFloat(style.paddingBottom || 0);
+      var needed = inner.getBoundingClientRect().height + padding;
+      // A floor, so a runaway slide shrinks to illegibility rather than
+      // silently: if it ever hits this, the copy is the thing to fix.
+      var fit = Math.max(0.75, Math.min(1, available / needed));
+      inner.style.setProperty("--fit", fit.toFixed(3));
+    });
   }
 
   function update() {
@@ -101,7 +138,8 @@
     if (!pinned) return;
 
     var rect = scroller.getBoundingClientRect();
-    var step = window.innerHeight;
+    // Same locked unit the region is sized in; see the note in index.html.
+    var step = window.__vh || window.innerHeight;
     var travelled = -rect.top;
     var index = Math.floor(travelled / step);
     index = Math.max(0, Math.min(slides.length - 1, index));
@@ -138,17 +176,24 @@
     });
 
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    window.addEventListener("resize", onResize);
+  }
+
+  function onResize() {
+    fitSlides();
+    onScroll();
   }
 
   function disablePinned() {
     pinned = false;
     scroller.classList.remove("is-scroller", "is-pinned");
     window.removeEventListener("scroll", onScroll);
-    window.removeEventListener("resize", onScroll);
+    window.removeEventListener("resize", onResize);
 
     // Plain stacked list: every slide visible, every video minding itself.
     slides.forEach(function (slide) {
+      var inner = slide.querySelector(".curr-slide-inner");
+      if (inner) inner.style.removeProperty("--fit");
       slide.classList.remove("is-active", "is-before", "is-after");
       slide.removeAttribute("aria-hidden");
       slide.querySelectorAll("[tabindex='-1']").forEach(function (el) {
@@ -176,7 +221,7 @@
     window.scrollTo({
       // A pixel inside the band, not exactly on its edge: landing on the
       // boundary can floor to the week before.
-      top: scroller.offsetTop + i * window.innerHeight + 2,
+      top: scroller.offsetTop + i * (window.__vh || window.innerHeight) + 2,
       behavior: behavior,
     });
   }
@@ -202,7 +247,7 @@
     if (!delta) return;
     var target = Math.max(0, Math.min(slides.length - 1, active + delta));
     window.scrollTo({
-      top: scroller.offsetTop + target * window.innerHeight,
+      top: scroller.offsetTop + target * (window.__vh || window.innerHeight),
       behavior: "smooth",
     });
     e.preventDefault();

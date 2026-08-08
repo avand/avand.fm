@@ -22,6 +22,42 @@
   <!-- Fathom Analytics -->
   <script src="https://cdn.usefathom.com/script.js" data-site="ITRXNPNT" defer></script>
 
+  <script>
+    /*
+     * One viewport unit that CSS and JavaScript agree on.
+     *
+     * On a phone these disagree: CSS vh is the large viewport, measured with
+     * the browser chrome hidden, while window.innerHeight is whatever is on
+     * screen right now. The scroll choreography measures progress in
+     * innerHeight, so anything it moves has to be sized in the same unit --
+     * otherwise the motion is calibrated to one number and the distance to
+     * another, and they slide apart as the toolbar hides.
+     *
+     * It is deliberately locked. Recalculating while the toolbar slides away
+     * would re-time every animation mid-scroll, which is exactly the stutter
+     * this avoids; only a real change of shape, like a rotation, updates it.
+     */
+    (function () {
+      var locked = 0;
+      function setUnit(force) {
+        var h = window.innerHeight;
+        if (!force && Math.abs(h - locked) < 120) return;
+        locked = h;
+        window.__vh = h;
+        document.documentElement.style.setProperty("--vh", h / 100 + "px");
+      }
+      setUnit(true);
+      window.addEventListener("resize", function () {
+        setUnit(false);
+      });
+      window.addEventListener("orientationchange", function () {
+        setTimeout(function () {
+          setUnit(true);
+        }, 250);
+      });
+    })();
+  </script>
+
   <style>
     :root {
       --bg: #0a0a0f;
@@ -152,13 +188,13 @@
       position: relative;
       /* Rise, dwell, exit, then the curriculum intro's own dwell -- plus the
          viewport the sticky child itself occupies. */
-      height: 480vh;
+      height: calc(var(--vh, 1vh) * 480);
     }
 
     .hero-sticky {
       position: sticky;
       top: 0;
-      height: 100vh;
+      height: calc(var(--vh, 1vh) * 100);
       overflow: hidden;
       display: flex;
       align-items: center;
@@ -169,6 +205,7 @@
       position: absolute;
       inset: 0;
       z-index: 0;
+      will-change: transform;
       background:
         linear-gradient(to bottom, rgba(10, 10, 15, 0.55) 0%, rgba(10, 10, 15, 0.85) 80%, var(--bg) 100%),
         url('djvibe-studiox-urXtcqrAW18-unsplash.jpg') center / cover no-repeat;
@@ -333,14 +370,14 @@
     .hero-video {
       position: relative;
       z-index: 4;
-      width: min(calc(100vw - 3em), calc((100vh - 8em) * 16 / 9));
+      width: min(calc(100vw - 3em), calc((var(--vh, 1vh) * 100 - 8em) * 16 / 9));
       transform:
         /* In the second move the video travels exactly as far as the heading
            does, so the space between them is fixed once the heading has
            arrived: it closes to its margin and then the pair rises together,
            the heading pushing the video off the top. Moving the video a whole
            viewport instead would open the gap back up on the way out. */
-        translateY(calc((1 - var(--p)) * 100vh - var(--q2) * var(--dock, 60vh)))
+        translateY(calc((1 - var(--p)) * var(--vh, 1vh) * 100 - var(--q2) * var(--dock, 60vh)))
         scale(calc(0.94 + var(--p) * 0.06 - var(--q2) * 0.06));
       opacity: clamp(0, calc((var(--p) - var(--q2)) * 1.5), 1);
       will-change: transform;
@@ -357,6 +394,7 @@
       position: absolute;
       inset: 0;
       z-index: 5;
+      will-change: transform;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -367,7 +405,7 @@
          is that offset from its centred position). Only then does everything
          travel up together: the video away, this to centre. */
       transform: translateY(
-        calc((1 - var(--q1)) * (100vh - var(--dock, 60vh)) + (1 - var(--q2)) * var(--dock, 60vh)));
+        calc((1 - var(--q1)) * (var(--vh, 1vh) * 100 - var(--dock, 60vh)) + (1 - var(--q2)) * var(--dock, 60vh)));
     }
 
     /* Used for a single measurement of the heading's resting position. */
@@ -455,7 +493,7 @@
 
     @media (max-width: 640px) {
       .hero-stage {
-        height: 420vh;
+        height: calc(var(--vh, 1vh) * 420);
       }
 
       .hero-content {
@@ -463,7 +501,14 @@
       }
 
       .hero-video {
-        width: min(calc(100vw - 1.6em), calc((100vh - 6em) * 16 / 9));
+        width: min(calc(100vw - 1.6em), calc((var(--vh, 1vh) * 100 - 6em) * 16 / 9));
+      }
+
+      /* Rescaling a full-screen photograph every frame costs the most and shows
+         the least. The veil still carries the change in depth. */
+      .hero-bg {
+        transform: none;
+        will-change: auto;
       }
     }
 
@@ -894,6 +939,9 @@
 
     .curr-slide-inner {
       width: 100%;
+      /* Set by curriculum.js when a slide's copy is taller than the screen it
+         has to fit in. 1 in every ordinary case. */
+      transform: scale(var(--fit, 1));
       /* Pinned slides are inset:0 on the full viewport, which overrides the
          wrapper's max-width, so the content column is constrained here. */
       max-width: 1140px;
@@ -951,14 +999,14 @@
          child itself occupies. Without the extra one the region only travels
          slides - 1 viewports, and the last week becomes active exactly as the
          region releases -- so it is never seen except on its way out. */
-      height: calc((var(--slides) + 1) * 100vh);
+      height: calc((var(--slides) + 1) * var(--vh, 1vh) * 100);
       position: relative;
     }
 
     .curr-scroll.is-scroller .curr-stage {
       position: sticky;
       top: 0;
-      height: 100vh;
+      height: calc(var(--vh, 1vh) * 100);
       display: flex;
       align-items: center;
       overflow: hidden;
@@ -2184,7 +2232,6 @@
                 <li>Smart playlists by tempo, key, lyrics, vibe, tag, and acoustic similarity</li>
                 <li>How many tracks to prepare for different kinds of gigs</li>
                 <li>A pre-flight checklist so you&rsquo;re locked in from the first track</li>
-                <li class="optional">Optional add-on: AI workflows that auto-acquire newly discovered music</li>
                 </ul>
                 <button class="read-more">
                 Read more

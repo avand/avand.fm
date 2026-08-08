@@ -23,10 +23,17 @@
 
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
+  /* The locked viewport unit, matching what the stylesheet sizes against. Using
+     live innerHeight here would re-time the whole sequence every time a phone's
+     toolbar slid away. */
+  function vhUnit() {
+    return window.__vh || window.innerHeight;
+  }
+
   // The video arrives over the first viewport of scrolling; the rest of the
   // region is the dwell where it sits locked in place.
   function riseDistance() {
-    return window.innerHeight;
+    return vhUnit();
   }
 
   var video = stage.querySelector(".hero-video");
@@ -40,7 +47,7 @@
   function measureDock() {
     if (!video || !introInner || !sticky) return;
 
-    var vh = window.innerHeight;
+    var vh = vhUnit();
     // This is now the gap for the entire second move, not a moment in passing,
     // so it is set for comfort rather than for the tightest point.
     var margin = Math.max(64, vh * 0.1);
@@ -137,11 +144,24 @@
   var locked = false;
   var ticking = false;
 
+  /* Each of these invalidates every calc() in the stage that reads it, and the
+     stage is most of the screen. Three decimals is finer than a pixel over a
+     viewport of travel, so anything below that is work for no visible gain --
+     which is what makes this expensive on a phone. */
+  var written = {};
+
+  function setVar(name, value) {
+    var rounded = value.toFixed(3);
+    if (written[name] === rounded) return;
+    written[name] = rounded;
+    stage.style.setProperty(name, rounded);
+  }
+
   function update() {
     ticking = false;
 
     var rect = stage.getBoundingClientRect();
-    var vh = window.innerHeight;
+    var vh = vhUnit();
     var travelled = -rect.top;
 
     // How far the sticky child stays pinned before the region runs out.
@@ -173,10 +193,10 @@
     var dwellLength = Math.max(1, travel - dwellStart);
     var d = Math.min(1, Math.max(0, (travelled - dwellStart) / dwellLength));
 
-    stage.style.setProperty("--p", p.toFixed(4));
-    stage.style.setProperty("--q", q.toFixed(4));
-    stage.style.setProperty("--q1", q1.toFixed(4));
-    stage.style.setProperty("--q2", q2.toFixed(4));
+    setVar("--p", p);
+    setVar("--q", q);
+    setVar("--q1", q1);
+    setVar("--q2", q2);
 
     if (window.Headroom) window.Headroom.hero = { p: p, q: q, d: d };
 
