@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+#
+# Serve avand.fm locally, and over the tunnel if one is available.
+#
+#   bin/dev              site on :8100, video on :8101, plus the tunnel
+#   NO_TUNNEL=1 bin/dev  local only
+#
+# A tunnel only exists while a cloudflared process is running: it holds an
+# outbound connection to Cloudflare, and requests for the hostname are routed
+# down that live connection. No process, no tunnel.
+#
+# This uses its own tunnel, separate from The Intern's. Separate tunnels never
+# compete, so both projects can run at once and neither affects the other --
+# where sharing one meant The Intern's idle watchdog would take this down after
+# thirty minutes of *its* inactivity.
+
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+SITE_PORT="${SITE_PORT:-8100}"
+VIDEO_PORT="${VIDEO_PORT:-8101}"
+HOSTNAME_FM="fm.avand.dev"
+TUNNEL_CONFIG="$HOME/.cloudflared/avand-fm.yml"
+VIDEO_REPO="${VIDEO_REPO:-$HOME/Code/headroom-video}"
+
+if [ ! -f "$VIDEO_REPO/preview.py" ]; then
+  echo "Can't find the video repo at $VIDEO_REPO" >&2
+  echo "Set VIDEO_REPO=/path/to/headroom-video" >&2
+  exit 1
+fi
+
+started_tunnel=""
+
+cleanup() {
+  # Only ever stop what this script started.
+  [ -n "${server_pid:-}" ] && kill "$server_pid" 2>/dev/null || true
+  if [ -n "$started_tunnel" ]; then
+    kill "$started_tunnel" 2>/dev/null || true
+  fi
+}
+trap cleanup EXIT INT TERM
+
+python3 "$VIDEO_REPO/preview.py" "$SITE_PORT" "$VIDEO_PORT" &
+server_pid=$!
+
+echo "  local   http://localhost:$SITE_PORT/headroom/"
+
+if [ "${NO_TUNNEL:-}" = "1" ]; then
+  echo "  tunnel  skipped (NO_TUNNEL=1)"
+else
+  if pgrep -f "cloudflared tunnel --config $TUNNEL_CONFIG" >/dev/null 2>&1; then
+    echo "  tunnel  https://$HOSTNAME_FM/headroom/  (already running)"
+  elif ! command -v cloudflared >/dev/null 2>&1; then
+    echo "  tunnel  unavailable (cloudflared not installed)"
+  elif [ ! -f "$TUNNEL_CONFIG" ]; then
+    echo "  tunnel  unavailable (no $TUNNEL_CONFIG)"
+  else
+    cloudflared tunnel --config "$TUNNEL_CONFIG" run >/dev/null 2>&1 &
+    started_tunnel=$!
+    # Give it a moment to register before claiming it works.
+    for _ in $(seq 1 20); do
+      sleep 1
+      if curl -sS -m 5 -o /dev/null "https://$HOSTNAME_FM/headroom/" 2>/dev/null; then break; fi
+    done
+    echo "  tunnel  https://$HOSTNAME_FM/headroom/"
+  fi
+fi
+
+echo
+echo "Ctrl-C to stop."
+wait "$server_pid"
