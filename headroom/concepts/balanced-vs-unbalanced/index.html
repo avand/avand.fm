@@ -44,6 +44,82 @@ subsection: Balanced vs. Unbalanced
     on its own interference, then correcting for it.
   </p>
 
+  <svg viewBox="0 0 720 280" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:720px;display:block;margin:1.5em 0 2em;font-family:'Cairo',sans-serif;">
+
+    <!-- UNBALANCED (top half) -->
+    <text x="12" y="22" fill="#8a8a9a" font-size="9" font-weight="700" letter-spacing="0.1em" font-family="Cairo,sans-serif">UNBALANCED (RCA / TS)</text>
+
+    <!-- Source box -->
+    <rect x="12" y="30" width="80" height="70" rx="6" fill="#13131a" stroke="rgba(255,255,255,0.08)"/>
+    <text x="52" y="58" fill="#e4e4eb" font-size="9" font-weight="700" text-anchor="middle" font-family="Cairo,sans-serif">SOURCE</text>
+    <text x="52" y="72" fill="#8a8a9a" font-size="8" text-anchor="middle" font-family="Cairo,sans-serif">turntable</text>
+
+    <!-- Cable -->
+    <rect x="92" y="52" width="460" height="24" rx="4" fill="#1e1e28" stroke="rgba(255,255,255,0.06)"/>
+    <!-- Signal wire -->
+    <line x1="92" y1="60" x2="552" y2="60" stroke="#9207c3" stroke-width="2"/>
+    <text x="322" y="57" fill="#9207c3" font-size="8" text-anchor="middle" font-family="Cairo,sans-serif">signal →</text>
+    <!-- Ground -->
+    <line x1="92" y1="70" x2="552" y2="70" stroke="#8a8a9a" stroke-width="1.5"/>
+    <text x="322" y="79" fill="#8a8a9a" font-size="8" text-anchor="middle" font-family="Cairo,sans-serif">ground →</text>
+
+    <!-- Noise pickup -->
+    <path d="M200,44 Q210,36 220,44" fill="none" stroke="rgba(255,80,80,0.6)" stroke-width="1.5"/>
+    <path d="M300,44 Q310,36 320,44" fill="none" stroke="rgba(255,80,80,0.6)" stroke-width="1.5"/>
+    <path d="M400,44 Q410,36 420,44" fill="none" stroke="rgba(255,80,80,0.6)" stroke-width="1.5"/>
+    <text x="310" y="32" fill="rgba(255,80,80,0.7)" font-size="8" text-anchor="middle" font-family="Cairo,sans-serif">noise pickup</text>
+
+    <!-- Destination box -->
+    <rect x="552" y="30" width="80" height="70" rx="6" fill="#13131a" stroke="rgba(255,255,255,0.08)"/>
+    <text x="592" y="54" fill="#e4e4eb" font-size="9" font-weight="700" text-anchor="middle" font-family="Cairo,sans-serif">MIXER</text>
+    <text x="592" y="68" fill="rgba(255,80,80,0.8)" font-size="8" text-anchor="middle" font-family="Cairo,sans-serif">+ noise</text>
+    <text x="592" y="80" fill="rgba(255,80,80,0.6)" font-size="8" text-anchor="middle" font-family="Cairo,sans-serif">no fix</text>
+
+    <!-- Divider -->
+    <line x1="0" y1="125" x2="720" y2="125" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+
+    <!-- BALANCED (bottom half) -->
+    <text x="12" y="148" fill="#8a8a9a" font-size="9" font-weight="700" letter-spacing="0.1em" font-family="Cairo,sans-serif">BALANCED (XLR / TRS)</text>
+
+    <!-- Source box -->
+    <rect x="12" y="158" width="80" height="90" rx="6" fill="#13131a" stroke="rgba(255,255,255,0.08)"/>
+    <text x="52" y="180" fill="#e4e4eb" font-size="9" font-weight="700" text-anchor="middle" font-family="Cairo,sans-serif">SOURCE</text>
+    <text x="52" y="194" fill="#9207c3" font-size="8" text-anchor="middle" font-family="Cairo,sans-serif">hot (+)</text>
+    <text x="52" y="208" fill="#ff6116" font-size="8" text-anchor="middle" font-family="Cairo,sans-serif">cold (–)</text>
+    <text x="52" y="222" fill="#8a8a9a" font-size="8" text-anchor="middle" font-family="Cairo,sans-serif">ground</text>
+
+    <!-- Cable -->
+    <rect x="92" y="158" width="460" height="90" rx="4" fill="#1e1e28" stroke="rgba(255,255,255,0.06)"/>
+    <!-- Hot wire -->
+    <line x1="92" y1="178" x2="552" y2="178" stroke="#9207c3" stroke-width="2"/>
+    <text x="322" y="175" fill="#9207c3" font-size="8" text-anchor="middle" font-family="Cairo,sans-serif">hot: signal (+) →</text>
+    <!-- Cold wire -->
+    <line x1="92" y1="203" x2="552" y2="203" stroke="#ff6116" stroke-width="2"/>
+    <text x="322" y="200" fill="#ff6116" font-size="8" text-anchor="middle" font-family="Cairo,sans-serif">cold: signal (–) →</text>
+    <!-- Ground -->
+    <line x1="92" y1="228" x2="552" y2="228" stroke="#8a8a9a" stroke-width="1.5"/>
+    <text x="322" y="238" fill="#8a8a9a" font-size="8" text-anchor="middle" font-family="Cairo,sans-serif">ground →</text>
+
+    <!-- Noise hits both wires equally -->
+    <path d="M250,150 Q260,142 270,150" fill="none" stroke="rgba(255,80,80,0.5)" stroke-width="1.5"/>
+    <path d="M380,150 Q390,142 400,150" fill="none" stroke="rgba(255,80,80,0.5)" stroke-width="1.5"/>
+    <text x="325" y="142" fill="rgba(255,80,80,0.6)" font-size="8" text-anchor="middle" font-family="Cairo,sans-serif">same noise hits both wires</text>
+
+    <!-- Destination box -->
+    <rect x="552" y="158" width="80" height="90" rx="6" fill="#13131a" stroke="rgba(255,255,255,0.08)"/>
+    <text x="592" y="178" fill="#e4e4eb" font-size="9" font-weight="700" text-anchor="middle" font-family="Cairo,sans-serif">MIXER</text>
+    <text x="592" y="194" fill="#8a8a9a" font-size="8" text-anchor="middle" font-family="Cairo,sans-serif">flip cold,</text>
+    <text x="592" y="206" fill="#8a8a9a" font-size="8" text-anchor="middle" font-family="Cairo,sans-serif">add to hot:</text>
+    <text x="592" y="222" fill="#9207c3" font-size="8" text-anchor="middle" font-family="Cairo,sans-serif">noise cancels</text>
+    <text x="592" y="236" fill="#9207c3" font-size="8" text-anchor="middle" font-family="Cairo,sans-serif">signal doubles</text>
+
+    <!-- Length label -->
+    <line x1="92" y1="260" x2="552" y2="260" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+    <line x1="92" y1="256" x2="92" y2="264" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+    <line x1="552" y1="256" x2="552" y2="264" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+    <text x="322" y="275" fill="#8a8a9a" font-size="8" text-anchor="middle" font-family="Cairo,sans-serif">can run 50–100+ ft without audible noise</text>
+  </svg>
+
   <div class="callout">
     <p>
       This trick (called <a href="/headroom/concepts/common-mode-rejection/">common-mode rejection</a>) is why balanced cables can

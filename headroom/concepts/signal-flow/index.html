@@ -40,6 +40,51 @@ subsection: Signal Flow
     In most club setups, the signal moves like this:
   </p>
 
+  <svg viewBox="0 0 720 120" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:720px;display:block;margin:1.5em 0 2em;font-family:'Cairo',sans-serif;">
+    <defs>
+      <marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#8a8a9a"/>
+      </marker>
+    </defs>
+    <!-- boxes -->
+    <g fill="#13131a" stroke="rgba(255,255,255,0.08)" stroke-width="1">
+      <rect x="0"   y="30" width="96" height="52" rx="6"/>
+      <rect x="148" y="30" width="96" height="52" rx="6"/>
+      <rect x="296" y="30" width="96" height="52" rx="6"/>
+      <rect x="444" y="30" width="96" height="52" rx="6"/>
+      <rect x="592" y="30" width="96" height="52" rx="6"/>
+    </g>
+    <!-- labels -->
+    <g fill="#e4e4eb" font-size="11" font-weight="700" text-anchor="middle">
+      <text x="48"  y="52">SOURCE</text>
+      <text x="196" y="52">MIXER</text>
+      <text x="344" y="52">MASTER</text>
+      <text x="492" y="52">AMP</text>
+      <text x="640" y="52">SPEAKERS</text>
+    </g>
+    <g fill="#8a8a9a" font-size="9" text-anchor="middle">
+      <text x="48"  y="67">CDJ / turntable</text>
+      <text x="196" y="67">channel + fader</text>
+      <text x="344" y="67">output fader</text>
+      <text x="492" y="67">power amp</text>
+      <text x="640" y="67">PA + booth</text>
+    </g>
+    <!-- arrows -->
+    <g stroke="#8a8a9a" stroke-width="1.5" marker-end="url(#arr)">
+      <line x1="97"  y1="56" x2="145" y2="56"/>
+      <line x1="245" y1="56" x2="293" y2="56"/>
+      <line x1="393" y1="56" x2="441" y2="56"/>
+      <line x1="541" y1="56" x2="589" y2="56"/>
+    </g>
+    <!-- level labels -->
+    <g fill="#9207c3" font-size="8" text-anchor="middle">
+      <text x="121" y="48">line level</text>
+      <text x="269" y="48">line level</text>
+      <text x="417" y="48">line level</text>
+      <text x="565" y="48">speaker level</text>
+    </g>
+  </svg>
+
   <ol>
     <li><strong>Source</strong> — a media player, turntable, or laptop outputs an audio signal at <a href="/headroom/concepts/line-level/">line level</a>.</li>
     <li><strong>Mixer channel</strong> — the signal enters a channel on the mixer, where the gain knob sets the input level and the channel fader controls how much reaches the mix bus.</li>

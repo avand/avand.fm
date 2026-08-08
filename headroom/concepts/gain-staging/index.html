@@ -56,6 +56,65 @@ subsection: Gain Staging
     </p>
   </div>
 
+  <svg viewBox="0 0 720 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:720px;display:block;margin:1.5em 0 2em;font-family:'Cairo',sans-serif;">
+    <defs>
+      <marker id="gs-arr" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#8a8a9a"/>
+      </marker>
+    </defs>
+    <!-- Stage boxes -->
+    <g fill="#13131a" stroke="rgba(255,255,255,0.08)" stroke-width="1">
+      <rect x="10"  y="50" width="100" height="110" rx="6"/>
+      <rect x="165" y="50" width="100" height="110" rx="6"/>
+      <rect x="320" y="50" width="100" height="110" rx="6"/>
+      <rect x="475" y="50" width="100" height="110" rx="6"/>
+      <rect x="630" y="50" width="80"  height="110" rx="6"/>
+    </g>
+    <!-- Stage labels -->
+    <g fill="#8a8a9a" font-size="9" font-weight="700" text-anchor="middle" letter-spacing="0.08em">
+      <text x="60"  y="68">TRIM</text>
+      <text x="215" y="68">CHANNEL</text>
+      <text x="370" y="68">MASTER</text>
+      <text x="525" y="68">AMP</text>
+      <text x="670" y="68">SPEAKERS</text>
+    </g>
+    <!-- Meter bars — healthy green zone -->
+    <!-- Trim meter -->
+    <rect x="38" y="78" width="44" height="70" rx="3" fill="rgba(255,255,255,0.04)"/>
+    <rect x="38" y="108" width="44" height="40" rx="3" fill="#9207c3" opacity="0.85"/>
+    <rect x="38" y="78"  width="44" height="8"  rx="2" fill="rgba(255,80,80,0.25)"/>
+    <text x="60" y="160" fill="#9207c3" font-size="8" text-anchor="middle" font-family="Cairo,sans-serif">–6 dB</text>
+    <!-- Channel meter -->
+    <rect x="193" y="78" width="44" height="70" rx="3" fill="rgba(255,255,255,0.04)"/>
+    <rect x="193" y="108" width="44" height="40" rx="3" fill="#9207c3" opacity="0.85"/>
+    <rect x="193" y="78"  width="44" height="8"  rx="2" fill="rgba(255,80,80,0.25)"/>
+    <text x="215" y="160" fill="#9207c3" font-size="8" text-anchor="middle" font-family="Cairo,sans-serif">–6 dB</text>
+    <!-- Master meter -->
+    <rect x="348" y="78" width="44" height="70" rx="3" fill="rgba(255,255,255,0.04)"/>
+    <rect x="348" y="110" width="44" height="38" rx="3" fill="#9207c3" opacity="0.85"/>
+    <rect x="348" y="78"  width="44" height="8"  rx="2" fill="rgba(255,80,80,0.25)"/>
+    <text x="370" y="160" fill="#9207c3" font-size="8" text-anchor="middle" font-family="Cairo,sans-serif">–8 dB</text>
+    <!-- Amp meter -->
+    <rect x="503" y="78" width="44" height="70" rx="3" fill="rgba(255,255,255,0.04)"/>
+    <rect x="503" y="112" width="44" height="36" rx="3" fill="#9207c3" opacity="0.85"/>
+    <rect x="503" y="78"  width="44" height="8"  rx="2" fill="rgba(255,80,80,0.25)"/>
+    <text x="525" y="160" fill="#9207c3" font-size="8" text-anchor="middle" font-family="Cairo,sans-serif">healthy</text>
+    <!-- Speaker icon (simple) -->
+    <text x="670" y="112" fill="#8a8a9a" font-size="28" text-anchor="middle" font-family="Cairo,sans-serif">♪</text>
+    <text x="670" y="148" fill="#9207c3" font-size="8" text-anchor="middle" font-family="Cairo,sans-serif">clean sound</text>
+    <!-- Clip zone label -->
+    <text x="60" y="76" fill="rgba(255,80,80,0.6)" font-size="7" text-anchor="middle" font-family="Cairo,sans-serif">CLIP</text>
+    <!-- Arrows -->
+    <g stroke="#8a8a9a" stroke-width="1.5" marker-end="url(#gs-arr)">
+      <line x1="111" y1="105" x2="162" y2="105"/>
+      <line x1="266" y1="105" x2="317" y2="105"/>
+      <line x1="421" y1="105" x2="472" y2="105"/>
+      <line x1="576" y1="105" x2="627" y2="105"/>
+    </g>
+    <!-- Title -->
+    <text x="360" y="38" fill="#8a8a9a" font-size="10" text-anchor="middle" font-family="Cairo,sans-serif" letter-spacing="0.1em">HEALTHY GAIN STAGING — EACH STAGE IN ITS SWEET SPOT</text>
+  </svg>
+
   <h2>The stages in a typical DJ rig</h2>
 
   <ul>

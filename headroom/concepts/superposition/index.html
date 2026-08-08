@@ -33,6 +33,65 @@ subsection: Superposition
     means the result depends entirely on how the waves line up.
   </p>
 
+  <svg viewBox="0 0 720 310" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:720px;display:block;margin:1.5em 0 2em;font-family:'Cairo',sans-serif;">
+    <!-- Row 1: Constructive -->
+    <text x="12" y="22" fill="#8a8a9a" font-size="9" font-weight="700" letter-spacing="0.1em" font-family="Cairo,sans-serif">CONSTRUCTIVE — in phase</text>
+    <!-- wave A -->
+    <path d="M12,55 C32,55 36,30 52,30 C68,30 72,80 88,80 C104,80 108,30 124,30 C140,30 144,80 160,80 C176,80 180,30 196,30 C200,30 204,55 214,55" fill="none" stroke="rgba(146,7,195,0.5)" stroke-width="1.5"/>
+    <!-- wave B -->
+    <path d="M12,55 C32,55 36,30 52,30 C68,30 72,80 88,80 C104,80 108,30 124,30 C140,30 144,80 160,80 C176,80 180,30 196,30 C200,30 204,55 214,55" fill="none" stroke="rgba(255,96,22,0.5)" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <!-- result — double amplitude -->
+    <path d="M270,55 C300,55 306,18 330,18 C354,18 360,92 384,92 C408,92 414,18 438,18 C462,18 468,92 492,92 C516,92 522,18 546,18 C552,18 558,55 570,55" fill="none" stroke="#9207c3" stroke-width="2.5"/>
+    <!-- plus sign -->
+    <text x="232" y="59" fill="#8a8a9a" font-size="20" text-anchor="middle" font-family="Cairo,sans-serif">=</text>
+    <text x="600" y="52" fill="#9207c3" font-size="9" font-family="Cairo,sans-serif">+6 dB</text>
+    <text x="600" y="64" fill="#9207c3" font-size="9" font-family="Cairo,sans-serif">louder</text>
+    <!-- center line -->
+    <line x1="12" y1="55" x2="214" y2="55" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+    <line x1="270" y1="55" x2="570" y2="55" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+
+    <!-- Divider -->
+    <line x1="0" y1="115" x2="720" y2="115" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+
+    <!-- Row 2: Destructive -->
+    <text x="12" y="133" fill="#8a8a9a" font-size="9" font-weight="700" letter-spacing="0.1em" font-family="Cairo,sans-serif">DESTRUCTIVE — 180° out of phase</text>
+    <!-- wave A -->
+    <path d="M12,165 C32,165 36,140 52,140 C68,140 72,190 88,190 C104,190 108,140 124,140 C140,140 144,190 160,190 C176,190 180,140 196,140 C200,140 204,165 214,165" fill="none" stroke="rgba(146,7,195,0.5)" stroke-width="1.5"/>
+    <!-- wave B (inverted) -->
+    <path d="M12,165 C32,165 36,190 52,190 C68,190 72,140 88,140 C104,140 108,190 124,190 C140,190 144,140 160,140 C176,140 180,190 196,190 C200,190 204,165 214,165" fill="none" stroke="rgba(255,96,22,0.5)" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <!-- result — flat line (silence) -->
+    <line x1="270" y1="165" x2="570" y2="165" stroke="#8a8a9a" stroke-width="2.5"/>
+    <text x="232" y="169" fill="#8a8a9a" font-size="20" text-anchor="middle" font-family="Cairo,sans-serif">=</text>
+    <text x="600" y="162" fill="#8a8a9a" font-size="9" font-family="Cairo,sans-serif">silence</text>
+    <text x="600" y="174" fill="#8a8a9a" font-size="9" font-family="Cairo,sans-serif">cancelled</text>
+    <line x1="12" y1="165" x2="214" y2="165" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+
+    <!-- Divider -->
+    <line x1="0" y1="225" x2="720" y2="225" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+
+    <!-- Row 3: Partial -->
+    <text x="12" y="243" fill="#8a8a9a" font-size="9" font-weight="700" letter-spacing="0.1em" font-family="Cairo,sans-serif">PARTIAL — most real-world cases</text>
+    <!-- wave A -->
+    <path d="M12,272 C32,272 36,247 52,247 C68,247 72,297 88,297 C104,297 108,247 124,247 C140,247 144,297 160,297 C176,297 180,247 196,247 C200,247 204,272 214,272" fill="none" stroke="rgba(146,7,195,0.5)" stroke-width="1.5"/>
+    <!-- wave B (offset phase) -->
+    <path d="M12,272 C32,272 40,252 62,252 C78,252 82,292 98,292 C114,292 118,252 134,252 C150,252 154,292 170,292 C186,292 190,252 206,252 C210,252 212,272 214,272" fill="none" stroke="rgba(255,96,22,0.5)" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <!-- result — somewhere in between -->
+    <path d="M270,272 C300,272 308,240 332,240 C356,240 362,304 386,304 C410,304 416,244 440,244 C464,244 470,300 494,300 C518,300 524,244 548,244 C552,244 558,272 570,272" fill="none" stroke="#9207c3" stroke-width="2.5" opacity="0.75"/>
+    <text x="232" y="276" fill="#8a8a9a" font-size="20" text-anchor="middle" font-family="Cairo,sans-serif">=</text>
+    <text x="600" y="269" fill="#9207c3" font-size="9" font-family="Cairo,sans-serif">partial</text>
+    <text x="600" y="281" fill="#9207c3" font-size="9" font-family="Cairo,sans-serif">mix</text>
+    <line x1="12" y1="272" x2="214" y2="272" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+    <line x1="270" y1="272" x2="570" y2="272" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+
+    <!-- Legend -->
+    <line x1="12" y1="305" x2="30" y2="305" stroke="rgba(146,7,195,0.5)" stroke-width="1.5"/>
+    <text x="34" y="308" fill="#8a8a9a" font-size="8" font-family="Cairo,sans-serif">Wave A</text>
+    <line x1="75" y1="305" x2="93" y2="305" stroke="rgba(255,96,22,0.5)" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text x="97" y="308" fill="#8a8a9a" font-size="8" font-family="Cairo,sans-serif">Wave B</text>
+    <line x1="138" y1="305" x2="156" y2="305" stroke="#9207c3" stroke-width="2.5"/>
+    <text x="160" y="308" fill="#8a8a9a" font-size="8" font-family="Cairo,sans-serif">Result</text>
+  </svg>
+
   <h2>Constructive and destructive interference</h2>
 
   <p>

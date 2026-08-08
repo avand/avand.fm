@@ -41,6 +41,35 @@ subsection: Clipping
     line at the top and bottom.
   </p>
 
+  <svg viewBox="0 0 720 180" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:720px;display:block;margin:1.5em 0 2em;font-family:'Cairo',sans-serif;">
+    <defs>
+      <clipPath id="left-panel"><rect x="20" y="20" width="320" height="140"/></clipPath>
+      <clipPath id="right-panel"><rect x="380" y="20" width="320" height="140"/></clipPath>
+    </defs>
+    <!-- panels -->
+    <rect x="20"  y="20" width="320" height="140" rx="6" fill="#13131a" stroke="rgba(255,255,255,0.08)"/>
+    <rect x="380" y="20" width="320" height="140" rx="6" fill="#13131a" stroke="rgba(255,255,255,0.08)"/>
+    <!-- center lines -->
+    <line x1="20"  y1="90" x2="340" y2="90" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+    <line x1="380" y1="90" x2="700" y2="90" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+    <!-- clean sine wave (left) -->
+    <path clip-path="url(#left-panel)"
+      d="M20,90 C50,90 55,32 90,32 C125,32 130,148 165,148 C200,148 205,32 240,32 C275,32 280,148 315,148 C330,148 335,90 340,90"
+      fill="none" stroke="#9207c3" stroke-width="2.5" stroke-linecap="round"/>
+    <!-- clipped wave (right) — peaks sliced flat -->
+    <path clip-path="url(#right-panel)"
+      d="M380,90 C410,90 415,42 430,42 L510,42 C525,42 530,138 545,138 L625,138 C640,138 645,42 660,42 L695,42"
+      fill="none" stroke="#ff6116" stroke-width="2.5" stroke-linecap="round"/>
+    <!-- clip ceiling lines -->
+    <line x1="380" y1="42" x2="700" y2="42" stroke="rgba(255,96,22,0.3)" stroke-width="1" stroke-dasharray="4 3"/>
+    <line x1="380" y1="138" x2="700" y2="138" stroke="rgba(255,96,22,0.3)" stroke-width="1" stroke-dasharray="4 3"/>
+    <!-- labels -->
+    <text x="180" y="14" fill="#e4e4eb" font-size="11" font-weight="700" text-anchor="middle" font-family="Cairo,sans-serif">CLEAN</text>
+    <text x="540" y="14" fill="#ff6116" font-size="11" font-weight="700" text-anchor="middle" font-family="Cairo,sans-serif">CLIPPED</text>
+    <text x="706" y="45" fill="rgba(255,96,22,0.7)" font-size="8" font-family="Cairo,sans-serif">ceiling</text>
+    <text x="706" y="141" fill="rgba(255,96,22,0.7)" font-size="8" font-family="Cairo,sans-serif">ceiling</text>
+  </svg>
+
   <h2>Analog vs. digital clipping</h2>
 
   <p>
