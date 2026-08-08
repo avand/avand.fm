@@ -89,7 +89,7 @@ byte-range headers R2 sends, so a local preview exercises the real cross-origin
 path. `player.js` points at `/video/` on any host that isn't `avand.fm`, so
 nothing needs editing to preview — and that includes a phone on the tunnel.
 
-`./serve.sh` does the same without the tunnel, if that is all you want.
+`NO_TUNNEL=1 ../bin/dev` skips the tunnel, if local is all you want.
 
 ## Captions
 
