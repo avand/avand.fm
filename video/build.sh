@@ -2,17 +2,18 @@
 #
 # Transcode every Headroom video into its HLS ladder.
 #
-# Sources are the camera masters, which live outside this repo (they are ~4.4GB
-# and are not version controlled). Point SOURCES at wherever they are.
+# Sources are the camera masters in src/ (~2.1GB, gitignored -- they are the
+# originals, and everything else here is derived from them). Point SOURCES
+# elsewhere if they live on another disk.
 #
 # Poster timestamps are chosen by hand: the module videos open on a ~5s title
 # animation and close on an end card, so a poster has to be pulled from the
-# talking-head section in between.
+# title card in between.
 
 set -euo pipefail
 cd "$(dirname "$0")"
 
-SOURCES=${SOURCES:-"/Users/avand/Code/avand.fm/headroom/Videos"}
+SOURCES=${SOURCES:-"src"}
 
 # slug|poster-seconds|path
 VIDEOS=(

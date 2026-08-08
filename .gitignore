@@ -4,7 +4,9 @@
 # them (~400MB). Neither belongs in git: the masters are the originals, and the
 # renditions are derived output published to Cloudflare R2 by video/upload.sh.
 # The scripts that produce them are tracked; what they produce is not.
-headroom/Videos/
+#
+# src/ is the only copy of the masters -- nothing else has them. Back it up.
+video/src/
 video/dist/
 
 # Local wrangler state (account cache), written when video/upload.sh runs.

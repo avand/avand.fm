@@ -45,12 +45,13 @@ host has to honour `Range` requests. A server that ignores them and returns
 
 ## Rebuilding
 
-Sources are the camera masters (~2.1GB), which are not in version control. They
-live in `../headroom/Videos/` and are gitignored there.
+Sources are the camera masters in `src/` (~2.1GB, gitignored). **They are the
+only copy** — nothing else has them, and everything else here is derived from
+them, so they are worth backing up somewhere off this machine.
 
 ```sh
 ./build.sh                                   # all ten videos, ~2 minutes
-SOURCES=/path/to/masters ./build.sh          # masters somewhere else
+SOURCES=/path/to/masters ./build.sh          # masters on another disk
 ./transcode.sh some-source.mp4 my-slug 12    # one video, poster at 12s
 ```
 
@@ -73,8 +74,8 @@ Playlists upload with a 5-minute cache so a re-cut ladder is picked up the same
 day. Media, captions, and posters get a year, since they only ever change by
 being replaced under a new name.
 
-Adding a video is: drop the master in `../headroom/Videos/`, add a line to
-`build.sh`, `./build.sh`, `./upload.sh <slug>`, then reference the slug in
+Adding a video is: drop the master in `src/`, add a line to `build.sh`,
+`./build.sh`, `./upload.sh <slug>`, then reference the slug in
 `../headroom/index.html`.
 
 ## Previewing

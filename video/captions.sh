@@ -18,7 +18,7 @@ cd "$(dirname "$0")"
 
 MODEL_DIR="${MODEL_DIR:-$HOME/.cache/whisper-cpp}"
 MODEL="$MODEL_DIR/ggml-small.en.bin"
-SOURCES=${SOURCES:-"/Users/avand/Code/avand.fm/headroom/Videos"}
+SOURCES=${SOURCES:-"src"}
 
 if [ ! -f "$MODEL" ]; then
   echo "==> downloading whisper small.en model (~466MB, once)"
