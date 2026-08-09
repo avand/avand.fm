@@ -424,74 +424,6 @@
       }
     }
 
-    @media (prefers-reduced-motion: reduce) {
-
-      /* Straight to the end state: struck price, new price, tag, no reveal. */
-      .hero-price .price-was,
-      .hero-price .price-now,
-      .hero-price-tag {
-        animation: none;
-      }
-
-      /* The pill's fill and label come from its own rule, so dropping the
-         animation above already leaves them settled. The border does not -- it
-         is drawn entirely by the trace -- so its finished state has to be
-         stated here: a completed lap with the head cooled. Set on the element,
-         which is where the trace would have animated them and where both rings
-         inherit from. */
-      .hero-price-tag {
-        --tag-angle: 360deg;
-        --tag-head: var(--warm);
-      }
-
-      .hero-price-tag::after {
-        animation: none;
-        opacity: 1;
-      }
-
-      /* The glow belongs to a moving head. Without the movement there is
-         nothing for it to be the glow of. */
-      .hero-price-tag .tag-glow {
-        animation: none;
-        opacity: 0;
-      }
-
-      /* Left-aligned leaves the plain orange end of the gradient over the
-         letters -- the shimmer's resting colour, with none of its travel. */
-      .hero-price-tag .tag-label {
-        animation: none;
-        opacity: 1;
-        background-position: 0 0;
-      }
-
-      .hero-price .price-was::after {
-        animation: none;
-        transform: translateY(-50%) scaleX(1);
-      }
-
-      /* The solid border on the buttons is the whole treatment here: still
-         marked out as the thing to press, with nothing sweeping over them. */
-      .site-nav .cta-nav a,
-      .site-nav .cta-nav a:hover,
-      .site-nav .cta-nav.is-visible a,
-      .hero-content .btn-primary,
-      .hero-content .btn-primary:hover {
-        animation: none;
-      }
-
-      .hero-content .btn-primary::before,
-      .site-nav .cta-nav.is-visible a::before {
-        animation: none;
-        opacity: 0;
-      }
-
-      .site-nav .cta-nav a::before,
-      .site-nav .cta-nav a:hover::before {
-        animation: none;
-        opacity: 0;
-      }
-    }
-
     /* --- Hero stage ---
        A tall region with a sticky viewport inside it. One scroll progress
        value (--p, set by hero.js) drives the whole move: the hero copy lifts
@@ -743,10 +675,9 @@
         1220   $800 in
         1380   comet lands
         1400   label begins
-        2375   sear strikes ............... 75% of the shimmer
-        2668   sear crests ................ as the letters settle
-        2700   shimmer and fill settle
-        3025   sear out ................... 125% of the shimmer
+        1880   sear strikes ............... 60% of the shimmer
+        2024   sear crests ................ 78% of the shimmer
+        2200   shimmer, fill and sear all settle
 
        The table is a consequence rather than a thing to maintain: it falls out
        of --strike-start and --strike-dur on .hero-price and the four levers
@@ -776,7 +707,7 @@
          would have stayed put when --strike-start moved -- shifting everything
          except the shimmer, which is worse than shifting nothing. */
       --tag-text-start: calc(var(--tag-start) + 800ms);
-      --tag-text-dur: 1300ms;
+      --tag-text-dur: 800ms;
 
       /* And the derivations, spelled out rather than left in a comment. The
          comet lands where it started plus its lap; the pulse begins there and
@@ -790,18 +721,18 @@
          way to the label, which is why it read as faint: the same light spread
          over two seconds is a swell, not a mark.
 
-         Now it strikes at three quarters of the shimmer and runs for half of
-         it, so it finishes at 125% -- deliberately outliving the text. The
-         keyframes reach full at 45% of the run, which puts the crest within a
-         frame or two of the letters settling: the glow peaks exactly as the
-         light finishes crossing them, then burns off on its own. Both ends are
-         fractions of the shimmer, so this holds at any --tag-text-dur.
+         Now it strikes at 60% of the shimmer and runs for the remaining 40%,
+         going out with the text. The keyframes reach full at 45% of that run,
+         which crests it at 78% of the shimmer -- burning while the light is
+         still crossing the last letters, and gone by the time they settle.
+         Both ends are fractions of the shimmer, so this holds at any
+         --tag-text-dur.
 
          Worth knowing that these fractions only mean anything because the
          sweep below is linear. On the shared easing they were measuring a
          clock that had nothing to do with what was on screen. */
-      --tag-sear-dur: calc(var(--tag-text-dur) * 0.5);
-      --tag-pulse-start: calc(var(--tag-text-start) + var(--tag-text-dur) * 0.75);
+      --tag-sear-dur: calc(var(--tag-text-dur) * 0.4);
+      --tag-pulse-start: calc(var(--tag-text-start) + var(--tag-text-dur) * 0.6);
       --tag-pulse-dur: var(--tag-sear-dur);
 
       /* The fill is pinned at both ends, but to two different things: it starts
@@ -2889,6 +2820,84 @@
         background-image: linear-gradient(to bottom, var(--bg) 0%, rgba(10, 10, 15, 0.5) 30%, rgba(10, 10, 15, 0.5) 70%, var(--bg) 100%), url('final-cta-3200.webp');
       }
     }
+    /* --- Reduced motion ---
+       Last in the stylesheet, and it has to be. A media query adds no
+       specificity, so every rule in here wins or loses purely on source
+       order against the rule it is overriding. This block used to sit up
+       beside the nav button, which made it half-effective in a way that
+       looked deliberate: the nav overrides landed, because those rules are
+       above it, while the hero CTA and the entire price reveal -- declared
+       hundreds of lines below -- quietly ignored it and animated anyway.
+
+       Anything added here needs to stay here, after everything it names. */
+    @media (prefers-reduced-motion: reduce) {
+
+      /* Straight to the end state: struck price, new price, tag, no reveal. */
+      .hero-price .price-was,
+      .hero-price .price-now,
+      .hero-price-tag {
+        animation: none;
+      }
+
+      /* The pill's fill and label come from its own rule, so dropping the
+         animation above already leaves them settled. The border does not -- it
+         is drawn entirely by the trace -- so its finished state has to be
+         stated here: a completed lap with the head cooled. Set on the element,
+         which is where the trace would have animated them and where both rings
+         inherit from. */
+      .hero-price-tag {
+        --tag-angle: 360deg;
+        --tag-head: var(--warm);
+      }
+
+      .hero-price-tag::after {
+        animation: none;
+        opacity: 1;
+      }
+
+      /* The glow belongs to a moving head. Without the movement there is
+         nothing for it to be the glow of. */
+      .hero-price-tag .tag-glow {
+        animation: none;
+        opacity: 0;
+      }
+
+      /* Left-aligned leaves the plain orange end of the gradient over the
+         letters -- the shimmer's resting colour, with none of its travel. */
+      .hero-price-tag .tag-label {
+        animation: none;
+        opacity: 1;
+        background-position: 0 0;
+      }
+
+      .hero-price .price-was::after {
+        animation: none;
+        transform: translateY(-50%) scaleX(1);
+      }
+
+      /* The solid border on the buttons is the whole treatment here: still
+         marked out as the thing to press, with nothing sweeping over them. */
+      .site-nav .cta-nav a,
+      .site-nav .cta-nav a:hover,
+      .site-nav .cta-nav.is-visible a,
+      .hero-content .btn-primary,
+      .hero-content .btn-primary:hover {
+        animation: none;
+      }
+
+      .hero-content .btn-primary::before,
+      .site-nav .cta-nav.is-visible a::before {
+        animation: none;
+        opacity: 0;
+      }
+
+      .site-nav .cta-nav a::before,
+      .site-nav .cta-nav a:hover::before {
+        animation: none;
+        opacity: 0;
+      }
+    }
+
   </style>
 </head>
 
