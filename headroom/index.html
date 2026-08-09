@@ -743,8 +743,10 @@
         1220   $800 in
         1380   comet lands
         1400   label begins
-        3176   sear fires ................. 80% of the shimmer
-        3620   fill, label and sear all settle together
+        2375   sear strikes ............... 75% of the shimmer
+        2668   sear crests ................ as the letters settle
+        2700   shimmer and fill settle
+        3025   sear out ................... 125% of the shimmer
 
        The table is a consequence rather than a thing to maintain: it falls out
        of --strike-start and --strike-dur on .hero-price and the four levers
@@ -774,7 +776,7 @@
          would have stayed put when --strike-start moved -- shifting everything
          except the shimmer, which is worse than shifting nothing. */
       --tag-text-start: calc(var(--tag-start) + 800ms);
-      --tag-text-dur: 2220ms;
+      --tag-text-dur: 1300ms;
 
       /* And the derivations, spelled out rather than left in a comment. The
          comet lands where it started plus its lap; the pulse begins there and
@@ -786,20 +788,20 @@
 
       /* The sear. It once began where the comet landed and stretched all the
          way to the label, which is why it read as faint: the same light spread
-         over two seconds is a swell, not a mark. Short is what makes it land.
+         over two seconds is a swell, not a mark.
 
-         It is placed by its crest rather than by its start, because the crest
-         is the part anyone actually sees -- three quarters of the way through
-         the shimmer, so it burns while the light is still crossing the letters
-         and is out before they settle. Ending it *with* the text read as a
-         glow arriving after the fact.
+         Now it strikes at three quarters of the shimmer and runs for half of
+         it, so it finishes at 125% -- deliberately outliving the text. The
+         keyframes reach full at 45% of the run, which puts the crest within a
+         frame or two of the letters settling: the glow peaks exactly as the
+         light finishes crossing them, then burns off on its own. Both ends are
+         fractions of the shimmer, so this holds at any --tag-text-dur.
 
-         The keyframes below reach full at 45% of the run, so the start is the
-         crest less that much of it. Written that way round so the number that
-         matters is the one stated. */
-      --tag-sear-dur: calc(var(--tag-text-dur) * 0.2);
-      --tag-sear-crest: calc(var(--tag-text-start) + var(--tag-text-dur) * 0.75);
-      --tag-pulse-start: calc(var(--tag-sear-crest) - var(--tag-sear-dur) * 0.45);
+         Worth knowing that these fractions only mean anything because the
+         sweep below is linear. On the shared easing they were measuring a
+         clock that had nothing to do with what was on screen. */
+      --tag-sear-dur: calc(var(--tag-text-dur) * 0.5);
+      --tag-pulse-start: calc(var(--tag-text-start) + var(--tag-text-dur) * 0.75);
       --tag-pulse-dur: var(--tag-sear-dur);
 
       /* The fill is pinned at both ends, but to two different things: it starts
@@ -955,9 +957,24 @@
        to: painting a gradient into text means background-clip: text, and the
        pill itself already needs its background for the dark fill. One element
        cannot do both. */
+    /* Two animations over the same window, and they need different easing --
+       which is the whole reason they are separate.
+
+       The fade is an entrance and wants --ease. The sweep must not have it. On
+       one shared curve the band was 73% across a quarter of the way in and 95%
+       across by half, so the shimmer was over to the eye while the animation
+       still had a second left running imperceptibly. Anything positioned as a
+       percentage of the shimmer -- the sear especially -- was then measured
+       against a clock nobody could see, and fired after the light had gone.
+
+       Linear here means nominal time and perceived time are the same thing, so
+       "three quarters of the shimmer" is a place on screen and not just a place
+       in the timeline. */
     .hero-price-tag .tag-label {
       opacity: 0;
-      animation: tag-label var(--tag-text-dur) var(--ease) var(--tag-text-start) both;
+      animation:
+        tag-label-in calc(var(--tag-text-dur) * 0.4) var(--ease) var(--tag-text-start) both,
+        tag-label-shine var(--tag-text-dur) linear var(--tag-text-start) both;
     }
 
     /* The shimmer is a light band sliding through the letters, left to right,
@@ -990,18 +1007,22 @@
        times the width of the text moves leftward, so the bright band inside it
        travels rightward across the letters. The fade is done well before the
        band arrives, so the text is read first and lit second. */
-    @keyframes tag-label {
-      0% {
+    @keyframes tag-label-in {
+      from {
         opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes tag-label-shine {
+      from {
         background-position: 100% 0;
       }
 
-      40% {
-        opacity: 1;
-      }
-
-      100% {
-        opacity: 1;
+      to {
         background-position: 0 0;
       }
     }
