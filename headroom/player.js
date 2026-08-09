@@ -79,8 +79,23 @@
     this.render();
     this.build();
     this.bind();
+    this.renderVolume();
     this.lazyPoster();
     this.watchViewport();
+
+    /* Opt-in, one video only for now: render this player's captions as page
+       text in the named element instead of as an overlay on the picture.
+       See renderLyrics. */
+    var into = root.dataset.captionsInto;
+    this.lyricsBox = into ? document.getElementById(into) : null;
+    if (this.lyricsBox) {
+      root.classList.add("has-lyrics");
+      /* They read as page copy now rather than as something that appears with
+         playback, so the opening lines have to be on screen before the video
+         is ever touched -- which means not waiting for attach() to fetch the
+         cues on first play. */
+      this.loadCaptions();
+    }
 
     players.push(this);
     bySlug[this.slug] = this;
@@ -110,11 +125,28 @@
     observer.observe(this.root);
   };
 
+  /* iOS keeps the audio level under the hardware buttons: volume there is not
+     settable and always reads back 1, so a pair of up/down buttons would be
+     two controls that visibly do nothing. Where that's the case the bar gets a
+     mute toggle instead, which does work -- muted is settable everywhere,
+     which is what makes muted autoplay possible in the first place.
+
+     Probed rather than sniffed from the user agent: this is a question about
+     what the media element actually does, and a detached one answers it
+     without touching a player on the page. */
+  var volumeSettable = (function () {
+    try {
+      var probe = document.createElement("video");
+      probe.volume = 0.5;
+      return probe.volume === 0.5;
+    } catch (e) {
+      return false;
+    }
+  })();
+
   var SPEAKER_D =
     "M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4z" +
     "M14 2v2a8 8 0 0 1 0 16v2a10 10 0 0 0 0-20z";
-
-  var SPEAKER = '<path d="' + SPEAKER_D + '"/>';
 
   var SLASH_D = "M3.4 2.8 21.2 20.6";
 
@@ -124,7 +156,7 @@
      so there is no one colour to match. */
   function mutedIcon(uid) {
     return (
-      "<defs><mask id=\"" + uid + "\">" +
+      '<defs><mask id="' + uid + '">' +
       '<rect width="24" height="24" fill="#fff"/>' +
       '<path d="' + SLASH_D + '" stroke="#000" stroke-width="4.6"' +
       ' stroke-linecap="round" fill="none"/>' +
@@ -141,9 +173,14 @@
     // Skip-to-start (⏮) rather than a reload arrow: this returns to the
     // beginning of the video, it doesn't replay or refresh anything.
     restart: '<path d="M6 6h2.5v12H6zm3.8 6l8.7 6V6z"/>',
-    // Both states are the same speaker and two sound curves; muted lays a slash
-    // over it, and tapping takes the slash away.
-    loud: SPEAKER,
+    loud: '<path d="' + SPEAKER_D + '"/>',
+    /* A bare cone, with the room to its right given over to the sign. The
+       full speaker's sound curves would crowd it at this size and read as
+       decoration rather than as the direction the button goes. */
+    volDown: '<path d="M2 9v6h4l5 5V4L6 9H2z"/><rect x="14" y="11" width="8" height="2" rx="1"/>',
+    volUp:
+      '<path d="M2 9v6h4l5 5V4L6 9H2z"/><rect x="14" y="11" width="8" height="2" rx="1"/>' +
+      '<rect x="17" y="8" width="2" height="8" rx="1"/>',
   };
 
   function svg(path, cls) {
@@ -172,6 +209,14 @@
       '<div class="pl-captions is-empty" aria-live="off"></div>' +
       '<div class="pl-spinner" aria-hidden="true"></div>' +
       '<div class="pl-error" role="alert"></div>' +
+      /* Sits outside .pl-controls deliberately: that whole bar retires after
+         a few seconds, and silent video with no visible way back to sound
+         just looks broken. This one stays up for as long as the sound is
+         off. */
+      '<button class="pl-unmute" aria-label="Turn sound on">' +
+      svg(ICONS.loud) +
+      "<span>Sound on</span>" +
+      "</button>" +
       '<div class="pl-controls">' +
       '<div class="pl-bar" role="slider" tabindex="0" aria-label="Seek"' +
       ' aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">' +
@@ -187,10 +232,21 @@
       "</button>" +
       '<span class="pl-time"><span class="pl-time-now">0:00</span> / <span class="pl-time-total">0:00</span></span>' +
       '<span class="pl-spacer"></span>' +
-      '<button class="pl-btn pl-mute" aria-label="Unmute">' +
-      svg(ICONS.loud, "pl-icon-loud") +
-      svg(mutedIcon("mute-" + this.slug), "pl-icon-muted") +
-      "</button>" +
+      /* Stepped volume where the platform honours it, a mute toggle where it
+         doesn't -- see volumeSettable. Either way the standing "Sound on"
+         button is what actually gets people from silence to sound; this is
+         the control for once they're there. */
+      (volumeSettable
+        ? '<button class="pl-btn pl-vol-down" aria-label="Volume down">' +
+          svg(ICONS.volDown) +
+          "</button>" +
+          '<button class="pl-btn pl-vol-up" aria-label="Volume up">' +
+          svg(ICONS.volUp) +
+          "</button>"
+        : '<button class="pl-btn pl-mute" aria-label="Unmute">' +
+          svg(ICONS.loud, "pl-icon-loud") +
+          svg(mutedIcon("mute-" + this.slug), "pl-icon-muted") +
+          "</button>") +
       "</div></div>";
 
     this.root.innerHTML = html;
@@ -206,7 +262,10 @@
     this.controls = r.querySelector(".pl-controls");
     this.playBtn = r.querySelector(".pl-play");
     this.restartBtn = r.querySelector(".pl-restart");
+    this.volDownBtn = r.querySelector(".pl-vol-down");
+    this.volUpBtn = r.querySelector(".pl-vol-up");
     this.muteBtn = r.querySelector(".pl-mute");
+    this.unmuteBtn = r.querySelector(".pl-unmute");
     this.bar = r.querySelector(".pl-bar");
     this.played = r.querySelector(".pl-played");
     this.buffered = r.querySelector(".pl-buffered");
@@ -290,6 +349,7 @@
         self.root.classList.add("has-cc");
         self.syncCaptions();
         self.renderCue();
+        self.renderLyrics();
       })
       .catch(function () {
         /* Captions are an enhancement; a missing file just means none. */
@@ -297,6 +357,9 @@
   };
 
   Player.prototype.renderCue = function () {
+    // One entry point: every existing caller (timeupdate, loadedmetadata, the
+    // captions fetch) keeps working whichever presentation this player uses.
+    if (this.lyricsBox) return this.renderLyrics();
     if (!this.captionBox || !this.cues || !this.cues.length) return;
 
     var t = this.video.currentTime;
@@ -321,6 +384,148 @@
       this.captionBox.textContent = text;
       this.captionBox.classList.toggle("is-empty", !text);
     }
+  };
+
+  /*
+   * Captions as page text, Spotify-lyrics style: the line being spoken plus
+   * the one after it, with the words already said in full colour and the rest
+   * knocked back.
+   *
+   * Two lines rather than one because the cues are short fragments broken
+   * mid-sentence ("I think most people think that DJs are" / "sort of
+   * mystical or magical"), so a single line would read as half a thought. The
+   * pair also means there is always something on screen: the cues here run
+   * end-to-start with no gaps, and before playback begins the opening two sit
+   * there unhighlighted rather than leaving a hole in the page.
+   *
+   * The word highlight is interpolated, not measured -- a cue carries only a
+   * start and an end, so its words are spread evenly across that span. It
+   * tracks the voice closely enough to read as following along, and nothing
+   * here is load-bearing if it drifts.
+   */
+  // Matches the transition on .cc-frame in the stylesheet; the outgoing lines
+  // are removed once it has run.
+  var LYRIC_FADE = 420;
+
+  Player.prototype.renderLyrics = function () {
+    var box = this.lyricsBox;
+    if (!box || !this.cues || !this.cues.length) return;
+
+    var cues = this.cues;
+    var t = this.video.currentTime;
+
+    // The last cue that has started; -1 before the first one has.
+    var i = this.lyricScan || 0;
+    if (i >= cues.length || cues[i].start > t) i = 0; // sought backwards
+    var idx = -1;
+    for (; i < cues.length && cues[i].start <= t; i++) idx = i;
+    this.lyricScan = idx < 0 ? 0 : idx;
+
+    var lead = idx < 0 ? 0 : idx;
+
+    // Rebuild only when the line actually turns over -- the per-frame path
+    // below is just class toggles on a handful of spans.
+    if (lead !== this.lyricLead || !this.lyricWords) {
+      var stepped = this.lyricLead === lead - 1; // the ordinary case: next line
+      var previous = this.lyricLead;
+      this.lyricLead = lead;
+      this.lyricWords = [];
+
+      var self = this;
+      var frame = document.createElement("div");
+      frame.className = "cc-frame";
+
+      var now = document.createElement("p");
+      now.className = "cc-line cc-now";
+      cues[lead].text.split(/\s+/).forEach(function (word, n) {
+        if (n) now.appendChild(document.createTextNode(" "));
+        var span = document.createElement("span");
+        span.className = "cc-word";
+        span.textContent = word;
+        now.appendChild(span);
+        self.lyricWords.push(span);
+      });
+      frame.appendChild(now);
+
+      if (cues[lead + 1]) {
+        var next = document.createElement("p");
+        next.className = "cc-line cc-next";
+        next.textContent = cues[lead + 1].text;
+        frame.appendChild(next);
+      }
+
+      var outgoing = this.lyricFrameEl;
+
+      /* Only the ordinary line-to-line advance is worth animating. A seek --
+         or the very first paint -- has no "previous line" the reader was
+         following, so sliding something off screen there is just motion for
+         its own sake. */
+      var animate = stepped && outgoing && previous >= 0 && !reduceMotion;
+
+      if (outgoing && !animate) box.removeChild(outgoing);
+
+      if (animate) {
+        /* Taken out of flow on the way out so the incoming lines can take
+           their place immediately: left in flow, the two would stack and the
+           block would double in height for the length of the transition. */
+        outgoing.classList.add("is-out");
+        window.setTimeout(function () {
+          if (outgoing.parentNode) outgoing.parentNode.removeChild(outgoing);
+        }, LYRIC_FADE);
+        frame.classList.add("is-entering");
+      }
+
+      box.appendChild(frame);
+      this.lyricFrameEl = frame;
+
+      if (animate) {
+        // Two frames: one for the entering state to be committed, one for the
+        // change off it to read as a transition rather than a jump.
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            frame.classList.remove("is-entering");
+          });
+        });
+      }
+
+      this.lyricSaid = -1;
+    }
+
+    var cue = cues[lead];
+    var length = Math.max(0.001, cue.end - cue.start);
+    var through = idx < 0 ? 0 : Math.min(1, Math.max(0, (t - cue.start) / length));
+    var said = Math.round(through * this.lyricWords.length);
+
+    if (said !== this.lyricSaid) {
+      this.lyricSaid = said;
+      for (var w = 0; w < this.lyricWords.length; w++) {
+        this.lyricWords[w].classList.toggle("is-said", w < said);
+      }
+    }
+  };
+
+  /* timeupdate only fires about four times a second, which is too coarse for
+     words to light up with the voice. This runs while the video plays and
+     stops with it; the work is a currentTime read and some arithmetic, and it
+     touches the DOM only when the word count actually changes. */
+  Player.prototype.startLyrics = function () {
+    if (!this.lyricsBox || this.lyricFrame) return;
+    var self = this;
+    var step = function () {
+      if (self.video.paused || self.video.ended) {
+        self.lyricFrame = 0;
+        return;
+      }
+      self.renderLyrics();
+      self.lyricFrame = requestAnimationFrame(step);
+    };
+    this.lyricFrame = requestAnimationFrame(step);
+  };
+
+  Player.prototype.stopLyrics = function () {
+    if (!this.lyricFrame) return;
+    cancelAnimationFrame(this.lyricFrame);
+    this.lyricFrame = 0;
   };
 
   /* Attach a source. Called on first play, not on page load. */
@@ -462,6 +667,49 @@
   // silence, so this hands it back rather than making them scrub for it.
   var UNMUTE_REWIND = 5;
 
+  // Five steps from silent to full, which is few enough to cross quickly and
+  // fine enough to actually settle somewhere.
+  var VOLUME_STEP = 0.2;
+
+  Player.prototype.nudgeVolume = function (direction) {
+    var v = this.video;
+    this.userSetSound = true;
+    // Muted counts as zero however loud the underlying volume is, so turning
+    // it up from muted starts from silence rather than jumping back to
+    // whatever it was before.
+    var level = v.muted ? 0 : v.volume;
+    level = level + direction * VOLUME_STEP;
+    // Rounded, or repeated steps drift onto values like 0.6000000000000001
+    // and the ends never compare equal.
+    level = Math.round(Math.min(1, Math.max(0, level)) * 100) / 100;
+    v.volume = level;
+    v.muted = level === 0;
+  };
+
+  Player.prototype.renderVolume = function () {
+    var muted = this.video.muted || this.video.volume === 0;
+
+    if (this.muteBtn) {
+      this.muteBtn.setAttribute("aria-label", muted ? "Unmute" : "Mute");
+      return;
+    }
+
+    /* Greys out whichever end has been reached. Volume is the one control here
+       with a limit the viewer can hit and keep pressing. */
+    if (!this.volDownBtn) return;
+    var level = this.video.muted ? 0 : this.video.volume;
+    this.volDownBtn.disabled = level <= 0;
+    this.volUpBtn.disabled = level >= 1;
+  };
+
+  Player.prototype.toggleMute = function () {
+    if (this.video.muted || this.video.volume === 0) this.unmute();
+    else {
+      this.userSetSound = true;
+      this.video.muted = true;
+    }
+  };
+
   Player.prototype.unmute = function () {
     this.userSetSound = true;
     this.video.muted = false;
@@ -486,13 +734,15 @@
     if (this.root.hasAttribute("data-manual") && !force) return;
     this.viewportWatched = true;
 
-    // A quarter visible is enough to start. The brand video is deliberately
-    // pulled up into the fold, so at rest on load it is only about 44% on
-    // screen — a half-visible threshold would leave it sitting there stopped,
-    // which is exactly the thing it is not supposed to do.
+    // A quarter visible is enough to start -- a half-visible threshold would
+    // leave a video sitting there stopped for longer than it needs to.
     var observer = new IntersectionObserver(
       function (entries) {
         entries.forEach(function (entry) {
+          // Remembered so that coming back to a backgrounded tab can tell
+          // which videos are actually on screen -- the observer itself won't
+          // fire again for one that never moved.
+          self.inView = entry.isIntersecting && entry.intersectionRatio >= 0.25;
           if (entry.isIntersecting && entry.intersectionRatio >= 0.25) {
             if (self.autoplay && !self.userPaused && self.video.paused) {
               self.play({ muted: true });
@@ -629,10 +879,28 @@
     }
 
     var lastPointerType = "mouse";
+    var revealTap = false;
     this.root.addEventListener(
       "pointerdown",
       function (e) {
         lastPointerType = e.pointerType || "mouse";
+        /* Captured here, in the capture phase, before the plain "pointerdown
+           -> nudgeControls" listener below (bubble phase, same event) gets a
+           chance to turn show-controls on. Checking the class from inside the
+           click handler instead always saw it already-on -- that listener
+           runs after pointerdown has finished dispatching.
+
+           "Controls are currently hidden" is not the same as "show-controls
+           is absent": the stylesheet also shows them for anything that isn't
+           playing (.player:not(.is-playing) .pl-controls), which covers every
+           video before its first play, after it ends, and when autoplay was
+           refused. Without the is-playing term here, the first tap on a
+           stopped video is swallowed as a reveal and it takes two taps to
+           start anything. */
+        revealTap =
+          lastPointerType === "touch" &&
+          self.root.classList.contains("is-playing") &&
+          !self.root.classList.contains("show-controls");
       },
       true
     );
@@ -640,12 +908,11 @@
     v.addEventListener("click", function () {
       // On a touch screen there is no hover, so the first tap is how the
       // controls are summoned; it should not also do something.
-      if (lastPointerType === "touch" && !self.root.classList.contains("show-controls")) {
+      if (revealTap) {
+        revealTap = false;
         self.nudgeControls();
         return;
       }
-      // While muted-autoplaying, a tap on the picture should turn sound on —
-      // the behaviour people already expect from a muted feed video.
       if (!v.paused && v.muted && !self.userSetSound) self.unmute();
       else self.toggle();
     });
@@ -654,16 +921,26 @@
       self.root.classList.add("is-playing", "has-started");
       self.playBtn.setAttribute("aria-label", "Pause");
       self.nudgeControls();
+      self.startLyrics();
     });
     v.addEventListener("pause", function () {
       self.root.classList.remove("is-playing");
       self.playBtn.setAttribute("aria-label", "Play");
       self.root.classList.add("show-controls");
       clearTimeout(self.hideTimer);
+      self.stopLyrics();
+      // Nothing is loading towards playback any more, so the spinner has no
+      // business still being up.
+      self.setBusy(false);
     });
     v.addEventListener("ended", function () {
       self.root.classList.remove("is-playing");
       self.root.classList.add("is-ended");
+      self.stopLyrics();
+    });
+    v.addEventListener("seeked", function () {
+      // Scrubbing while paused should still move the lines.
+      self.renderLyrics();
     });
     v.addEventListener("playing", function () {
       self.setBusy(false);
@@ -687,18 +964,32 @@
     v.addEventListener("volumechange", function () {
       var muted = v.muted || v.volume === 0;
       self.root.classList.toggle("is-muted", muted);
-      self.muteBtn.setAttribute("aria-label", muted ? "Unmute" : "Mute");
       self.syncCaptions();
+      self.renderVolume();
     });
 
-    this.muteBtn.addEventListener("click", function () {
-      if (v.muted) {
+    if (this.unmuteBtn) {
+      this.unmuteBtn.addEventListener("click", function (e) {
+        // Not a tap on the picture, which would toggle playback.
+        e.stopPropagation();
         self.unmute();
-      } else {
-        self.userSetSound = true;
-        v.muted = true;
-      }
-    });
+      });
+    }
+
+    if (this.volDownBtn) {
+      this.volDownBtn.addEventListener("click", function () {
+        self.nudgeVolume(-1);
+      });
+      this.volUpBtn.addEventListener("click", function () {
+        self.nudgeVolume(1);
+      });
+    }
+
+    if (this.muteBtn) {
+      this.muteBtn.addEventListener("click", function () {
+        self.toggleMute();
+      });
+    }
 
     var dragging = false;
     this.bar.addEventListener("pointerdown", function (e) {
@@ -754,7 +1045,7 @@
           v.currentTime = Math.max(0, v.currentTime - 5);
           break;
         case "m":
-          self.muteBtn.click();
+          self.toggleMute();
           break;
         case "0":
           self.restart();
@@ -775,6 +1066,15 @@
     });
 
     this.root.addEventListener("pointerleave", function () {
+      // Touch has no hover, so a tap's pointerup is immediately followed by a
+      // synthetic pointerleave -- the pointer isn't "over" anything once
+      // contact ends. Acting on that would hide the controls the instant
+      // every tap lands, before the click that's supposed to reveal them.
+      // Keyed off lastPointerType (set from the real pointerdown) rather than
+      // this event's own pointerType, which isn't reliably populated on a
+      // synthetic pointerleave across engines.
+      if (lastPointerType === "touch") return;
+
       /* The pointer is off the player entirely, so it cannot be on the
          controls. Clearing the hold outright means a missing pointerleave from
          the controls -- the pointer leaving the window, or a curriculum slide
@@ -797,6 +1097,28 @@
       new Player(el);
     });
   }
+
+  /*
+   * Coming back to the page after it has been in the background.
+   *
+   * iOS suspends media in a backgrounded tab, and what it tears down does not
+   * necessarily come back on its own: the play() that set the spinner never
+   * settles, so the video sits there spinning forever. Nothing else recovers
+   * this -- the viewport observer only fires on a crossing, and a video that
+   * never moved has not crossed anything.
+   *
+   * So on the way back: clear any spinner that no longer has a play behind
+   * it, and restart whatever was playing by itself before.
+   */
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) return;
+    players.forEach(function (p) {
+      if (p.video.paused) p.setBusy(false);
+      if (p.autoplay && p.inView && !p.userPaused && p.video.paused) {
+        p.play({ muted: true });
+      }
+    });
+  });
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);

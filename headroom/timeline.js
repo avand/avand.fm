@@ -37,9 +37,6 @@
     mark.style.setProperty("--i", i);
   });
 
-  // How far into the intro's dwell before the timeline draws itself. Far
-  // enough that the title has visibly settled first.
-  var BUILD_AT = 0.16;
   var built = false;
 
   function clamp(n, lo, hi) {
@@ -83,14 +80,23 @@
     // carries it away again.
     var pos = pinned ? clamp((vh - rect.top) / vh, 0, 1) : 0;
 
-    /* The build is a one-shot: once the title has settled and been scrolled a
-       little past, the line draws itself left to right and the marks land
-       behind it. After that it is done animating -- scrolling back up hides it
-       again, but returning does not replay the build. */
-    var dwell = (window.Headroom.hero && window.Headroom.hero.d) || 0;
-    var settled = dwell >= BUILD_AT;
+    // Freshly computed every call -- this is what ongoing visibility keys
+    // off, so it has to actually go false again once the reader scrolls back
+    // up past the region.
+    var onScreen = rect.top < vh && rect.bottom > 0;
 
-    if (!built && settled) {
+    /* The build is a one-shot: once the curriculum heading has scrolled into
+       view, the line draws itself left to right and the marks land behind it.
+       hero.js's introVisible fires a moment earlier than onScreen (as soon as
+       the heading arrives, before the pinned region itself is on screen), so
+       it's included as an earlier trigger for the build -- but it's a flag
+       that goes true once and stays true forever (the observer in hero.js
+       disconnects itself after firing), which makes it wrong for anything
+       that needs to un-set later. Visibility below uses onScreen alone for
+       exactly that reason. */
+    var introVisible = !!(window.Headroom.hero && window.Headroom.hero.introVisible);
+
+    if (!built && (introVisible || onScreen)) {
       built = true;
       el.classList.add("is-built");
     }
@@ -105,7 +111,7 @@
     } else {
       // Present over the curriculum title and over the weeks; gone if they
       // scroll back up above it.
-      visible = settled || (rect.top < vh && rect.bottom > 0) ? 1 : 0;
+      visible = onScreen ? 1 : 0;
     }
 
     var travelled = -rect.top;

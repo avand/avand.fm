@@ -102,6 +102,12 @@
       border: 0;
     }
 
+    /* For phrases that shouldn't be split across lines. Same name as the one
+       on the rest of avand.fm. */
+    .no-break {
+      white-space: nowrap;
+    }
+
     :focus-visible {
       outline: 2px solid var(--warm);
       outline-offset: 2px;
@@ -157,21 +163,253 @@
       color: var(--text);
     }
 
+    /* The angle the gradient ring below is rotated to. Registered rather than
+       a plain custom property because only a registered one has a type the
+       browser can interpolate -- an unregistered --angle would jump between
+       keyframes instead of sweeping. */
+    @property --nav-angle {
+      syntax: "<angle>";
+      /* Inherited, so the angle can be animated once on the button and both
+         layers below -- the crisp edge and the blurred glow under it -- read
+         the same value and stay locked together. */
+      inherits: true;
+      initial-value: 0deg;
+    }
+
     .site-nav .cta-nav a {
       display: inline-block;
-      color: var(--bg);
-      background: var(--text);
+      /* Deliberately no z-index: that would make this a stacking context, and
+         the glow below could then never get behind it. */
+      position: relative;
+      color: var(--text);
+      background: #000;
+      /* The resting state, and the only thing painted between bursts: a plain
+         solid edge. No gradient, no blur, nothing composited -- the sweep
+         below is laid over this and fades back to it. */
+      border: 1.5px solid var(--accent);
       text-decoration: none;
       font-weight: 700;
       font-size: 0.92em;
       padding: 0.5em 1.4em;
       border-radius: 2em;
-      transition: opacity 200ms;
+      transition: color 200ms;
       white-space: nowrap;
+      /* The sweep angle and the glow both live here: the ring above is masked,
+         and a mask clips an element's box-shadow along with everything else,
+         so the glow cannot ride on it.
+
+         Delayed so the button holds still while the hero's price reveal plays
+         out -- two things asking for the eye at once and neither gets it --
+         then every 9s from there. The angle is held through the long tail so
+         there is nothing to repaint between bursts; an angle sweeping the
+         whole cycle would keep the fixed bar busy over every scroll. */
+      /* Gated on .is-visible below -- there is no reason for this to compete
+         with the hero's own CTA while that one is still on screen. Applying
+         the animation with the class also means it starts from zero the
+         moment the button arrives, rather than mid-cycle. */
+      animation: none;
+    }
+
+    /* Hidden only once hero.js has taken charge, so no JS leaves the button
+       simply present rather than permanently invisible. */
+    .site-nav .cta-nav {
+      transition:
+        opacity 320ms var(--ease),
+        transform 320ms var(--ease),
+        visibility 320ms;
+    }
+
+    .site-nav .cta-nav.is-managed {
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-0.4em);
+    }
+
+    .site-nav .cta-nav.is-managed.is-visible {
+      opacity: 1;
+      visibility: visible;
+      transform: none;
+    }
+
+    /* Half a second after it has built itself in, then every 9s. */
+    .site-nav .cta-nav.is-visible a {
+      animation: nav-sweep 9s ease-in-out 0.5s infinite;
+    }
+
+    .site-nav .cta-nav.is-visible a::before {
+      animation: nav-ring 9s ease-in-out 0.5s infinite;
+    }
+
+    /* Mostly dim, with one bright arc: that is what makes the rotation read as
+       a light travelling the border rather than a wheel turning. The tail
+       ramps up over ~110deg and the head drops off sharply behind it. */
+    .site-nav .cta-nav a {
+      --nav-dim: rgba(146, 7, 195, 0.32);
+      --nav-comet: conic-gradient(from var(--nav-angle, 0deg),
+          var(--nav-dim) 0deg,
+          var(--nav-dim) 190deg,
+          var(--accent) 300deg,
+          var(--warm) 340deg,
+          var(--nav-dim) 360deg);
+    }
+
+    /* Both shadows are present in every keyframe and only their alpha moves --
+       interpolating between different shadow counts is not something to rely
+       on. */
+    @keyframes nav-sweep {
+      0%, 8% {
+        --nav-angle: 0deg;
+        box-shadow:
+          0 0 10px rgba(146, 7, 195, 0),
+          0 0 20px rgba(255, 97, 22, 0);
+      }
+
+      18%, 32% {
+        box-shadow:
+          0 0 10px rgba(146, 7, 195, 0.55),
+          0 0 20px rgba(255, 97, 22, 0.28);
+      }
+
+      42%, 100% {
+        --nav-angle: 720deg;
+        box-shadow:
+          0 0 10px rgba(146, 7, 195, 0),
+          0 0 20px rgba(255, 97, 22, 0);
+      }
+    }
+
+    /* The border, drawn as a border rather than as a rectangle hidden behind
+       something: a transparent 1.5px border with two backgrounds under it,
+       the gradient clipped to the border box and nothing clipped to the
+       padding box. Only the ring is painted; the middle stays empty and the
+       button's own black shows through.
+
+       The obvious-looking alternative -- a filled rectangle at z-index: -1 --
+       does not work. Negative z-index puts a child behind its parent's
+       *content*, but still in front of the parent's *background*, so it
+       covers the face rather than sitting under it. */
+    /* The sweep, laid exactly over the solid border and fading back to it.
+
+       Sits *above* the button rather than behind: behind is where the button's
+       own opaque background and border hide it. Which means its middle has to
+       be genuinely transparent or it would cover the label -- hence the mask
+       rather than a solid fill. Two mask layers, the whole box and its content
+       box, composited to exclude one from the other: what survives is the
+       padding ring and nothing else. */
+    .site-nav .cta-nav a::before {
+      content: "";
+      position: absolute;
+      /* Exactly the button's border box. */
+      inset: -1.5px;
+      border-radius: inherit;
+      padding: 1.5px;
+      background: var(--nav-comet);
+      -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+      mask-composite: exclude;
+      opacity: 0;
+      animation: none;
+      pointer-events: none;
+    }
+
+    /* The glow: the same comet, blurred and sitting a little wider, so the
+       light spills off the edge and travels with it rather than the whole
+       button blooming at once.
+
+       This is a blur, which was avoided on the nav bar itself -- but the two
+       are not the same cost. That was a backdrop-filter sampling the entire
+       width of the page behind a fixed bar; this is a ~120x45px layer with
+       nothing behind it to sample. */
+    /* Fades up over the solid border, sweeps, and fades back to it. The angle
+       it reads is animated on the button above. */
+    @keyframes nav-ring {
+      0%, 8% {
+        opacity: 0;
+      }
+
+      18%, 32% {
+        opacity: 1;
+      }
+
+      42%, 100% {
+        opacity: 0;
+      }
+    }
+
+    /* Answers straight away rather than waiting for the next burst. */
+    /* The spin belongs on the button, which is what owns the angle both layers
+       read; the layers themselves just hold at full. */
+    .site-nav .cta-nav a:hover,
+    .site-nav .cta-nav a:focus-visible {
+      animation: nav-spin 2.4s linear infinite;
+      /* nav-spin only carries the angle, so the glow has to be stated here or
+         it would drop back to nothing the moment the pointer arrives. */
+      box-shadow:
+        0 0 10px rgba(146, 7, 195, 0.55),
+        0 0 20px rgba(255, 97, 22, 0.28);
+    }
+
+    .site-nav .cta-nav a:hover::before,
+    .site-nav .cta-nav a:focus-visible::before {
+      opacity: 1;
+      animation: none;
     }
 
     .site-nav .cta-nav a:hover {
-      opacity: 0.85;
+      color: #fff;
+    }
+
+    @keyframes nav-spin {
+      to {
+        --nav-angle: 360deg;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      /* Straight to the end state: struck price, new price, tag, no reveal. */
+      .hero-price .price-was,
+      .hero-price .price-now,
+      .hero-price-tag {
+        animation: none;
+      }
+
+      /* Leaves the pill's plain solid border, as on the nav button. */
+      .hero-price-tag {
+        background-position: 0 0;
+      }
+
+      .hero-price .price-was::after {
+        animation: none;
+        transform: translateY(-50%) scaleX(1);
+      }
+
+      /* The solid border on the buttons is the whole treatment here: still
+         marked out as the thing to press, with nothing sweeping over them. */
+      .site-nav .cta-nav a,
+      .site-nav .cta-nav a:hover,
+      .site-nav .cta-nav.is-visible a,
+      .hero-content .btn-primary,
+      .hero-content .btn-primary:hover {
+        animation: none;
+      }
+
+      .hero-content .btn-primary::before,
+      .site-nav .cta-nav.is-visible a::before {
+        animation: none;
+        opacity: 0;
+      }
+
+      .site-nav .cta-nav a::before,
+      .site-nav .cta-nav a:hover::before {
+        animation: none;
+        opacity: 0;
+      }
     }
 
     /* --- Hero stage ---
@@ -181,47 +419,38 @@
        video rises from below to settle dead centre — where it locks while the
        rest of the region scrolls past underneath. */
 
-    .hero-stage {
-      /* --p is the rise. --q1 brings the curriculum heading up to sit under the
-         video, --q2 then carries the video away and the heading to centre.
-         --q spans both, for anything that just wants overall exit progress. */
-      --p: 0;
-      --q: 0;
-      --q1: 0;
-      --q2: 0;
-      position: relative;
-      /* Rise, dwell, exit, then the curriculum intro's own dwell -- plus the
-         viewport the sticky child itself occupies. */
-      height: calc(var(--vh, 1vh) * 480);
-    }
+    /* --- Hero ---
+       Plain document flow: the pitch, then the brand video, then the
+       curriculum lead-in. This used to be a 480vh scroll-jacked region with
+       the video riding up into a locked position -- that read as jittery on
+       iOS whether the choreography ran in JS or in a native scroll-timeline,
+       so it's gone. See hero.js. */
 
-    .hero-sticky {
-      position: sticky;
-      top: 0;
-      height: calc(var(--vh, 1vh) * 100);
-      overflow: hidden;
+    .hero {
+      position: relative;
+      min-height: calc(var(--vh, 1vh) * 100);
       display: flex;
-      align-items: center;
+      flex-direction: column;
       justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 7em 2em 6em;
+      overflow: hidden;
     }
 
     .hero-bg {
       position: absolute;
       inset: 0;
       z-index: 0;
-      will-change: transform;
       background:
         linear-gradient(to bottom, rgba(10, 10, 15, 0.55) 0%, rgba(10, 10, 15, 0.85) 80%, var(--bg) 100%),
         url('djvibe-studiox-urXtcqrAW18-unsplash.jpg') center / cover no-repeat;
-      transform: scale(calc(1 + var(--p) * 0.07));
-      transform-origin: center 40%;
     }
 
-    /* The vignette the hero has always had. */
-    /* A gradient rather than inset box-shadow: the shadow's blur radius is
-       about 150px across the whole viewport, and it has to be repainted as the
-       hero moves. This composites instead. */
-    .hero-sticky::after {
+    /* The vignette the hero has always had. A gradient rather than an inset
+       box-shadow: the shadow's blur radius is about 150px across the whole
+       viewport, which is expensive to paint even as a one-off on a phone. */
+    .hero::after {
       content: "";
       position: absolute;
       inset: 0;
@@ -231,47 +460,15 @@
       pointer-events: none;
     }
 
-    /* Additional darkening on top of that, arriving with the video, so it is
-       watched against something close to black rather than a busy photograph. */
-    .hero-veil {
-      position: absolute;
-      inset: 0;
-      z-index: 2;
-      background: var(--bg);
-      /* Finishes to solid on the way out, so once the video has gone the hero
-         photograph isn't left scrolling away behind nothing. */
-      opacity: calc(var(--p) * 0.78 + var(--q2) * 0.22);
-    }
-
     .hero-content {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      z-index: 3;
-      padding: 7em 2em 6em;
-      /* The copy is gone by the time the video is about a third of the way in,
-         rather than lingering at half opacity over it. Fade and lift share one
-         progress value so they finish together. */
-      --tp: clamp(0, calc(var(--p) * 3), 1);
-      opacity: calc(1 - var(--tp));
-      transform: translateY(calc(var(--tp) * -8vh));
-    }
-
-    /* Once the video owns the stage the faded copy must stop intercepting
-       clicks meant for it. */
-    .hero-stage.is-locked .hero-content {
-      visibility: hidden;
-      pointer-events: none;
+      position: relative;
+      z-index: 2;
     }
 
     .hero-label {
-      font-size: 0.95em;
+      font-size: 0.855em;
       font-weight: 700;
-      letter-spacing: 0.15em;
+      letter-spacing: 0.09em;
       text-transform: uppercase;
       color: var(--text-muted);
       margin-bottom: 1em;
@@ -295,15 +492,20 @@
 
     .hero-details {
       display: flex;
-      gap: 2em;
+      gap: 1em;
       flex-wrap: wrap;
+      /* Baseline, not centre: the price cell is two lines tall and the rest
+         are one, and centring it would float the figures off the line the
+         other three sit on. This puts the figures *on* that line and lets the
+         tag hang below it. */
+      align-items: baseline;
       justify-content: center;
       font-size: 1.05em;
       color: var(--text-muted);
       margin-bottom: 2.5em;
     }
 
-    .hero-details span {
+    .hero-details>span {
       display: flex;
       align-items: center;
       gap: 0.4em;
@@ -320,109 +522,316 @@
       font-weight: 700;
     }
 
-    /* "There is more down here." Fades out almost immediately once they act
-       on it. */
-    .hero-chevron {
+    /* Warm rather than accent: the CTA below is a solid block of accent, and
+       two purples that close together compete instead of leading one to the
+       other. */
+    .hero-price {
+      /* Overrides the row layout the other three cells use. */
+      flex-direction: column;
+      gap: 0.2em;
+    }
+
+    .hero-price-figures {
+      display: flex;
+      align-items: baseline;
+      /* This is the whole gap now: the markup used to carry an &nbsp; between
+         the two figures as well, which a flex container turns into a third
+         item -- so the space was really gap + nbsp + gap. */
+      gap: 0.45em;
+    }
+
+    .hero-price-tag {
+      position: relative;
+      font-size: 0.52em;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--warm);
+      /* A sheen across the whole pill rather than a chase around its border.
+         Every ring version of this failed to show, and a 1px ring on a pill
+         this small was always going to be marginal even when working -- one
+         background layer sliding across the face cannot be too subtle to see,
+         and needs no pseudo-element, mask or custom property to do it.
+
+         The base is the translucent orange the pill always had; only the band
+         crossing it is new. */
+      border: 1px solid rgba(255, 97, 22, 0.4);
+      background: linear-gradient(100deg,
+          rgba(255, 97, 22, 0.1) 0%,
+          rgba(255, 97, 22, 0.1) 40%,
+          rgba(146, 7, 195, 0.55) 47%,
+          rgba(255, 255, 255, 0.7) 50%,
+          rgba(255, 97, 22, 0.6) 53%,
+          rgba(255, 97, 22, 0.1) 60%,
+          rgba(255, 97, 22, 0.1) 100%);
+      background-size: 300% 100%;
+      background-position: 100% 0;
+      background-repeat: no-repeat;
+      border-radius: 2em;
+      /* 0.8em against the smaller type above lands wider than the 0.6em it
+         replaces -- em padding shrinks with the font, so matching the old
+         figure would have made the pill tighter, not roomier. */
+      padding: 0.2em 0.8em;
+      white-space: nowrap;
+      line-height: 1.4;
+    }
+
+    /* The reveal: $1,600 alone, a rule drawn through it, the old price sliding
+       aside as the new one arrives, then the tag.
+
+       Every "before" state below lives in a keyframe rather than in the rule
+       it belongs to, held in place by animation-fill-mode: both. Put opacity:0
+       on .price-now itself and anything that doesn't run the animation --
+       reduced motion, an older engine -- would hide the price permanently. */
+    .hero-price .price-was {
+      position: relative;
+      /* Replaced by the drawn rule below, which line-through can't be: text
+         decorations aren't animatable. */
+      text-decoration: none;
+      /* Same delay, duration and easing as the strike below, so the move and
+         the line are one gesture: by the time the rule lands, the space for
+         the new price is already open and it has only to fade into it. */
+      animation: price-shift 340ms linear 600ms both;
+    }
+
+    .hero-price .price-was::after {
+      content: "";
       position: absolute;
-      bottom: 2.6em;
-      left: 50%;
-      transform: translateX(-50%);
-      opacity: clamp(0, calc(1 - var(--p) * 4), 1);
-      color: var(--text-muted);
-      animation: chevron-pulse 2.1s var(--ease) infinite;
-      background: none;
-      border: none;
-      padding: 0.6em 1.2em;
-      cursor: pointer;
-      transition: color 200ms;
+      /* A touch past the digits on each side, the way a struck-out figure is
+         crossed by hand. */
+      left: -0.06em;
+      right: -0.06em;
+      top: 50%;
+      height: 2px;
+      border-radius: 2px;
+      background: var(--warm);
+      transform: translateY(-50%) scaleX(0);
+      transform-origin: left center;
+      /* Linear: a line being drawn travels at the speed of the hand drawing
+         it, and an eased one arrives looking like it slowed down to stop. */
+      animation: price-strike 340ms linear 600ms both;
     }
 
-    .hero-chevron:hover {
-      color: var(--text);
+    /* Wiped in left to right rather than faded, so it reads in the same
+       direction as the rule that was just drawn through the old price. The
+       mask is 2.2x the width of the text: parked right, the text sits under
+       its transparent tail; travelling left, the opaque head passes over and
+       uncovers it. */
+    .hero-price .price-now {
+      -webkit-mask-image: linear-gradient(to right,
+          #000 45%, rgba(0, 0, 0, 0.35) 52%, transparent 60%);
+      mask-image: linear-gradient(to right,
+          #000 45%, rgba(0, 0, 0, 0.35) 52%, transparent 60%);
+      -webkit-mask-size: 220% 100%;
+      mask-size: 220% 100%;
+      -webkit-mask-repeat: no-repeat;
+      mask-repeat: no-repeat;
+      /* Starts as the move finishes -- the gap it lands in is already open. */
+      animation: price-wipe 500ms var(--ease) 940ms both;
     }
 
-    /* Once it has faded it must stop being a target. */
-    .hero-stage.is-locked .hero-chevron,
-    .hero-chevron[aria-hidden="true"] {
-      pointer-events: none;
+    .hero-price-tag {
+      /* Two: the entrance, a beat behind the price, and then the same border
+         chase the nav button runs -- started together with it, so the pair
+         reads as one deliberate pulse rather than two things twitching. */
+      animation:
+        tag-shimmer 800ms var(--ease) 1090ms both,
+        tag-sweep 9s ease-in-out 5.5s infinite;
     }
 
-    .hero-chevron svg {
-      width: 2em;
-      height: 2em;
-      stroke: currentColor;
-      fill: none;
-      stroke-width: 1.75;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      display: block;
-    }
+    /* The ring, over the solid border. Masked to a ring rather than filled and
+       hidden, which is what lets it sit above a translucent background. */
 
-    @keyframes chevron-pulse {
+    /* The shine travels across the whole window, visible for the middle of it,
+       so it enters and leaves already moving rather than starting and stopping
+       in view. */
 
-      0%,
-      100% {
-        transform: translateX(-50%) translateY(0);
-        opacity: 0.55;
+    /* The shine slides the full width across the burst while the glow comes up
+       under it. Two background layers, so both positions are listed: the fill
+       stays put and only the gradient travels. */
+    @keyframes tag-sweep {
+      0%, 8% {
+        background-position: 100% 0;
+        box-shadow:
+          0 0 6px rgba(146, 7, 195, 0),
+          0 0 12px rgba(255, 97, 22, 0);
       }
 
-      50% {
-        transform: translateX(-50%) translateY(0.5em);
+      18%, 32% {
+        box-shadow:
+          0 0 6px rgba(146, 7, 195, 0.5),
+          0 0 12px rgba(255, 97, 22, 0.35);
+      }
+
+      42%, 100% {
+        background-position: 0 0;
+        box-shadow:
+          0 0 6px rgba(146, 7, 195, 0),
+          0 0 12px rgba(255, 97, 22, 0);
+      }
+    }
+
+    @keyframes price-strike {
+      to {
+        transform: translateY(-50%) scaleX(1);
+      }
+    }
+
+    /* Roughly half the width of "$800" plus the gap, so the old price sits
+       near enough to centred while it is the only thing there. */
+    @keyframes price-shift {
+      from {
+        transform: translateX(1.25em);
+      }
+
+      to {
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes price-wipe {
+      from {
+        -webkit-mask-position: 100% 0;
+        mask-position: 100% 0;
+      }
+
+      to {
+        -webkit-mask-position: 0 0;
+        mask-position: 0 0;
+      }
+    }
+
+    @keyframes tag-shimmer {
+      0% {
+        opacity: 0;
+        transform: translateY(-0.25em);
+        box-shadow: 0 0 0 rgba(255, 97, 22, 0);
+      }
+
+      55% {
         opacity: 1;
+        box-shadow: 0 0 14px rgba(255, 97, 22, 0.55);
       }
+
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+        box-shadow: 0 0 0 rgba(255, 97, 22, 0);
+      }
+    }
+
+    /* Same size as the curriculum's "The Curriculum" (.hero-intro h2) --
+       intentionally, so the video reads as its own section rather than
+       sitting there with no introduction. */
+    .hero-video-heading {
+      font-size: clamp(2em, 4.5vw, 3.2em);
+      text-align: center;
+      padding: 0 2em;
+      /* Carries the gap above the pair. The gap *below* it has to be the
+         video's margin-top of 0 rather than a margin here: adjacent siblings
+         collapse to the larger of the two, so any bottom margin set here
+         would just lose to the video's and the heading would drift away from
+         what it introduces. */
+      margin: 4em auto 0.6em;
     }
 
     /* As wide as the viewport allows with a little air, and never taller than
        the viewport — the height term is what keeps it fully visible on short
-       and wide screens. */
+       and wide screens. The absolute cap matches section.wide, so the video
+       lines up with the widest content on the page instead of overshooting it
+       on a large display. */
     .hero-video {
       position: relative;
-      z-index: 4;
-      width: min(calc(100vw - 3em), calc((var(--vh, 1vh) * 100 - 8em) * 16 / 9));
-      transform:
-        /* In the second move the video travels exactly as far as the heading
-           does, so the space between them is fixed once the heading has
-           arrived: it closes to its margin and then the pair rises together,
-           the heading pushing the video off the top. Moving the video a whole
-           viewport instead would open the gap back up on the way out. */
-        translateY(calc((1 - var(--p)) * var(--vh, 1vh) * 100 - var(--q2) * var(--dock, 60vh)))
-        scale(calc(0.94 + var(--p) * 0.06 - var(--q2) * 0.06));
-      opacity: clamp(0, calc((var(--p) - var(--q2)) * 1.5), 1);
-      will-change: transform;
+      max-width: min(calc(100vw - 3em), 1140px, calc((var(--vh, 1vh) * 100 - 8em) * 16 / 9));
+      /* The captions below carry the gap to whatever follows. */
+      margin: 0 auto 1.4em;
+    }
+
+    /* This video's captions, as page text rather than an overlay -- the line
+       being spoken and the one after it. Fills what is otherwise a lot of
+       empty column under the video on a phone. */
+    .brand-captions {
+      position: relative;
+      max-width: 30em;
+      margin: 0 auto 4em;
+      padding: 0 1.5em;
+      text-align: center;
+      font-size: clamp(1.03em, 2.15vw, 1.3em);
+      line-height: 1.5;
+      /* Room for the pair, so a longer line turning over doesn't shove the
+         rest of the page down and back. */
+      min-height: 4.5em;
+    }
+
+    /* One turn of the lines. The outgoing set rises and fades while the
+       incoming set comes up from below into its place. */
+    .cc-frame {
+      transition: transform 420ms var(--ease), opacity 420ms var(--ease);
+    }
+
+    .cc-frame.is-entering {
+      transform: translateY(0.75em);
+      opacity: 0;
+    }
+
+    .cc-frame.is-out {
+      /* Out of flow so the incoming lines take this space straight away
+         rather than waiting for the transition to finish. */
+      position: absolute;
+      left: 1.5em;
+      right: 1.5em;
+      top: 0;
+      transform: translateY(-0.75em);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .brand-captions .cc-line {
+      margin: 0;
+    }
+
+    /* Not yet spoken: present, so the sentence can be read ahead, but clearly
+       behind the voice. The line after next is knocked back further again, so
+       the two don't read as one block of grey. */
+    .brand-captions .cc-word {
+      color: var(--text-muted);
+      opacity: 0.55;
+    }
+
+    .brand-captions .cc-next {
+      color: var(--text-muted);
+      opacity: 0.38;
+    }
+
+    .brand-captions .cc-word {
+      transition: color 220ms var(--ease), opacity 220ms var(--ease);
+    }
+
+    .brand-captions .cc-word.is-said {
+      color: var(--text);
+      opacity: 1;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      .brand-captions .cc-word,
+      .cc-frame {
+        transition: none;
+      }
     }
 
     .hero-video .player {
       box-shadow: 0 2em 6em rgba(0, 0, 0, 0.75);
     }
 
-    /* The curriculum intro sits one viewport below and rides up on the same
-       value that carries the video away, so the heading arrives directly
-       beneath it rather than after a gap. */
     .hero-intro {
-      position: absolute;
-      inset: 0;
-      z-index: 5;
-      will-change: transform;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
       padding: 6em 2em 8em;
-      /* Two moves, not one. First the heading rises from below the fold until
-         it sits a normal margin under the video (--dock, measured in hero.js,
-         is that offset from its centred position). Only then does everything
-         travel up together: the video away, this to centre. */
-      transform: translateY(
-        calc((1 - var(--q1)) * (var(--vh, 1vh) * 100 - var(--dock, 60vh)) + (1 - var(--q2)) * var(--dock, 60vh)));
-    }
-
-    /* Used for a single measurement of the heading's resting position. */
-    .hero-stage.is-measuring .hero-intro {
-      transform: none !important;
+      text-align: center;
     }
 
     .hero-intro-inner {
       max-width: 62ch;
+      margin: 0 auto;
     }
 
     .hero-intro h2 {
@@ -449,79 +858,18 @@
       transform: none;
     }
 
-    /* Reduced motion, or no JS: a plain hero with the video beneath it. */
-    .hero-stage.is-static {
-      height: auto;
-    }
-
-    .hero-stage.is-static .hero-sticky {
-      position: static;
-      height: auto;
-      display: block;
-      padding-bottom: 4em;
-    }
-
-    .hero-stage.is-static .hero-content {
-      position: static;
-      opacity: 1;
-      transform: none;
-      min-height: 82vh;
-      visibility: visible;
-    }
-
-    .hero-stage.is-static .hero-bg,
-    .hero-stage.is-static .hero-veil {
-      position: absolute;
-      transform: none;
-    }
-
-    .hero-stage.is-static .hero-video {
-      transform: none;
-      opacity: 1;
-      margin: 0 auto;
-      width: min(calc(100vw - 3em), 1140px);
-    }
-
-    .hero-stage.is-static .hero-chevron {
-      display: none;
-    }
-
-    .hero-stage.is-static .hero-intro {
-      position: static;
-      transform: none;
-      padding: 5em 2em 2em;
-    }
-
-
-    @media (prefers-reduced-motion: reduce) {
-      .hero-chevron {
-        animation: none;
-      }
-    }
-
     @media (max-width: 640px) {
-      .hero-stage {
-        height: calc(var(--vh, 1vh) * 420);
-      }
-
-      .hero-content {
+      /* Targets .hero, which is where the base padding lives -- on
+         .hero-content it would stack on top of it rather than replace it,
+         and this exists to narrow the gutter, not widen it. */
+      .hero {
         padding: 6em 1.2em 5em;
       }
 
       .hero-video {
-        width: min(calc(100vw - 1.6em), calc((var(--vh, 1vh) * 100 - 6em) * 16 / 9));
+        max-width: min(calc(100vw - 1.6em), calc((var(--vh, 1vh) * 100 - 6em) * 16 / 9));
       }
 
-      /* Rescaling a full-screen photograph every frame costs the most and shows
-         the least. The veil still carries the change in depth. */
-      .hero-bg {
-        transform: none;
-        will-change: auto;
-      }
-
-      /* The video scales as it arrives and leaves, and every rescale
-         re-rasterises its layer -- a 110px shadow makes that far more
-         expensive than the shadow is worth on a small screen. */
       .hero-video .player {
         box-shadow: 0 1em 2em rgba(0, 0, 0, 0.6);
       }
@@ -541,6 +889,85 @@
       font-family: inherit;
       transition: box-shadow 200ms, transform 200ms;
       box-shadow: 0 0 1.5em var(--accent-glow);
+    }
+
+    /* The hero's CTA, built exactly like the nav button and scaled up: black
+       face, solid accent border at rest, the same comet laid over it. Scoped
+       to the hero so the form's submit button keeps the plain accent fill. */
+    .hero-content .btn-primary {
+      position: relative;
+      background: #000;
+      color: var(--text);
+      border: 2px solid var(--accent);
+      box-shadow: none;
+      /* Its own copy: a custom property holding var() resolves where it is
+         declared, so this cannot be shared with the nav button's. */
+      --cta-dim: rgba(146, 7, 195, 0.32);
+      --cta-comet: conic-gradient(from var(--nav-angle, 0deg),
+          var(--cta-dim) 0deg,
+          var(--cta-dim) 190deg,
+          var(--accent) 300deg,
+          var(--warm) 340deg,
+          var(--cta-dim) 360deg);
+      /* Starts once the price reveal has finished saying its piece. */
+      animation: cta-sweep 9s ease-in-out 2.2s infinite;
+    }
+
+    .hero-content .btn-primary::before {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      border-radius: inherit;
+      padding: 2px;
+      background: var(--cta-comet);
+      -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+      mask-composite: exclude;
+      opacity: 0;
+      animation: nav-ring 9s ease-in-out 2.2s infinite;
+      pointer-events: none;
+    }
+
+    /* As nav-sweep, with the glow scaled to the larger button. */
+    @keyframes cta-sweep {
+      0%, 8% {
+        --nav-angle: 0deg;
+        box-shadow:
+          0 0 16px rgba(146, 7, 195, 0),
+          0 0 32px rgba(255, 97, 22, 0);
+      }
+
+      18%, 32% {
+        box-shadow:
+          0 0 16px rgba(146, 7, 195, 0.6),
+          0 0 32px rgba(255, 97, 22, 0.3);
+      }
+
+      42%, 100% {
+        --nav-angle: 720deg;
+        box-shadow:
+          0 0 16px rgba(146, 7, 195, 0),
+          0 0 32px rgba(255, 97, 22, 0);
+      }
+    }
+
+    .hero-content .btn-primary:hover {
+      animation: nav-spin 2.4s linear infinite;
+      color: #fff;
+      transform: none;
+      box-shadow:
+        0 0 16px rgba(146, 7, 195, 0.6),
+        0 0 32px rgba(255, 97, 22, 0.3);
+    }
+
+    .hero-content .btn-primary:hover::before {
+      opacity: 1;
+      animation: none;
     }
 
     .btn-primary:hover {
@@ -588,7 +1015,9 @@
          font, since the same player is 1200px wide in the hero and 360px on a
          phone. */
       container-type: inline-size;
-      --ctl: clamp(0.95rem, 2.3cqw, 1.45rem);
+      /* The one knob for the whole control bar: everything in it is sized in
+         em from here, so this is what trades chrome for picture. */
+      --ctl: clamp(0.76rem, 1.84cqw, 1.16rem);
       background: #000;
       border-radius: 0.75em;
       overflow: hidden;
@@ -637,7 +1066,9 @@
     }
 
     .pl-captions.is-empty,
-    .player:not(.cc-on) .pl-captions {
+    .player:not(.cc-on) .pl-captions,
+    /* Moved out of the picture entirely for this one; see .brand-captions. */
+    .player.has-lyrics .pl-captions {
       display: none;
     }
 
@@ -657,11 +1088,16 @@
          player's own width — the same control bar serves a 1200px hero and a
          360px phone, and a single fixed size can't suit both. */
       font-size: var(--ctl);
-      padding: 3em 0.85em 0.85em;
+      /* The 3em top is the gradient's run-up, not spacing; the sides and
+         bottom are the actual inset, kept tight to give the picture the
+         room. */
+      padding: 3em 0.68em 0.56em;
       background: linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
       display: flex;
       flex-direction: column;
-      gap: 0.55em;
+      /* Tight: the seek bar belongs to the row under it, and the gap was
+         reading as two separate strips of chrome. */
+      gap: 0.1em;
       opacity: 0;
       transform: translateY(0.5em);
       transition: opacity 220ms, transform 220ms;
@@ -681,7 +1117,9 @@
 
     .pl-bar {
       position: relative;
-      height: 1.3em;
+      /* Still a comfortable touch target -- the visible track is only 0.3em,
+         the rest is grab room. */
+      height: 1.1em;
       display: flex;
       align-items: center;
       cursor: pointer;
@@ -745,8 +1183,10 @@
          default of about 13px. Without this, every em below sizes against that
          instead of against the control bar. */
       font: inherit;
-      width: 2.3em;
-      height: 2.3em;
+      /* The icon inside is 1.35em, so this is 0.43em of surround rather than
+         the 0.48em it was -- tighter chrome, same glyph. */
+      width: 2.2em;
+      height: 2.2em;
       background: rgba(10, 10, 15, 0.78);
       border: none;
       padding: 0;
@@ -782,6 +1222,8 @@
       display: block;
     }
 
+    /* The mute toggle, where the platform won't take a volume level. Same
+       two-icons-one-button pattern as play/pause above. */
     .pl-btn .pl-icon-muted,
     .player.is-muted .pl-btn .pl-icon-loud {
       display: none;
@@ -789,6 +1231,18 @@
 
     .player.is-muted .pl-btn .pl-icon-muted {
       display: block;
+    }
+
+    /* At either end of the range. Still legible, so the pair doesn't appear to
+       lose a button, but plainly not pressable. */
+    .pl-btn:disabled {
+      opacity: 0.35;
+      cursor: default;
+    }
+
+    .pl-btn:disabled:hover {
+      background: rgba(10, 10, 15, 0.78);
+      transform: none;
     }
 
     /* Plain text: it is a readout, not a control, and a slab around it read as
@@ -804,6 +1258,58 @@
 
     .pl-spacer {
       flex: 1;
+    }
+
+    /* The standing invitation to turn the sound on. Deliberately not part of
+       .pl-controls: that bar retires after a few seconds, and muted video
+       with no visible way back to sound reads as broken rather than as a
+       choice. Up whenever the sound is off, down the moment it isn't. */
+    .pl-unmute {
+      position: absolute;
+      top: 0.8em;
+      right: 0.8em;
+      z-index: 4;
+      display: flex;
+      align-items: center;
+      gap: 0.4em;
+      font: inherit;
+      font-size: calc(var(--ctl) * 0.72);
+      font-weight: 700;
+      color: var(--text);
+      background: rgba(10, 10, 15, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 2em;
+      padding: 0.5em 0.9em 0.5em 0.7em;
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 220ms var(--ease);
+    }
+
+    .pl-unmute svg {
+      width: 1.15em;
+      height: 1.15em;
+      fill: currentColor;
+      display: block;
+    }
+
+    .player.is-muted.has-started .pl-unmute {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* While the full bar is up it carries its own mute control; two speakers
+       on screen at once is just noise. */
+    .player.show-controls .pl-unmute,
+    .player:not(.is-playing) .pl-unmute {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .pl-unmute {
+        transition: none;
+      }
     }
 
     /* Buffering spinner */
@@ -1109,8 +1615,7 @@
 
       .curr-scroll .curr-media,
       .curr-scroll .curr-copy>*,
-      .pl-controls,
-      .pl-mute {
+      .pl-controls {
         transition: none !important;
         animation: none !important;
       }
@@ -1878,6 +2383,8 @@
         grid-template-columns: 1fr 1fr;
         gap: 0.5em;
         justify-items: center;
+        /* The price shares its row with "12 students" here too. */
+        align-items: baseline;
       }
 
       section {
@@ -1918,54 +2425,59 @@
 
   <div class="sheet">
 
-  <!-- Hero stage: copy gives way to the brand video as you scroll -->
-  <div class="hero-stage" id="hero-stage">
-    <div class="hero-sticky">
-      <div class="hero-bg" aria-hidden="true"></div>
-      <div class="hero-veil" aria-hidden="true"></div>
+  <!-- Hero: the pitch, then the brand video, then the curriculum lead-in --
+       plain document flow, no scroll-jacking. See hero.js. -->
+  <div class="hero">
+    <div class="hero-bg" aria-hidden="true"></div>
 
-      <div class="hero-content">
-        <div class="hero-label">Fall 2026</div>
-        <h1>HEADROOM</h1>
-        <p class="subtitle">
-          Advanced DJ training for aspiring performers. An end-to-end
-          up-leveling of your entire stack so you can step into any booth and
-          find your flow amongst the chaos.
-        </p>
-        <div class="hero-details">
-          <span>8 weeks</span>
-          <span>2 hrs / week</span>
-          <span>12 students</span>
-          <span><s class="price-was">$1,600</s>&nbsp;<span class="price-now">$800</span></span>
-        </div>
-        <a class="btn-primary" href="#notify">Come to a free class</a>
-
-        <button class="hero-chevron" id="hero-chevron" type="button"
-          aria-label="Skip to the video">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M6 9l6 6 6-6" />
-          </svg>
-        </button>
+    <div class="hero-content">
+      <div class="hero-label">Fall 2026</div>
+      <h1>HEADROOM</h1>
+      <p class="subtitle">
+        Advanced DJ training for aspiring performers. An end-to-end
+        up-leveling of your entire stack so you can step into any booth and
+        find your flow <span class="no-break">amongst the chaos.</span>
+      </p>
+      <div class="hero-details">
+        <span>8 weeks</span>
+        <span>2 hrs / week</span>
+        <span>12 students</span>
+        <!-- The fourth cell of the row: 1x4 on desktop, 2x2 on a phone. The
+             tag sits under the figures rather than beside them so the cell
+             stays the same width as the other three. -->
+        <span class="hero-price">
+          <span class="hero-price-figures">
+            <s class="price-was">$1,600</s><span class="price-now">$800</span>
+          </span>
+          <span class="hero-price-tag">Launch price</span>
+        </span>
       </div>
 
-      <div class="hero-video">
-        <div class="player" data-video="brand" data-manual data-captions
-          data-label="Why I built Headroom"></div>
-      </div>
+      <a class="btn-primary" href="#notify">Come to a free class</a>
+    </div>
+  </div>
 
-      <div class="hero-intro" id="hero-intro">
-        <div class="hero-intro-inner">
-          <h2 class="reveal">The Curriculum</h2>
-          <p class="section-lead reveal">
-            At the white-hot center of every world-class set is a relaxed,
-            composed DJ. Headroom distills decades of experience into eight
-            focused modules&mdash;one per week&mdash;covering the technical
-            foundations, preparation techniques, and relational dynamics that
-            turn capable DJs into confident performers.
-          </p>
-        </div>
-      </div>
+  <h2 class="hero-video-heading">What is Headroom?</h2>
 
+  <div class="hero-video">
+    <div class="player" data-video="brand" data-autoplay data-captions
+      data-captions-into="brand-captions" data-label="Why I built Headroom"></div>
+  </div>
+
+  <!-- This video's captions are rendered here as page text rather than over
+       the picture. See renderLyrics in player.js. -->
+  <div class="brand-captions" id="brand-captions" aria-live="off"></div>
+
+  <div class="hero-intro" id="hero-intro">
+    <div class="hero-intro-inner">
+      <h2 class="reveal">The Curriculum</h2>
+      <p class="section-lead reveal">
+        At the white-hot center of every world-class set is a relaxed,
+        composed DJ. Headroom distills decades of experience into eight
+        focused modules&mdash;one per week&mdash;covering the technical
+        foundations, preparation techniques, and relational dynamics that
+        turn capable DJs into confident performers.
+      </p>
     </div>
   </div>
 
@@ -2658,11 +3170,16 @@
     </div>
   </div>
 
-  <script src="player.js" defer></script>
-  <script src="hero.js" defer></script>
-  <script src="curriculum.js" defer></script>
-  <script src="timeline.js" defer></script>
-  <script src="footer.js" defer></script>
+  <!-- Cache-busted with a version query string: these are separate resource
+       requests from the page itself, at a fixed URL, so a stale copy can sit
+       in Cloudflare's edge cache (or Safari's) surviving a hard-reload of the
+       page. Bump the number whenever a JS change needs to actually reach a
+       phone under test. -->
+  <script src="player.js?v=13" defer></script>
+  <script src="hero.js?v=13" defer></script>
+  <script src="curriculum.js?v=13" defer></script>
+  <script src="timeline.js?v=13" defer></script>
+  <script src="footer.js?v=13" defer></script>
   <script>
     /* ---------- Module "read more" modal ---------- */
     (function () {

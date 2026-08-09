@@ -1,106 +1,76 @@
 /*
- * Hero stage choreography.
+ * Hero.
  *
- * The hero region is deliberately taller than the viewport, with a sticky
- * child holding one screenful in place. How far the page has scrolled into
- * that region becomes a single 0..1 progress value, published as --p, and CSS
- * does the rest: the copy lifts and fades, the background darkens and pushes
- * back, and the brand video rises from below to settle dead centre.
+ * This used to be a 480vh scroll-jacked region: a sticky viewport held in
+ * place while a scroll listener rewrote transform/opacity custom properties
+ * every frame, rising the brand video up into a locked, centred position.
+ * Whether that math ran in JS or in a native scroll-timeline, it read as
+ * jittery on iOS -- so it's gone. This is just a page now: the pitch, then
+ * the video, then the curriculum lead-in, in normal document flow.
  *
- * Once it lands it stays there — the remaining height of the region scrolls
- * past while the sticky child holds the video centred — and that is when it
- * starts playing.
- *
- * Nothing here moves the scroll position or swallows scroll events. The page
- * scrolls exactly as fast as the reader asks; the region is just tall, and the
- * animation reads its offset.
+ * What's left here: warming the video's source a little before it scrolls
+ * into view, so playback doesn't stall right when it's wanted, and revealing
+ * the curriculum heading's words as it arrives.
  */
 (function () {
   "use strict";
 
-  var stage = document.getElementById("hero-stage");
-  if (!stage) return;
-
-  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-
-  /* The locked viewport unit, matching what the stylesheet sizes against. Using
-     live innerHeight here would re-time the whole sequence every time a phone's
-     toolbar slid away. */
-  function vhUnit() {
-    return window.__vh || window.innerHeight;
-  }
-
-  // The video arrives over the first viewport of scrolling; the rest of the
-  // region is the dwell where it sits locked in place.
-  function riseDistance() {
-    return vhUnit();
-  }
-
-  var video = stage.querySelector(".hero-video");
-  var introInner = stage.querySelector(".hero-intro-inner");
-
-  /* How far below its centred position the curriculum heading has to sit to
-     land a normal margin under the video. Measured rather than guessed: both
-     heights depend on the viewport, and on how the copy wraps. */
-  var sticky = stage.querySelector(".hero-sticky");
-
-  function measureDock() {
-    if (!video || !introInner || !sticky) return;
-
-    var vh = vhUnit();
-    // This is now the gap for the entire second move, not a moment in passing,
-    // so it is set for comfort rather than for the tightest point.
-    var margin = Math.max(64, vh * 0.1);
-
-    // Where the heading actually comes to rest, measured with the transform
-    // off. Deriving it from the viewport centre instead would be wrong: the
-    // panel's padding is asymmetric, so its resting position is not the middle.
-    stage.classList.add("is-measuring");
-    var restTop =
-      introInner.getBoundingClientRect().top - sticky.getBoundingClientRect().top;
-    stage.classList.remove("is-measuring");
-
-    var videoBottom = (vh + video.offsetHeight) / 2;
-    var dock = Math.max(0, videoBottom + margin - restTop);
-
-    stage.style.setProperty("--dock", Math.max(0, Math.round(dock)) + "px");
-  }
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   function brand() {
     return window.Headroom ? window.Headroom.get("brand") : null;
   }
 
-  /* Playback is decided from one place and keyed, so a scroll that fires every
-     frame doesn't stack up play() calls — each one resolves an HLS attach
-     asynchronously, and overlapping them races. */
-  var playbackKey = "";
-  var playTimer = null;
+  /* ---------- Warm the video before it arrives ---------- */
 
-  function syncPlayback(shouldPlay) {
-    var key = String(shouldPlay);
-    if (key === playbackKey) return;
+  var videoEl = document.querySelector(".hero-video");
 
-    var player = brand();
-    if (!player) return; // players not registered yet; try again next frame
-
-    playbackKey = key;
-    window.clearTimeout(playTimer);
-
-    if (shouldPlay) {
-      /* Wait for it to settle rather than starting the instant it arrives.
-         A flick down the page passes through the locked position in a couple
-         of frames, and starting playback there only to stop it again is both
-         wasted work and a visible flicker. */
-      playTimer = window.setTimeout(function () {
-        if (!player.userPaused) player.play({ muted: true });
-      }, 160);
-    } else {
-      player.pause({ auto: true });
-    }
+  if (videoEl && "IntersectionObserver" in window) {
+    // A whole viewport of margin below: ready by the time it's wanted,
+    // without paying for it the moment the page loads.
+    var warmObserver = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          var player = brand();
+          if (player) player.warm();
+          warmObserver.disconnect();
+        });
+      },
+      { rootMargin: "0px 0px 100% 0px" }
+    );
+    warmObserver.observe(videoEl);
   }
 
-  /* Split the intro copy into words so they can arrive one at a time. Done
-     once, up front, so nothing is rebuilding DOM mid-scroll. */
+  /* ---------- The nav's CTA follows the hero's ----------
+   *
+   * Two of the same button on screen at once is one too many, and the nav one
+   * has nothing to add while the hero's is still in front of the reader. So it
+   * stays away until the hero's scrolls out of view, then builds itself in and
+   * picks up the sweep from the start.
+   *
+   * The hidden state is applied from here rather than in the stylesheet: with
+   * no JS the button should simply be present, not permanently invisible.
+   */
+  var heroCta = document.querySelector(".hero-content .btn-primary");
+  var navCta = document.querySelector(".site-nav .cta-nav");
+
+  if (heroCta && navCta && "IntersectionObserver" in window) {
+    navCta.classList.add("is-managed");
+
+    var ctaObserver = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          navCta.classList.toggle("is-visible", !entry.isIntersecting);
+        });
+      },
+      { threshold: 0 }
+    );
+    ctaObserver.observe(heroCta);
+  }
+
+  /* ---------- Curriculum intro: words arrive one at a time ---------- */
+
   var intro = document.getElementById("hero-intro");
 
   function splitWords() {
@@ -125,201 +95,30 @@
     });
   }
 
-  var revealed = false;
-
-  function revealIntro() {
-    if (revealed || !intro) return;
-    revealed = true;
-    intro.classList.add("is-revealed");
+  function markSettled() {
+    // timeline.js draws its line once the curriculum heading has arrived;
+    // this is the one thing it still needs from here.
+    if (window.Headroom) window.Headroom.hero = { introVisible: true };
   }
 
-  /* The chevron takes you to where the video locks, which is exactly one
-     viewport into the region -- the same place scrolling there by hand lands. */
-  var chevron = document.getElementById("hero-chevron");
-
-  function lockPosition() {
-    return stage.offsetTop + riseDistance();
-  }
-
-  if (chevron) {
-    chevron.addEventListener("click", function () {
-      window.scrollTo({
-        top: lockPosition(),
-        behavior: reduceMotion.matches ? "auto" : "smooth",
-      });
-    });
-  }
-
-  var locked = false;
-  var ticking = false;
-
-  /* Each of these invalidates every calc() in the stage that reads it, and the
-     stage is most of the screen. Three decimals is finer than a pixel over a
-     viewport of travel, so anything below that is work for no visible gain --
-     which is what makes this expensive on a phone. */
-  var written = {};
-
-  function setVar(name, value) {
-    var rounded = value.toFixed(3);
-    if (written[name] === rounded) return;
-    written[name] = rounded;
-    stage.style.setProperty(name, rounded);
-  }
-
-  function update() {
-    ticking = false;
-
-    var rect = stage.getBoundingClientRect();
-    var vh = vhUnit();
-    var travelled = -rect.top;
-
-    // How far the sticky child stays pinned before the region runs out.
-    var travel = stage.offsetHeight - vh;
-    var rise = riseDistance();
-    // The video holds for three quarters of a screen before the curriculum
-    // starts arriving.
-    var lock = vh * 0.75;
-    var exit = vh;
-
-    // The exit starts after the video has held for a beat, but never so late
-    // that it couldn't finish before the region runs out.
-    var exitStart = Math.min(rise + lock, Math.max(rise, travel - exit));
-
-    var p = Math.min(1, Math.max(0, travelled / rise));
-    var q = Math.min(1, Math.max(0, (travelled - exitStart) / exit));
-
-    // Split the exit: the heading docks under the video over the first part,
-    // then both move over the second. The dock is deliberately the shorter of
-    // the two -- the heading arriving is a beat, the pair moving is the move.
-    var DOCK_SHARE = 0.31;
-    var q1 = Math.min(1, q / DOCK_SHARE);
-    var q2 = Math.max(0, (q - DOCK_SHARE) / (1 - DOCK_SHARE));
-
-    // How far into the intro's dwell we are, once it has finished arriving.
-    // q saturates at 1 the moment the panel lands, so it cannot express
-    // "a little beyond that" -- which is when the timeline is meant to build.
-    var dwellStart = exitStart + exit;
-    var dwellLength = Math.max(1, travel - dwellStart);
-    var d = Math.min(1, Math.max(0, (travelled - dwellStart) / dwellLength));
-
-    setVar("--p", p);
-    setVar("--q", q);
-    setVar("--q1", q1);
-    setVar("--q2", q2);
-
-    if (window.Headroom) window.Headroom.hero = { p: p, q: q, d: d };
-
-    /* Start loading well before it is wanted. The rise takes a whole viewport
-       of scrolling; doing this at the end of it puts the cost exactly where the
-       eye is. A quarter of the way up is early enough to be ready and late
-       enough that someone who never scrolls never pays for it. */
-    if (p > 0.25) {
-      var warming = brand();
-      if (warming) warming.warm();
-    }
-
-    // Build the copy in once the intro is most of the way up, and leave it.
-    if (q >= 0.55) revealIntro();
-
-    var nowLocked = p > 0.65;
-    if (nowLocked !== locked) {
-      locked = nowLocked;
-      stage.classList.toggle("is-locked", locked);
-    }
-
-    if (chevron) {
-      var gone = p > 0.24; // matches the opacity ramp in the stylesheet
-      if (gone !== chevron.hasAttribute("aria-hidden")) {
-        if (gone) {
-          chevron.setAttribute("aria-hidden", "true");
-          chevron.setAttribute("tabindex", "-1");
-        } else {
-          chevron.removeAttribute("aria-hidden");
-          chevron.removeAttribute("tabindex");
-        }
-      }
-    }
-
-    // Play once it has arrived, and stop once it is halfway out rather than
-    // letting it run while it flies away.
-    var onScreen = rect.bottom > 0 && rect.top < vh;
-    syncPlayback(p >= 0.98 && q < 0.5 && onScreen);
-  }
-
-  function onScroll() {
-    if (ticking) return;
-    ticking = true;
-    window.requestAnimationFrame(update);
-  }
-
-  function onResize() {
-    measureDock();
-    onScroll();
-  }
-
-  /* Warming during the scroll only moves the stall earlier in the same gesture.
-     The brand video is the one thing on this page everybody sees, so its cost
-     is paid up front, while the page is idle and nothing is moving. */
-  function warmEarly() {
-    var player = brand();
-    if (player) player.warm();
-  }
-
-  function scheduleWarm() {
-    if (window.requestIdleCallback) {
-      window.requestIdleCallback(warmEarly, { timeout: 2000 });
+  if (intro) {
+    if (reduceMotion || !("IntersectionObserver" in window)) {
+      intro.classList.add("is-revealed");
+      markSettled();
     } else {
-      window.setTimeout(warmEarly, 600);
+      splitWords();
+      var introObserver = new IntersectionObserver(
+        function (entries) {
+          entries.forEach(function (entry) {
+            if (!entry.isIntersecting) return;
+            intro.classList.add("is-revealed");
+            markSettled();
+            introObserver.disconnect();
+          });
+        },
+        { threshold: 0.4 }
+      );
+      introObserver.observe(intro);
     }
-  }
-
-  function enable() {
-    stage.classList.remove("is-static");
-    splitWords();
-    measureDock();
-    if (document.readyState === "complete") scheduleWarm();
-    else window.addEventListener("load", scheduleWarm);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onResize);
-    update();
-  }
-
-  function disable() {
-    // Reduced motion: a plain hero with the video below it, playing when it
-    // comes into view like any other.
-    stage.classList.add("is-static");
-    stage.style.setProperty("--p", "1");
-    stage.style.setProperty("--q", "1");
-    stage.style.setProperty("--q1", "1");
-    stage.style.setProperty("--q2", "1");
-    if (window.Headroom) window.Headroom.hero = { p: 1, q: 1, d: 1 };
-    // No build-in: the copy is simply there.
-    revealIntro();
-    window.removeEventListener("scroll", onScroll);
-    window.removeEventListener("resize", onResize);
-
-    var player = brand();
-    if (player) {
-      player.autoplay = true;
-      player.watchViewport(true);
-    }
-  }
-
-  function apply() {
-    if (reduceMotion.matches) disable();
-    else enable();
-  }
-
-  if (reduceMotion.addEventListener) {
-    reduceMotion.addEventListener("change", apply);
-  } else if (reduceMotion.addListener) {
-    reduceMotion.addListener(apply);
-  }
-
-  // Players register on DOMContentLoaded; run after them.
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", apply);
-  } else {
-    apply();
   }
 })();
