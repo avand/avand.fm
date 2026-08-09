@@ -41,9 +41,37 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 # Python's stock static server, binding every interface so a phone on the LAN
-# and the tunnel can both reach it. Nothing custom: the site is plain files, and
-# the video it references is fetched from R2 by the browser, not served here.
-python3 -m http.server "$SITE_PORT" -d . >/dev/null 2>&1 &
+# and the tunnel can both reach it. The site is plain files, and the video it
+# references is fetched from R2 by the browser, not served here.
+#
+# The one thing added on top of the stock handler is Cache-Control: no-store.
+# Without it the server sends no caching headers at all, so Safari falls back
+# to heuristic freshness and decides for itself how long a file stays good --
+# which on a phone, where there is no devtools and no real hard-reload, shows
+# up as edits that simply do not appear. Every asset is local and this is a
+# preview server, so there is nothing here worth caching.
+python3 - "$SITE_PORT" >/dev/null 2>&1 <<'PY' &
+import sys
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+
+
+class NoStore(SimpleHTTPRequestHandler):
+    def end_headers(self):
+        self.send_header("Cache-Control", "no-store, must-revalidate")
+        self.send_header("Pragma", "no-cache")
+        self.send_header("Expires", "0")
+        super().end_headers()
+
+    def send_header(self, keyword, value):
+        # The parent adds its own Last-Modified/ETag, which is what a cache
+        # revalidates against; dropping them keeps it from ever getting a 304.
+        if keyword in ("Last-Modified", "ETag"):
+            return
+        super().send_header(keyword, value)
+
+
+ThreadingHTTPServer(("", int(sys.argv[1])), NoStore).serve_forever()
+PY
 server_pid=$!
 
 echo "  local   http://localhost:$SITE_PORT/headroom/"
