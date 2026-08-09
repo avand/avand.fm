@@ -44,18 +44,31 @@ trap cleanup EXIT INT TERM
 # and the tunnel can both reach it. The site is plain files, and the video it
 # references is fetched from R2 by the browser, not served here.
 #
-# The one thing added on top of the stock handler is Cache-Control: no-store.
-# Without it the server sends no caching headers at all, so Safari falls back
-# to heuristic freshness and decides for itself how long a file stays good --
-# which on a phone, where there is no devtools and no real hard-reload, shows
-# up as edits that simply do not appear. Every asset is local and this is a
-# preview server, so there is nothing here worth caching.
+# Two things are added on top of the stock handler, both about the same
+# problem: an edit that does not show up on a phone, where there is no
+# devtools and no real hard-reload.
+#
+# First, Cache-Control: no-store. The stock server sends no caching headers at
+# all, so Safari falls back to heuristic freshness and picks its own expiry.
+#
+# Second, every local .js/.css reference in an HTML page is stamped with that
+# file's modification time on the way out. no-store only governs responses
+# served after it was added -- anything a browser already stored under an
+# unchanged URL stays there, which is how an afternoon went into debugging
+# JavaScript the device was not running. A URL that changes whenever the file
+# changes cannot be answered from cache at all, and needs no hand-maintained
+# version numbers to do it.
 python3 - "$SITE_PORT" >/dev/null 2>&1 <<'PY' &
+import io
+import os
+import re
 import sys
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
+ASSET = re.compile(rb'(src|href)="([^":?]+\.(?:js|css))(?:\?[^"]*)?"')
 
-class NoStore(SimpleHTTPRequestHandler):
+
+class Dev(SimpleHTTPRequestHandler):
     def end_headers(self):
         self.send_header("Cache-Control", "no-store, must-revalidate")
         self.send_header("Pragma", "no-cache")
@@ -69,8 +82,48 @@ class NoStore(SimpleHTTPRequestHandler):
             return
         super().send_header(keyword, value)
 
+    def send_head(self):
+        path = self.translate_path(self.path)
 
-ThreadingHTTPServer(("", int(sys.argv[1])), NoStore).serve_forever()
+        if os.path.isdir(path):
+            if not self.path.split("?", 1)[0].endswith("/"):
+                return super().send_head()  # let the parent redirect
+            index = os.path.join(path, "index.html")
+            if not os.path.exists(index):
+                return super().send_head()
+            path = index
+        elif not path.endswith((".html", ".htm")):
+            return super().send_head()
+
+        try:
+            with open(path, "rb") as f:
+                body = f.read()
+        except OSError:
+            return super().send_head()
+
+        body = ASSET.sub(lambda m: self._stamp(m, os.path.dirname(path)), body)
+
+        self.send_response(200)
+        self.send_header("Content-type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        return io.BytesIO(body)
+
+    @staticmethod
+    def _stamp(match, base):
+        attr, url = match.group(1), match.group(2)
+        # Someone else's file: not ours to version, and not ours to break.
+        if url.startswith((b"http:", b"https:", b"//")):
+            return match.group(0)
+        local = os.path.join(base, url.decode("utf-8").lstrip("/"))
+        try:
+            stamp = int(os.path.getmtime(local))
+        except OSError:
+            return match.group(0)
+        return attr + b'="' + url + b"?d=" + str(stamp).encode() + b'"'
+
+
+ThreadingHTTPServer(("", int(sys.argv[1])), Dev).serve_forever()
 PY
 server_pid=$!
 
