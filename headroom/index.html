@@ -675,8 +675,8 @@
         1220   $800 in
         1380   comet lands
         1400   label begins
-        1880   sear strikes ............... 60% of the shimmer
-        2024   sear crests ................ 78% of the shimmer
+        1560   sear opens ................. 20% of the shimmer
+        1880   sear crests ................ 60% of the shimmer
         2200   shimmer, fill and sear all settle
 
        The table is a consequence rather than a thing to maintain: it falls out
@@ -721,18 +721,19 @@
          way to the label, which is why it read as faint: the same light spread
          over two seconds is a swell, not a mark.
 
-         Now it strikes at 60% of the shimmer and runs for the remaining 40%,
-         going out with the text. The keyframes reach full at 45% of that run,
-         which crests it at 78% of the shimmer -- burning while the light is
-         still crossing the last letters, and gone by the time they settle.
-         Both ends are fractions of the shimmer, so this holds at any
+         Now it is placed by its crest, which is the part anyone actually
+         sees: full at 60% of the shimmer, so it peaks while the light is still
+         crossing the letters. It opens at 20% and closes at 100%, and the
+         keyframes below reach full at the halfway mark precisely so those three
+         line up -- 20 + 80/2 = 60. Move that keyframe and the crest moves with
+         it. All three are fractions of the shimmer, so this holds at any
          --tag-text-dur.
 
          Worth knowing that these fractions only mean anything because the
          sweep below is linear. On the shared easing they were measuring a
          clock that had nothing to do with what was on screen. */
-      --tag-sear-dur: calc(var(--tag-text-dur) * 0.4);
-      --tag-pulse-start: calc(var(--tag-text-start) + var(--tag-text-dur) * 0.6);
+      --tag-sear-dur: calc(var(--tag-text-dur) * 0.8);
+      --tag-pulse-start: calc(var(--tag-text-start) + var(--tag-text-dur) * 0.2);
       --tag-pulse-dur: var(--tag-sear-dur);
 
       /* The fill is pinned at both ends, but to two different things: it starts
@@ -765,7 +766,7 @@
           0 0 0 rgba(255, 97, 22, 0);
       }
 
-      45% {
+      50% {
         box-shadow:
           0 0 12px rgba(255, 156, 96, 0.6),
           0 0 26px rgba(255, 97, 22, 0.38);
