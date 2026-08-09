@@ -125,25 +125,6 @@
     observer.observe(this.root);
   };
 
-  /* iOS keeps the audio level under the hardware buttons: volume there is not
-     settable and always reads back 1, so a pair of up/down buttons would be
-     two controls that visibly do nothing. Where that's the case the bar gets a
-     mute toggle instead, which does work -- muted is settable everywhere,
-     which is what makes muted autoplay possible in the first place.
-
-     Probed rather than sniffed from the user agent: this is a question about
-     what the media element actually does, and a detached one answers it
-     without touching a player on the page. */
-  var volumeSettable = (function () {
-    try {
-      var probe = document.createElement("video");
-      probe.volume = 0.5;
-      return probe.volume === 0.5;
-    } catch (e) {
-      return false;
-    }
-  })();
-
   var SPEAKER_D =
     "M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4z" +
     "M14 2v2a8 8 0 0 1 0 16v2a10 10 0 0 0 0-20z";
@@ -232,21 +213,23 @@
       "</button>" +
       '<span class="pl-time"><span class="pl-time-now">0:00</span> / <span class="pl-time-total">0:00</span></span>' +
       '<span class="pl-spacer"></span>' +
-      /* Stepped volume where the platform honours it, a mute toggle where it
-         doesn't -- see volumeSettable. Either way the standing "Sound on"
-         button is what actually gets people from silence to sound; this is
-         the control for once they're there. */
-      (volumeSettable
-        ? '<button class="pl-btn pl-vol-down" aria-label="Volume down">' +
-          svg(ICONS.volDown) +
-          "</button>" +
-          '<button class="pl-btn pl-vol-up" aria-label="Volume up">' +
-          svg(ICONS.volUp) +
-          "</button>"
-        : '<button class="pl-btn pl-mute" aria-label="Unmute">' +
-          svg(ICONS.loud, "pl-icon-loud") +
-          svg(mutedIcon("mute-" + this.slug), "pl-icon-muted") +
-          "</button>") +
+      /* Both are rendered; the stylesheet shows whichever suits the input.
+         A touch device gets the single mute toggle -- iOS keeps the audio
+         level on the hardware buttons, so stepped volume would be two
+         controls that visibly do nothing. Deciding this in CSS rather than by
+         probing the media element: a detached <video> answers the volume
+         question differently from a playing one, which made the probe say
+         "settable" on exactly the phones it was meant to catch. */
+      '<button class="pl-btn pl-vol-down" aria-label="Volume down">' +
+      svg(ICONS.volDown) +
+      "</button>" +
+      '<button class="pl-btn pl-vol-up" aria-label="Volume up">' +
+      svg(ICONS.volUp) +
+      "</button>" +
+      '<button class="pl-btn pl-mute" aria-label="Unmute">' +
+      svg(ICONS.loud, "pl-icon-loud") +
+      svg(mutedIcon("mute-" + this.slug), "pl-icon-muted") +
+      "</button>" +
       "</div></div>";
 
     this.root.innerHTML = html;
@@ -686,20 +669,21 @@
     v.muted = level === 0;
   };
 
+  /* Both controls exist; only one is on screen. Keeping them both current is
+     cheaper than working out which the stylesheet chose. */
   Player.prototype.renderVolume = function () {
-    var muted = this.video.muted || this.video.volume === 0;
+    var level = this.video.muted ? 0 : this.video.volume;
 
     if (this.muteBtn) {
-      this.muteBtn.setAttribute("aria-label", muted ? "Unmute" : "Mute");
-      return;
+      this.muteBtn.setAttribute("aria-label", level === 0 ? "Unmute" : "Mute");
     }
 
     /* Greys out whichever end has been reached. Volume is the one control here
        with a limit the viewer can hit and keep pressing. */
-    if (!this.volDownBtn) return;
-    var level = this.video.muted ? 0 : this.video.volume;
-    this.volDownBtn.disabled = level <= 0;
-    this.volUpBtn.disabled = level >= 1;
+    if (this.volDownBtn) {
+      this.volDownBtn.disabled = level <= 0;
+      this.volUpBtn.disabled = level >= 1;
+    }
   };
 
   Player.prototype.toggleMute = function () {

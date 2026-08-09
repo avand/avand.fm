@@ -3,7 +3,11 @@
 
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Before first paint, so CSS can hide things that JS will manage without
+       them flashing on screen first. Without JS the class never lands and
+       everything simply stays visible. -->
+  <script>document.documentElement.classList.add("js");</script>
+  <meta name="viewport content="width=device-width, initial-scale=1" />
   <title>Headroom — Advanced DJ Training for Aspiring Performers</title>
   <meta name="description" content="Advanced DJ training for aspiring performers. An eight-week, end-to-end up-leveling of your entire stack so you can step into any booth and find your flow." />
   <meta property="og:title" content="Headroom — Advanced DJ Training for Aspiring Performers" />
@@ -219,13 +223,16 @@
         visibility 320ms;
     }
 
-    .site-nav .cta-nav.is-managed {
+    /* Hidden from the very first frame where JS is running, rather than
+       rendered and then hidden once hero.js gets around to it -- that is the
+       flash. Gated on .js so a no-JS visitor keeps the button. */
+    .js .site-nav .cta-nav {
       opacity: 0;
       visibility: hidden;
       transform: translateY(-0.4em);
     }
 
-    .site-nav .cta-nav.is-managed.is-visible {
+    .js .site-nav .cta-nav.is-visible {
       opacity: 1;
       visibility: visible;
       transform: none;
@@ -381,7 +388,7 @@
 
       /* Leaves the pill's plain solid border, as on the nav button. */
       .hero-price-tag {
-        background-position: 0 0;
+        background-position: 0 0, 0 0;
       }
 
       .hero-price .price-was::after {
@@ -442,9 +449,14 @@
       position: absolute;
       inset: 0;
       z-index: 0;
+      /* Written out rather than held in a custom property. A url() inside a
+         custom property, substituted into the background shorthand, is the
+         one exotic thing this file was doing with images, and it is not worth
+         defending on a device I cannot inspect. The media queries at the foot
+         of the stylesheet restate the gradient to swap the file. */
       background:
         linear-gradient(to bottom, rgba(10, 10, 15, 0.55) 0%, rgba(10, 10, 15, 0.85) 80%, var(--bg) 100%),
-        url('djvibe-studiox-urXtcqrAW18-unsplash.jpg') center / cover no-repeat;
+        url('hero-bg-1600.webp') center / cover no-repeat;
     }
 
     /* The vignette the hero has always had. A gradient rather than an inset
@@ -547,25 +559,34 @@
       letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--warm);
-      /* A sheen across the whole pill rather than a chase around its border.
-         Every ring version of this failed to show, and a 1px ring on a pill
-         this small was always going to be marginal even when working -- one
-         background layer sliding across the face cannot be too subtle to see,
-         and needs no pseudo-element, mask or custom property to do it.
+      /* The chase, on the border. Two background layers: the shine across the
+         border box, and an opaque fill over the padding box covering all of
+         it but the ring.
 
-         The base is the translucent orange the pill always had; only the band
-         crossing it is new. */
-      border: 1px solid rgba(255, 97, 22, 0.4);
-      background: linear-gradient(100deg,
-          rgba(255, 97, 22, 0.1) 0%,
-          rgba(255, 97, 22, 0.1) 40%,
-          rgba(146, 7, 195, 0.55) 47%,
-          rgba(255, 255, 255, 0.7) 50%,
-          rgba(255, 97, 22, 0.6) 53%,
-          rgba(255, 97, 22, 0.1) 60%,
-          rgba(255, 97, 22, 0.1) 100%);
-      background-size: 300% 100%;
-      background-position: 100% 0;
+         The clips are written as longhands rather than as box keywords inside
+         the background shorthand -- same meaning, but the shorthand form is
+         the fussier of the two to get through every engine, and this element
+         has burned enough attempts already.
+
+         1.5px, not the 1px it had: orange-on-orange at 1px on a pill this
+         small is below the threshold of noticing even when it is working,
+         which is most likely why the earlier ring versions read as nothing
+         happening at all. */
+      border: 1.5px solid transparent;
+      background:
+        linear-gradient(#180f0b, #180f0b),
+        linear-gradient(100deg,
+          rgba(255, 97, 22, 0.4) 0%,
+          rgba(255, 97, 22, 0.4) 42%,
+          var(--accent) 47%,
+          #fff 50%,
+          var(--warm) 53%,
+          rgba(255, 97, 22, 0.4) 58%,
+          rgba(255, 97, 22, 0.4) 100%);
+      background-clip: padding-box, border-box;
+      background-origin: padding-box, border-box;
+      background-size: auto, 300% 100%;
+      background-position: 0 0, 100% 0;
       background-repeat: no-repeat;
       border-radius: 2em;
       /* 0.8em against the smaller type above lands wider than the 0.6em it
@@ -651,7 +672,7 @@
        stays put and only the gradient travels. */
     @keyframes tag-sweep {
       0%, 8% {
-        background-position: 100% 0;
+        background-position: 0 0, 100% 0;
         box-shadow:
           0 0 6px rgba(146, 7, 195, 0),
           0 0 12px rgba(255, 97, 22, 0);
@@ -664,7 +685,7 @@
       }
 
       42%, 100% {
-        background-position: 0 0;
+        background-position: 0 0, 0 0;
         box-shadow:
           0 0 6px rgba(146, 7, 195, 0),
           0 0 12px rgba(255, 97, 22, 0);
@@ -1206,9 +1227,30 @@
       display: block;
     }
 
-    .pl-btn:hover {
-      background: var(--accent);
-      transform: scale(1.06);
+    /* Only where there is a real pointer. On a touch screen :hover sticks
+       after a tap, which left the button sitting there purple. */
+    @media (hover: hover) {
+      .pl-btn:hover {
+        background: var(--accent);
+        transform: scale(1.06);
+      }
+    }
+
+    /* Stepped volume for a pointer, a single mute toggle for touch -- see the
+       note in player.js's render. Both are in the markup; this picks one. */
+    .pl-mute {
+      display: none;
+    }
+
+    @media (hover: none) and (pointer: coarse) {
+      .pl-vol-down,
+      .pl-vol-up {
+        display: none;
+      }
+
+      .pl-mute {
+        display: flex;
+      }
     }
 
     /* These need to out-specify `.pl-btn svg { display: block }` above, or both
@@ -2115,7 +2157,7 @@
       position: relative;
       background:
         linear-gradient(to bottom, var(--bg) 0%, rgba(10, 10, 15, 0.5) 30%, rgba(10, 10, 15, 0.5) 70%, var(--bg) 100%),
-        url('djvibe-studiox-dt_UuLU_foM-unsplash.jpg') center bottom / cover no-repeat;
+        url('final-cta-2200.webp') center bottom / cover no-repeat;
     }
 
     .final-cta::before {
@@ -2410,6 +2452,47 @@
 
       .format-grid {
         grid-template-columns: 1fr;
+      }
+    }
+    /* --- Background art ---
+       Only the matching rule's image is ever fetched, so each device
+       downloads exactly one file per background.
+
+       The hero is `cover` over a full viewport, which on a portrait phone
+       means a landscape photo is scaled to fill the *height* and then hangs
+       off both sides -- a 430x932 screen at 3x would need a 4194px-wide
+       landscape file to be sharp, two thirds of which is cropped away
+       unseen. A portrait crop of the same picture shows the same thing at
+       1400x3043, which is native detail for a 3x phone at a sixth of the
+       pixels. Hence the shape change rather than just a bigger file.
+
+       Keyed on orientation as well as width so a narrow desktop *window*
+       still gets a landscape file; only actual portrait screens get the
+       tall crop. */
+    @media (max-width: 799px) and (orientation: portrait) {
+      .hero-bg {
+        background-image: linear-gradient(to bottom, rgba(10, 10, 15, 0.55) 0%, rgba(10, 10, 15, 0.85) 80%, var(--bg) 100%), url('hero-bg-portrait.webp');
+      }
+    }
+
+    @media (min-width: 800px) {
+      .hero-bg {
+        background-image: linear-gradient(to bottom, rgba(10, 10, 15, 0.55) 0%, rgba(10, 10, 15, 0.85) 80%, var(--bg) 100%), url('hero-bg-2560.webp');
+      }
+
+      .final-cta {
+        background-image: linear-gradient(to bottom, var(--bg) 0%, rgba(10, 10, 15, 0.5) 30%, rgba(10, 10, 15, 0.5) 70%, var(--bg) 100%), url('final-cta-2560.webp');
+      }
+    }
+
+    /* Retina desktop: a 1512pt laptop at 2x is 3024 real pixels wide. */
+    @media (min-width: 800px) and (min-resolution: 2dppx) {
+      .hero-bg {
+        background-image: linear-gradient(to bottom, rgba(10, 10, 15, 0.55) 0%, rgba(10, 10, 15, 0.85) 80%, var(--bg) 100%), url('hero-bg-3200.webp');
+      }
+
+      .final-cta {
+        background-image: linear-gradient(to bottom, var(--bg) 0%, rgba(10, 10, 15, 0.5) 30%, rgba(10, 10, 15, 0.5) 70%, var(--bg) 100%), url('final-cta-3200.webp');
       }
     }
   </style>
@@ -2980,7 +3063,16 @@
     </p>
 
     <div class="instructor">
-      <img class="instructor-photo" src="avand.jpg" alt="Avand" />
+      <!-- Square sources, because object-fit: cover crops this to a square
+           anyway. sizes tells the browser the display width before layout
+           exists, so it can pick before it has done any: 320px is the
+           mobile cap, 200px the desktop size. width/height hold the space
+           so nothing jumps when it lands. -->
+      <img class="instructor-photo" src="avand-400.webp"
+        srcset="avand-400.webp 400w, avand-640.webp 640w, avand-960.webp 960w"
+        sizes="(max-width: 640px) 320px, 200px"
+        width="400" height="400" loading="lazy" decoding="async"
+        alt="Avand" />
       <div>
         <p>
           I&rsquo;ve played everywhere from Burning Man art cars and mobile rigs that I set up
@@ -3175,11 +3267,11 @@
        in Cloudflare's edge cache (or Safari's) surviving a hard-reload of the
        page. Bump the number whenever a JS change needs to actually reach a
        phone under test. -->
-  <script src="player.js?v=13" defer></script>
-  <script src="hero.js?v=13" defer></script>
-  <script src="curriculum.js?v=13" defer></script>
-  <script src="timeline.js?v=13" defer></script>
-  <script src="footer.js?v=13" defer></script>
+  <script src="player.js?v=14" defer></script>
+  <script src="hero.js?v=14" defer></script>
+  <script src="curriculum.js?v=14" defer></script>
+  <script src="timeline.js?v=14" defer></script>
+  <script src="footer.js?v=14" defer></script>
   <script>
     /* ---------- Module "read more" modal ---------- */
     (function () {

@@ -49,19 +49,27 @@
    * stays away until the hero's scrolls out of view, then builds itself in and
    * picks up the sweep from the start.
    *
-   * The hidden state is applied from here rather than in the stylesheet: with
-   * no JS the button should simply be present, not permanently invisible.
+   * The hidden state is in the stylesheet, gated on a .js class set in the
+   * document head -- applying it from here meant the button painted once and
+   * then vanished. This file only decides when it comes back.
    */
   var heroCta = document.querySelector(".hero-content .btn-primary");
   var navCta = document.querySelector(".site-nav .cta-nav");
 
   if (heroCta && navCta && "IntersectionObserver" in window) {
-    navCta.classList.add("is-managed");
-
     var ctaObserver = new IntersectionObserver(
       function (entries) {
         entries.forEach(function (entry) {
-          navCta.classList.toggle("is-visible", !entry.isIntersecting);
+          /* "Not on screen" is true in both directions -- scrolled past it,
+             and not yet reached. On a phone the hero's button often starts
+             below the fold, so not-intersecting alone put the nav one up
+             immediately, which is the opposite of the point. Only once it has
+             gone off the *top*. */
+          var scrolledPast = entry.boundingClientRect.bottom <= 0;
+          navCta.classList.toggle(
+            "is-visible",
+            !entry.isIntersecting && scrolledPast
+          );
         });
       },
       { threshold: 0 }
