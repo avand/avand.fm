@@ -255,6 +255,23 @@
     this.knob = r.querySelector(".pl-knob");
     this.timeNow = r.querySelector(".pl-time-now");
     this.timeTotal = r.querySelector(".pl-time-total");
+
+    /* How long the clip runs, before a byte of it has been fetched.
+     *
+     * The control bar is on show while a video is idle, so without this it
+     * advertises "0:00 / 0:00" for the whole time the reader is deciding
+     * whether to watch -- the one moment the length actually matters to them.
+     * The real figure arrives with loadedmetadata and overwrites this, but
+     * that costs a manifest and an init segment, and only after a tap.
+     *
+     * data-duration is in seconds, taken from the HLS manifests at build time
+     * (sum the EXTINF values). If a clip is re-cut and the attribute is not,
+     * the number is wrong until the reader presses play -- so it is written
+     * next to the slug it belongs to in index.html, not in a table over here. */
+    var declared = parseFloat(r.dataset.duration);
+    if (isFinite(declared) && declared > 0) {
+      this.timeTotal.textContent = formatTime(declared);
+    }
     this.errorEl = r.querySelector(".pl-error");
     this.captionBox = r.querySelector(".pl-captions");
   };
@@ -430,10 +447,13 @@
       });
       frame.appendChild(now);
 
-      if (cues[lead + 1]) {
+      /* Two lines of read-ahead, not one. The stylesheet steps each further
+         back than the last so the three do not read as a block of grey. */
+      for (var ahead = 1; ahead <= 2; ahead++) {
+        if (!cues[lead + ahead]) break;
         var next = document.createElement("p");
         next.className = "cc-line cc-next";
-        next.textContent = cues[lead + 1].text;
+        next.textContent = cues[lead + ahead].text;
         frame.appendChild(next);
       }
 
@@ -941,7 +961,14 @@
       self.renderProgress();
     });
     v.addEventListener("loadedmetadata", function () {
-      self.timeTotal.textContent = formatTime(v.duration);
+      /* Only if it is a real number. Under hls.js the duration can still be
+         NaN or Infinity at this point, and formatTime turns both into "0:00" --
+         so an accurate figure seeded from data-duration would be replaced by a
+         wrong one the moment the reader pressed play, which is worse than the
+         state the seeding was added to fix. */
+      if (isFinite(v.duration) && v.duration > 0) {
+        self.timeTotal.textContent = formatTime(v.duration);
+      }
       self.renderProgress();
       self.syncCaptions();
     });

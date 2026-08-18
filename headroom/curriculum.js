@@ -42,6 +42,34 @@
   var active = -1;
   var ticking = false;
 
+  /* How much scrolling one week costs, in viewports.
+   *
+   * A full viewport per week was the obvious first number and too much of
+   * one: eight modules meant nine screens of scrolling to get through a
+   * section that is really a list. Half a screen was better and still long;
+   * three eighths is where it stopped feeling like work. Below about a third
+   * the slides start changing faster than they can be read, so this is close
+   * to the floor.
+   *
+   * Everything downstream is measured in this: the region's height in CSS,
+   * which week is showing, where the arrow keys and the timeline's dots land,
+   * and the pace of the timeline's cursor. It is the one number, so nothing
+   * can be calibrated against a different one -- which is exactly how the
+   * choreography and the distance came apart the last time.
+   *
+   * Not to be confused with the viewport itself, which still sizes the sticky
+   * stage and still decides when the region is on screen. */
+  var STEP = 0.375;
+
+  function viewport() {
+    // Same locked unit the region is sized in; see the note in index.html.
+    return window.__vh || window.innerHeight;
+  }
+
+  function step() {
+    return viewport() * STEP;
+  }
+
   function playerFor(slide) {
     var el = slide.querySelector(".player");
     return el && window.Headroom ? window.Headroom.get(el.dataset.video) : null;
@@ -91,9 +119,10 @@
   }
 
   function measure() {
-    // One viewport of scrolling per module, with the last one getting a full
-    // viewport of dwell before the page moves on.
+    // A step of scrolling per module, with the last one getting a step of
+    // dwell before the page moves on.
     scroller.style.setProperty("--slides", slides.length);
+    scroller.style.setProperty("--step", STEP);
     fitSlides();
   }
 
@@ -120,17 +149,35 @@
     var available = stage.clientHeight;
     void stage.offsetHeight; // flush the reset before measuring
 
-    inners.forEach(function (inner, i) {
-      if (!inner) return;
-      var style = window.getComputedStyle(slides[i]);
-      var padding =
-        parseFloat(style.paddingTop || 0) + parseFloat(style.paddingBottom || 0);
-      var needed = inner.getBoundingClientRect().height + padding;
-      // A floor, so a runaway slide shrinks to illegibility rather than
-      // silently: if it ever hits this, the copy is the thing to fix.
-      var fit = Math.max(0.75, Math.min(1, available / needed));
-      inner.style.setProperty("--fit", fit.toFixed(3));
-    });
+    /* Twice, because the answer changes the question. A scaled slide is laid
+       out wider (see the max-width note in index.html) so that it comes back to
+       the band's width once scaled -- and a wider column reflows the copy into
+       fewer lines, which is a different height from the one just measured. One
+       pass left the longest modules a few pixels over the bottom of the screen.
+       The second pass settles it; a third has nothing left to move. */
+    for (var pass = 0; pass < 2; pass++) {
+      inners.forEach(function (inner, i) {
+        if (!inner) return;
+        var style = window.getComputedStyle(slides[i]);
+        var padding =
+          parseFloat(style.paddingTop || 0) + parseFloat(style.paddingBottom || 0);
+        var scale = parseFloat(inner.style.getPropertyValue("--fit")) || 1;
+        // getBoundingClientRect is post-transform; undo it to get the height
+        // the copy actually wants at full size.
+        var needed = inner.getBoundingClientRect().height / scale;
+        /* The padding is subtracted from the room available, not added to what
+           the copy needs. Only the inner is scaled -- the padding is not -- so
+           dividing by (copy + padding) left the visible bottom at
+           padTop + fit * copy, which overruns the stage whenever the padding is
+           lopsided. It is: the top is --tl-space plus a little and the bottom is
+           2em, so a slide scaled much below 0.8 used to run past the bottom of
+           an overflow:hidden stage and cut the button off with no cue. */
+        // A floor, so a runaway slide shrinks to illegibility rather than
+        // silently: if it ever hits this, the copy is the thing to fix.
+        var fit = Math.max(0.75, Math.min(1, (available - padding) / needed));
+        inner.style.setProperty("--fit", fit.toFixed(3));
+      });
+    }
   }
 
   function update() {
@@ -138,20 +185,22 @@
     if (!pinned) return;
 
     var rect = scroller.getBoundingClientRect();
-    // Same locked unit the region is sized in; see the note in index.html.
-    var step = window.__vh || window.innerHeight;
     var travelled = -rect.top;
-    var index = Math.floor(travelled / step);
+    var index = Math.floor(travelled / step());
     index = Math.max(0, Math.min(slides.length - 1, index));
 
     var direction = index > active ? "down" : "up";
     setActive(index, direction);
 
-    scroller.classList.toggle("is-pinned", rect.top <= 0 && rect.bottom > step);
+    /* These two are about the region being on screen, not about which week is
+       showing, so they measure against the viewport -- the sticky stage is a
+       whole one however little scrolling a week costs. */
+    var vh = viewport();
+    scroller.classList.toggle("is-pinned", rect.top <= 0 && rect.bottom > vh);
 
     // Scrolled clear of the region entirely: stop the video rather than leave
     // it playing and pulling segments off screen.
-    syncPlayback(index, rect.bottom <= 0 || rect.top >= step);
+    syncPlayback(index, rect.bottom <= 0 || rect.top >= vh);
   }
 
   function onScroll() {
@@ -211,6 +260,13 @@
     else disablePinned();
   }
 
+  /* Where the region starts, in document coordinates. Not offsetTop: that is
+     measured from the offsetParent, so it silently changes meaning the day
+     anything above this element gains a position of its own. */
+  function regionTop() {
+    return scroller.getBoundingClientRect().top + window.scrollY;
+  }
+
   function jumpTo(i, opts) {
     // A deep link should land already there, not glide in from the top.
     var behavior = opts && opts.instant ? "auto" : "smooth";
@@ -221,7 +277,7 @@
     window.scrollTo({
       // A pixel inside the band, not exactly on its edge: landing on the
       // boundary can floor to the week before.
-      top: scroller.offsetTop + i * (window.__vh || window.innerHeight) + 2,
+      top: regionTop() + i * step() + 2,
       behavior: behavior,
     });
   }
@@ -233,6 +289,12 @@
       el: scroller,
       count: slides.length,
       jumpTo: jumpTo,
+      // What a week costs in pixels, so the timeline paces its cursor against
+      // the same distance this region is sized in rather than a second guess.
+      step: step,
+      // The timeline's height sets the slides' top padding, so it asks for a
+      // re-fit once it knows what that height is.
+      refit: fitSlides,
       isPinned: function () {
         return pinned;
       },
@@ -247,7 +309,7 @@
     if (!delta) return;
     var target = Math.max(0, Math.min(slides.length - 1, active + delta));
     window.scrollTo({
-      top: scroller.offsetTop + target * (window.__vh || window.innerHeight),
+      top: regionTop() + target * step(),
       behavior: "smooth",
     });
     e.preventDefault();

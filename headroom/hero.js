@@ -10,7 +10,9 @@
  *
  * What's left here: warming the video's source a little before it scrolls
  * into view, so playback doesn't stall right when it's wanted, and revealing
- * the curriculum heading's words as it arrives.
+ * the curriculum heading's words as it arrives. The timeline used to need a
+ * flag from here to know the reader had got that far; it is in the document
+ * now and watches itself.
  */
 (function () {
   "use strict";
@@ -55,6 +57,28 @@
    */
   var heroCta = document.querySelector(".hero-content .btn-primary");
   var navCta = document.querySelector(".site-nav .cta-nav");
+  var siteNav = document.querySelector(".site-nav");
+
+  /* The canvas colour is what iOS paints behind the status bar at rest. It
+     starts as the hero's top row and becomes the page background once the nav
+     has arrived, because by then the nav is what is up there. */
+
+  /* One place that knows what "past the hero" means. It was written out twice
+     -- once in the observer, once on load -- with the two predicates already
+     drifting apart. */
+  function setPast(past) {
+    if (navCta) navCta.classList.toggle("is-visible", past);
+    if (siteNav) siteNav.classList.toggle("is-visible", past);
+    document.body.classList.toggle("is-past-hero", past);
+  }
+
+  /* The stylesheet translates the whole bar off screen and waits for
+     .is-visible to bring it back, so anything that stops the observer from
+     running strands the nav off screen for the entire page. If the pieces this
+     depends on are missing, show it and leave it shown. */
+  if (!heroCta || !navCta || !("IntersectionObserver" in window)) {
+    setPast(true);
+  }
 
   if (heroCta && navCta && "IntersectionObserver" in window) {
     var ctaObserver = new IntersectionObserver(
@@ -66,15 +90,23 @@
              immediately, which is the opposite of the point. Only once it has
              gone off the *top*. */
           var scrolledPast = entry.boundingClientRect.bottom <= 0;
-          navCta.classList.toggle(
-            "is-visible",
-            !entry.isIntersecting && scrolledPast
-          );
+          // The bar itself travels on the same signal: away while the hero has
+          // the screen to itself, down into place once it doesn't.
+          setPast(!entry.isIntersecting && scrolledPast);
         });
       },
       { threshold: 0 }
     );
     ctaObserver.observe(heroCta);
+
+    /* A page can arrive already scrolled past the hero -- a reload, or a deep
+       link straight to a module -- and the observer's first report can land
+       before that jump has happened, leaving the nav away and the canvas on
+       its hero colour behind the status bar. Settle it once the page has
+       finished loading, from the element's actual position. */
+    window.addEventListener("load", function () {
+      setPast(heroCta.getBoundingClientRect().bottom <= 0);
+    });
   }
 
   /* ---------- Curriculum intro: words arrive one at a time ---------- */
@@ -103,16 +135,9 @@
     });
   }
 
-  function markSettled() {
-    // timeline.js draws its line once the curriculum heading has arrived;
-    // this is the one thing it still needs from here.
-    if (window.Headroom) window.Headroom.hero = { introVisible: true };
-  }
-
   if (intro) {
     if (reduceMotion || !("IntersectionObserver" in window)) {
       intro.classList.add("is-revealed");
-      markSettled();
     } else {
       splitWords();
       var introObserver = new IntersectionObserver(
@@ -120,7 +145,6 @@
           entries.forEach(function (entry) {
             if (!entry.isIntersecting) return;
             intro.classList.add("is-revealed");
-            markSettled();
             introObserver.disconnect();
           });
         },

@@ -7,7 +7,15 @@
        them flashing on screen first. Without JS the class never lands and
        everything simply stays visible. -->
   <script>document.documentElement.classList.add("js");</script>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- viewport-fit=cover, plus env(safe-area-inset-*) on everything pinned to
+       an edge. Worth keeping, but not for the reason it looks like: in PORTRAIT
+       mobile Safari every one of those insets is 0px, because the status bar
+       strip is Safari's own obscured-inset region and the page is never handed
+       it. They do real work in landscape, where the notch becomes a side inset
+       and the page genuinely does extend under it, and in standalone mode.
+       In portrait the strip behind the status bar is Safari's, painted from
+       the page's canvas background -- see the note above .site-nav. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Headroom — Advanced DJ Training for Aspiring Performers</title>
   <meta name="description" content="Advanced DJ training for aspiring performers. An eight-week, end-to-end up-leveling of your entire stack so you can step into any booth and find your flow." />
   <meta property="og:title" content="Headroom — Advanced DJ Training for Aspiring Performers" />
@@ -90,6 +98,12 @@
 
   <style>
     :root {
+      /* The width of the curriculum band: the timeline and every week slide
+         are set to it, so "Oct 1" and the module heading below it start on the
+         same pixel and "Nov 19" ends level with the right edge of the video.
+         Declared here rather than on either of them because the whole point is
+         that neither owns it. */
+      --band-w: min(1140px, calc(100vw - 3em));
       --bg: #0a0a0f;
       --surface: #13131a;
       --border: rgba(255, 255, 255, 0.08);
@@ -113,9 +127,22 @@
       font-size: 115%;
     }
 
+    /* The canvas colour, which is also what iOS paints behind the status bar
+       when nothing fixed is up there to sample instead. So it starts as the
+       hero's own top row: at rest the strip reads as a continuation of the
+       photograph, and the moment the page scrolls the photograph itself is
+       genuinely under there -- viewport-fit=cover puts it there, and Safari's
+       colour extension gives way once the page moves.
+       
+       hero.js hands it back to the page background once the nav has arrived,
+       since by then the nav is what sits under the notch, not the picture.
+       Everything between is covered by .sheet and .site-footer, which carry
+       their own backgrounds; this shows only at the very top and in the
+       overscroll past the end. */
     body {
       font-family: "Cairo", sans-serif;
-      background: var(--bg);
+      background: #29106a;
+      transition: background-color 220ms linear;
       color: var(--text);
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
@@ -145,6 +172,16 @@
 
     /* --- Nav --- */
 
+    /* Nothing fixed sits at the top edge on purpose. iOS 26 samples the colour
+       behind the status bar from fixed or sticky elements there, and falls
+       back to the canvas background when it finds none -- and the fallback is
+       what we want, because the canvas is the one colour that can hand over to
+       the real photograph the instant the page scrolls. A strip pinned up
+       there would keep painting over it. See the note on body.
+
+       theme-color is not an alternative: Safari 26 parses it and discards the
+       value. */
+
     .site-nav {
       position: fixed;
       top: 0;
@@ -161,7 +198,12 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0.8em 2em;
+      /* The top inset is added to the padding so that in landscape, where the
+         inset is real, the brand and the button sit clear of the sensor
+         housing rather than under it. In portrait it resolves to 0.
+         timeline.js measures this element's height for --nav-h, so the sticky
+         timeline follows on its own. */
+      padding: calc(0.8em + env(safe-area-inset-top, 0px)) 2em 0.8em;
       gap: 1em;
     }
 
@@ -212,6 +254,16 @@
        only behind the head and the lap leaves a finished ring. Registered for
        the same reason -- an unregistered property has no type to interpolate,
        and the trace would jump rather than travel. */
+    /* Registered so they are numbers rather than token soup: typed, clamped
+       to something valid, and cheap to recompute on every mark when --t moves.
+       An invalid value falls back to the initial instead of dropping the whole
+       transform it sits in. */
+    @property --t {
+      syntax: "<number>";
+      inherits: true;
+      initial-value: 0;
+    }
+
     @property --tag-angle {
       syntax: "<angle>";
       inherits: true;
@@ -273,6 +325,21 @@
     /* Hidden from the very first frame where JS is running, rather than
        rendered and then hidden once hero.js gets around to it -- that is the
        flash. Gated on .js so a no-JS visitor keeps the button. */
+    /* The whole bar stays away while the hero is on screen, so there is one
+       thing to look at rather than two, and slides down once the hero is
+       behind you. Gated on .js, set in the document head: without it the nav
+       would paint and then vanish, and with no script at all it would never
+       come back. hero.js decides when, on the same signal that brings the
+       nav's own CTA in. */
+    .js .site-nav {
+      transform: translateY(-100%);
+      transition: transform 340ms var(--ease);
+    }
+
+    .js .site-nav.is-visible {
+      transform: none;
+    }
+
     .js .site-nav .cta-nav {
       opacity: 0;
       visibility: hidden;
@@ -446,7 +513,9 @@
       justify-content: center;
       align-items: center;
       text-align: center;
-      padding: 7em 2em 6em;
+      /* The photograph fills the screen edge to edge, notch included; the copy
+         inside it is held clear of the status bar by the inset. */
+      padding: calc(7em + env(safe-area-inset-top, 0px)) 2em 6em;
       overflow: hidden;
     }
 
@@ -482,13 +551,65 @@
       z-index: 2;
     }
 
+    /* The season, ruled off on both sides. Solid rather than dashed, and each
+       rule fades out as it leaves the words rather than stopping at a hard end
+       -- at this weight a hard stop reads as a piece of furniture, and the
+       point is only to set the words apart. currentColor, so the rules are
+       always exactly as muted as the text they flank. */
     .hero-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.9em;
       font-size: 0.855em;
       font-weight: 700;
       letter-spacing: 0.09em;
       text-transform: uppercase;
       color: var(--text-muted);
       margin-bottom: 1em;
+    }
+
+    .hero-label::before,
+    .hero-label::after {
+      content: "";
+      height: 1px;
+      width: clamp(1.6em, 9vw, 4.5em);
+      opacity: 0.55;
+      background: linear-gradient(90deg, transparent, currentColor);
+    }
+
+    .hero-label::after {
+      background: linear-gradient(270deg, transparent, currentColor);
+    }
+
+    /* Each figure in its own pill: at four across, containment is what stops
+       the row reading as one long sentence. Translucent white rather than a
+       flat fill, so it takes its tint from whatever the photograph is doing
+       behind it. Deliberately not backdrop-filter -- see the note on .site-nav
+       for why a blur over a moving background is the wrong bargain here. */
+    .hero-details .stat {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5em;
+      padding: 0.45em 0.95em;
+      border-radius: 2em;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      white-space: nowrap;
+    }
+
+    /* Enough to say which figure is which at a glance, and no more: one
+       weight, one size, currentColor, no fills. */
+    .stat-icon {
+      width: 1.05em;
+      height: 1.05em;
+      flex: none;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0.75;
     }
 
     .hero-content h1 {
@@ -1100,14 +1221,18 @@
     .brand-captions {
       position: relative;
       max-width: 30em;
-      margin: 0 auto 4em;
+      /* No bottom margin of its own: the break below owns that gap, and this
+         element's em is a clamped, larger one -- 4em here came out as 96px
+         against the 92px every other break uses, and adjacent margins collapse
+         to the larger of the two, so it would have quietly won. */
+      margin: 0 auto;
       padding: 0 1.5em;
       text-align: center;
       font-size: clamp(1.03em, 2.15vw, 1.3em);
       line-height: 1.5;
-      /* Room for the pair, so a longer line turning over doesn't shove the
+      /* Room for all three, so a longer line turning over doesn't shove the
          rest of the page down and back. */
-      min-height: 4.5em;
+      min-height: 6.4em;
     }
 
     /* One turn of the lines. The outgoing set rises and fades while the
@@ -1150,6 +1275,12 @@
       opacity: 0.38;
     }
 
+    /* Two lines read ahead, each a step further back, so the three don't read
+       as one block of grey. */
+    .brand-captions .cc-next + .cc-next {
+      opacity: 0.22;
+    }
+
     .brand-captions .cc-word {
       transition: color 220ms var(--ease), opacity 220ms var(--ease);
     }
@@ -1172,12 +1303,16 @@
     }
 
     .hero-intro {
-      padding: 6em 2em 8em;
+      /* Top padding is the break above's share of the gap -- 5em, the same as
+         every section on the page. Little at the bottom: the timeline follows
+         immediately and belongs with this text, so the air goes below the pair
+         (the timeline's own margin) rather than between them. */
+      padding: 5em 2em 2.2em;
       text-align: center;
     }
 
     .hero-intro-inner {
-      max-width: 62ch;
+      max-width: 68ch;
       margin: 0 auto;
     }
 
@@ -1186,9 +1321,15 @@
       margin-bottom: 0.45em;
     }
 
+    /* Set down a step from the standard lead, and given a wider column to go
+       with it, so the paragraph reads as an introduction rather than a second
+       heading. Both halves are needed: ch is relative to the font, so shrinking
+       the type alone would have narrowed the column by the same amount and
+       fitted not one extra word. */
     .hero-intro .section-lead {
       margin: 0 auto;
       max-width: none;
+      font-size: 1.03em;
     }
 
     /* Each word arrives on its own beat. Set once, on the way in, and left
@@ -1210,7 +1351,7 @@
          .hero-content it would stack on top of it rather than replace it,
          and this exists to narrow the gutter, not widen it. */
       .hero {
-        padding: 6em 1.2em 5em;
+        padding: calc(6em + env(safe-area-inset-top, 0px)) 1.2em 5em;
       }
 
       .hero-video {
@@ -1336,6 +1477,83 @@
 
     section.wide {
       max-width: 1140px;
+    }
+
+    /* --- Section rules ---
+       The thematic break between the page's main sections, drawn as the peak
+       view of a track: an intro, a build, the hush before the drop, a
+       breakdown, a second drop, an outro.
+
+       The macro shape is the whole trick. Bars of even density read as a
+       barcode, and a sparse trace on a flat baseline reads as a heart monitor;
+       what makes this read as music is that the silhouette is a real envelope
+       with quiet passages and loud ones. The per-bar jitter on top is texture,
+       not the subject.
+
+       Drawn as a mask rather than an image, so the colour is this page's own
+       token instead of a value baked into an SVG that would then have to be
+       kept in step by hand. What shows through is the plain line below -- which
+       doubles as the fallback anywhere masks are missing, and is the simple
+       version of this idea anyway. Stretched to the width of the section with
+       preserveAspectRatio="none", so the bar count is fixed and it reads the
+       same on a phone as on a desktop. */
+
+    .rule {
+      border: 0;
+      height: 1px;
+      width: calc(100% - 4em);
+      max-width: 960px;
+      margin: 0 auto;
+      opacity: 0.8;
+      background: linear-gradient(90deg,
+          transparent,
+          var(--accent) 30%,
+          var(--accent) 70%,
+          transparent);
+    }
+
+    /* Every break gets the same 92px of air above and below it, measured to
+       the nearest painted edge rather than assumed from the box model. The
+       other three inherit it from the 5em padding the sections either side
+       carry; this one has a captions block above and the band below, neither
+       of which brings 5em of its own, so it is stated here. Collapses with the
+       captions' own 4em bottom margin to the larger of the two. */
+    .rule-d {
+      margin-top: 5em;
+    }
+
+    @supports ((-webkit-mask-image: linear-gradient(#000, #000)) or (mask-image: linear-gradient(#000, #000))) {
+      .rule {
+        height: 22px;
+        -webkit-mask-size: 100% 100%;
+        mask-size: 100% 100%;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        /* The default is also the first one, so a rule that forgets its
+           variant is still a waveform rather than a solid bar. */
+        -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 445.8 40%22 preserveAspectRatio=%22none%22%3E%3Cpath fill=%22%23000%22 d=%22M0 15.698h1.8v8.6044h-1.8zM4 15.6h1.8v8.7999h-1.8zM8 15.786h1.8v8.4271h-1.8zM12 15.499h1.8v9.0023h-1.8zM16 15.291h1.8v9.417h-1.8zM20 16.205h1.8v7.5894h-1.8zM24 14.913h1.8v10.175h-1.8zM28 14.827h1.8v10.346h-1.8zM32 15.241h1.8v9.5186h-1.8zM36 14.179h1.8v11.642h-1.8zM40 15.207h1.8v9.5858h-1.8zM44 14.91h1.8v10.181h-1.8zM48 15.25h1.8v9.5008h-1.8zM52 13.439h1.8v13.122h-1.8zM56 14.163h1.8v11.674h-1.8zM60 13.992h1.8v12.017h-1.8zM64 14.313h1.8v11.373h-1.8zM68 16.295h1.8v7.4099h-1.8zM72 15.394h1.8v9.2129h-1.8zM76 15.036h1.8v9.9278h-1.8zM80 16.313h1.8v7.3743h-1.8zM84 15.033h1.8v9.9337h-1.8zM88 15.82h1.8v8.3593h-1.8zM92 13.409h1.8v13.182h-1.8zM96 14.555h1.8v10.89h-1.8zM100 13.393h1.8v13.214h-1.8zM104 12.084h1.8v15.832h-1.8zM108 12.436h1.8v15.129h-1.8zM112 12.326h1.8v15.349h-1.8zM116 11.768h1.8v16.464h-1.8zM120 13.283h1.8v13.435h-1.8zM124 11.187h1.8v17.626h-1.8zM128 9.5861h1.8v20.828h-1.8zM132 11.829h1.8v16.342h-1.8zM136 11.167h1.8v17.665h-1.8zM140 8.0557h1.8v23.889h-1.8zM144 6.905h1.8v26.19h-1.8zM148 7.6507h1.8v24.699h-1.8zM152 11.753h1.8v16.495h-1.8zM156 12.661h1.8v14.678h-1.8zM160 14.732h1.8v10.535h-1.8zM164 16.367h1.8v7.2664h-1.8zM168 15.664h1.8v8.6722h-1.8zM172 10.569h1.8v18.861h-1.8zM176 4.1511h1.8v31.698h-1.8zM180 4.2005h1.8v31.599h-1.8zM184 6.5331h1.8v26.934h-1.8zM188 6.958h1.8v26.084h-1.8zM192 5.6475h1.8v28.705h-1.8zM196 7.9542h1.8v24.092h-1.8zM200 2.3183h1.8v35.363h-1.8zM204 6.4587h1.8v27.083h-1.8zM208 6.4972h1.8v27.006h-1.8zM212 5.3547h1.8v29.291h-1.8zM216 6.1842h1.8v27.632h-1.8zM220 7.2602h1.8v25.48h-1.8zM224 8.9067h1.8v22.187h-1.8zM228 5.5247h1.8v28.951h-1.8zM232 5.2456h1.8v29.509h-1.8zM236 9.3301h1.8v21.34h-1.8zM240 6.6617h1.8v26.677h-1.8zM244 11.195h1.8v17.61h-1.8zM248 9.4412h1.8v21.118h-1.8zM252 13.268h1.8v13.463h-1.8zM256 14.91h1.8v10.18h-1.8zM260 14.748h1.8v10.504h-1.8zM264 15.334h1.8v9.3328h-1.8zM268 15.575h1.8v8.8508h-1.8zM272 16.671h1.8v6.6583h-1.8zM276 15.503h1.8v8.9941h-1.8zM280 16.294h1.8v7.4123h-1.8zM284 16.484h1.8v7.0311h-1.8zM288 15.448h1.8v9.1041h-1.8zM292 15.134h1.8v9.7316h-1.8zM296 16.369h1.8v7.2626h-1.8zM300 16.586h1.8v6.8281h-1.8zM304 15.224h1.8v9.5528h-1.8zM308 14.803h1.8v10.393h-1.8zM312 13.201h1.8v13.597h-1.8zM316 12.189h1.8v15.623h-1.8zM320 12.076h1.8v15.848h-1.8zM324 11.823h1.8v16.354h-1.8zM328 13.141h1.8v13.717h-1.8zM332 10.989h1.8v18.021h-1.8zM336 9.0444h1.8v21.911h-1.8zM340 9.5915h1.8v20.817h-1.8zM344 7.7549h1.8v24.49h-1.8zM348 2.5474h1.8v34.905h-1.8zM352 4.1347h1.8v31.731h-1.8zM356 4.1659h1.8v31.668h-1.8zM360 3.7909h1.8v32.418h-1.8zM364 7.4866h1.8v25.027h-1.8zM368 5.3727h1.8v29.255h-1.8zM372 7.9087h1.8v24.183h-1.8zM376 9.125h1.8v21.75h-1.8zM380 7.4859h1.8v25.028h-1.8zM384 10.409h1.8v19.183h-1.8zM388 8.7903h1.8v22.419h-1.8zM392 6.2027h1.8v27.595h-1.8zM396 9.9858h1.8v20.028h-1.8zM400 6.6925h1.8v26.615h-1.8zM404 8.5963h1.8v22.807h-1.8zM408 9.084h1.8v21.832h-1.8zM412 12.888h1.8v14.223h-1.8zM416 11.62h1.8v16.759h-1.8zM420 11.792h1.8v16.416h-1.8zM424 13.726h1.8v12.547h-1.8zM428 14.575h1.8v10.851h-1.8zM432 15.084h1.8v9.8315h-1.8zM436 15.74h1.8v8.5198h-1.8zM440 15.66h1.8v8.6792h-1.8zM444 15.962h1.8v8.0753h-1.8z%22/%3E%3C/svg%3E");
+        mask-image: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 445.8 40%22 preserveAspectRatio=%22none%22%3E%3Cpath fill=%22%23000%22 d=%22M0 15.698h1.8v8.6044h-1.8zM4 15.6h1.8v8.7999h-1.8zM8 15.786h1.8v8.4271h-1.8zM12 15.499h1.8v9.0023h-1.8zM16 15.291h1.8v9.417h-1.8zM20 16.205h1.8v7.5894h-1.8zM24 14.913h1.8v10.175h-1.8zM28 14.827h1.8v10.346h-1.8zM32 15.241h1.8v9.5186h-1.8zM36 14.179h1.8v11.642h-1.8zM40 15.207h1.8v9.5858h-1.8zM44 14.91h1.8v10.181h-1.8zM48 15.25h1.8v9.5008h-1.8zM52 13.439h1.8v13.122h-1.8zM56 14.163h1.8v11.674h-1.8zM60 13.992h1.8v12.017h-1.8zM64 14.313h1.8v11.373h-1.8zM68 16.295h1.8v7.4099h-1.8zM72 15.394h1.8v9.2129h-1.8zM76 15.036h1.8v9.9278h-1.8zM80 16.313h1.8v7.3743h-1.8zM84 15.033h1.8v9.9337h-1.8zM88 15.82h1.8v8.3593h-1.8zM92 13.409h1.8v13.182h-1.8zM96 14.555h1.8v10.89h-1.8zM100 13.393h1.8v13.214h-1.8zM104 12.084h1.8v15.832h-1.8zM108 12.436h1.8v15.129h-1.8zM112 12.326h1.8v15.349h-1.8zM116 11.768h1.8v16.464h-1.8zM120 13.283h1.8v13.435h-1.8zM124 11.187h1.8v17.626h-1.8zM128 9.5861h1.8v20.828h-1.8zM132 11.829h1.8v16.342h-1.8zM136 11.167h1.8v17.665h-1.8zM140 8.0557h1.8v23.889h-1.8zM144 6.905h1.8v26.19h-1.8zM148 7.6507h1.8v24.699h-1.8zM152 11.753h1.8v16.495h-1.8zM156 12.661h1.8v14.678h-1.8zM160 14.732h1.8v10.535h-1.8zM164 16.367h1.8v7.2664h-1.8zM168 15.664h1.8v8.6722h-1.8zM172 10.569h1.8v18.861h-1.8zM176 4.1511h1.8v31.698h-1.8zM180 4.2005h1.8v31.599h-1.8zM184 6.5331h1.8v26.934h-1.8zM188 6.958h1.8v26.084h-1.8zM192 5.6475h1.8v28.705h-1.8zM196 7.9542h1.8v24.092h-1.8zM200 2.3183h1.8v35.363h-1.8zM204 6.4587h1.8v27.083h-1.8zM208 6.4972h1.8v27.006h-1.8zM212 5.3547h1.8v29.291h-1.8zM216 6.1842h1.8v27.632h-1.8zM220 7.2602h1.8v25.48h-1.8zM224 8.9067h1.8v22.187h-1.8zM228 5.5247h1.8v28.951h-1.8zM232 5.2456h1.8v29.509h-1.8zM236 9.3301h1.8v21.34h-1.8zM240 6.6617h1.8v26.677h-1.8zM244 11.195h1.8v17.61h-1.8zM248 9.4412h1.8v21.118h-1.8zM252 13.268h1.8v13.463h-1.8zM256 14.91h1.8v10.18h-1.8zM260 14.748h1.8v10.504h-1.8zM264 15.334h1.8v9.3328h-1.8zM268 15.575h1.8v8.8508h-1.8zM272 16.671h1.8v6.6583h-1.8zM276 15.503h1.8v8.9941h-1.8zM280 16.294h1.8v7.4123h-1.8zM284 16.484h1.8v7.0311h-1.8zM288 15.448h1.8v9.1041h-1.8zM292 15.134h1.8v9.7316h-1.8zM296 16.369h1.8v7.2626h-1.8zM300 16.586h1.8v6.8281h-1.8zM304 15.224h1.8v9.5528h-1.8zM308 14.803h1.8v10.393h-1.8zM312 13.201h1.8v13.597h-1.8zM316 12.189h1.8v15.623h-1.8zM320 12.076h1.8v15.848h-1.8zM324 11.823h1.8v16.354h-1.8zM328 13.141h1.8v13.717h-1.8zM332 10.989h1.8v18.021h-1.8zM336 9.0444h1.8v21.911h-1.8zM340 9.5915h1.8v20.817h-1.8zM344 7.7549h1.8v24.49h-1.8zM348 2.5474h1.8v34.905h-1.8zM352 4.1347h1.8v31.731h-1.8zM356 4.1659h1.8v31.668h-1.8zM360 3.7909h1.8v32.418h-1.8zM364 7.4866h1.8v25.027h-1.8zM368 5.3727h1.8v29.255h-1.8zM372 7.9087h1.8v24.183h-1.8zM376 9.125h1.8v21.75h-1.8zM380 7.4859h1.8v25.028h-1.8zM384 10.409h1.8v19.183h-1.8zM388 8.7903h1.8v22.419h-1.8zM392 6.2027h1.8v27.595h-1.8zM396 9.9858h1.8v20.028h-1.8zM400 6.6925h1.8v26.615h-1.8zM404 8.5963h1.8v22.807h-1.8zM408 9.084h1.8v21.832h-1.8zM412 12.888h1.8v14.223h-1.8zM416 11.62h1.8v16.759h-1.8zM420 11.792h1.8v16.416h-1.8zM424 13.726h1.8v12.547h-1.8zM428 14.575h1.8v10.851h-1.8zM432 15.084h1.8v9.8315h-1.8zM436 15.74h1.8v8.5198h-1.8zM440 15.66h1.8v8.6792h-1.8zM444 15.962h1.8v8.0753h-1.8z%22/%3E%3C/svg%3E");
+      }
+
+      /* Three different takes, one per break, so the page is not repeating
+         itself down the margin: (a) a build into two drops with a breakdown
+         between them, (b) a long slow burn into one sustained peak, (c) a
+         choppier one with a real hush through the middle. Same generator, same
+         bar geometry -- only the envelope changes. */
+      .rule-b {
+        -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 445.8 40%22 preserveAspectRatio=%22none%22%3E%3Cpath fill=%22%23000%22 d=%22M0 16.924h1.8v6.1516h-1.8zM4 17.521h1.8v4.9575h-1.8zM8 16.796h1.8v6.4088h-1.8zM12 16.18h1.8v7.6397h-1.8zM16 16.156h1.8v7.688h-1.8zM20 17.1h1.8v5.8005h-1.8zM24 16.556h1.8v6.8873h-1.8zM28 15.725h1.8v8.5497h-1.8zM32 15.878h1.8v8.2439h-1.8zM36 16.544h1.8v6.9117h-1.8zM40 16.676h1.8v6.6487h-1.8zM44 16.275h1.8v7.4504h-1.8zM48 16.743h1.8v6.5141h-1.8zM52 14.934h1.8v10.133h-1.8zM56 15.849h1.8v8.3028h-1.8zM60 15.563h1.8v8.8735h-1.8zM64 14.873h1.8v10.254h-1.8zM68 14.914h1.8v10.172h-1.8zM72 15.161h1.8v9.6784h-1.8zM76 15.747h1.8v8.5055h-1.8zM80 14.517h1.8v10.967h-1.8zM84 14.5h1.8v11h-1.8zM88 16.028h1.8v7.9435h-1.8zM92 14.582h1.8v10.837h-1.8zM96 15.646h1.8v8.7072h-1.8zM100 13.066h1.8v13.869h-1.8zM104 13.861h1.8v12.278h-1.8zM108 13.971h1.8v12.059h-1.8zM112 13.291h1.8v13.418h-1.8zM116 13.71h1.8v12.58h-1.8zM120 13.743h1.8v12.514h-1.8zM124 15.112h1.8v9.7752h-1.8zM128 13.213h1.8v13.573h-1.8zM132 14.288h1.8v11.423h-1.8zM136 14.452h1.8v11.097h-1.8zM140 12.506h1.8v14.987h-1.8zM144 11.529h1.8v16.942h-1.8zM148 13.286h1.8v13.429h-1.8zM152 13.515h1.8v12.97h-1.8zM156 11.624h1.8v16.751h-1.8zM160 11.984h1.8v16.032h-1.8zM164 10.796h1.8v18.408h-1.8zM168 10.541h1.8v18.919h-1.8zM172 11.15h1.8v17.701h-1.8zM176 11.196h1.8v17.609h-1.8zM180 12.896h1.8v14.207h-1.8zM184 11.455h1.8v17.09h-1.8zM188 10.697h1.8v18.606h-1.8zM192 12.267h1.8v15.466h-1.8zM196 12.137h1.8v15.725h-1.8zM200 10.343h1.8v19.314h-1.8zM204 12.406h1.8v15.188h-1.8zM208 13.363h1.8v13.273h-1.8zM212 14.016h1.8v11.969h-1.8zM216 15.876h1.8v8.2486h-1.8zM220 15.507h1.8v8.9852h-1.8zM224 15.985h1.8v8.0306h-1.8zM228 14.485h1.8v11.03h-1.8zM232 10.385h1.8v19.229h-1.8zM236 10.183h1.8v19.634h-1.8zM240 6.9469h1.8v26.106h-1.8zM244 3.1471h1.8v33.706h-1.8zM248 7.2214h1.8v25.557h-1.8zM252 2.4835h1.8v35.033h-1.8zM256 4.382h1.8v31.236h-1.8zM260 4.1208h1.8v31.758h-1.8zM264 8.8485h1.8v22.303h-1.8zM268 5.6497h1.8v28.701h-1.8zM272 4.3984h1.8v31.203h-1.8zM276 6.4654h1.8v27.069h-1.8zM280 6.3596h1.8v27.281h-1.8zM284 5.2684h1.8v29.463h-1.8zM288 4.7029h1.8v30.594h-1.8zM292 1.8526h1.8v36.295h-1.8zM296 1.7498h1.8v36.5h-1.8zM300 7.6914h1.8v24.617h-1.8zM304 2.585h1.8v34.83h-1.8zM308 2.567h1.8v34.866h-1.8zM312 6.8979h1.8v26.204h-1.8zM316 8.4689h1.8v23.062h-1.8zM320 3.9945h1.8v32.011h-1.8zM324 6.6358h1.8v26.728h-1.8zM328 5.9095h1.8v28.181h-1.8zM332 6.5127h1.8v26.975h-1.8zM336 5.4202h1.8v29.16h-1.8zM340 6.175h1.8v27.65h-1.8zM344 7.7516h1.8v24.497h-1.8zM348 8.5085h1.8v22.983h-1.8zM352 9.9467h1.8v20.107h-1.8zM356 9.9562h1.8v20.088h-1.8zM360 9.8375h1.8v20.325h-1.8zM364 13.321h1.8v13.358h-1.8zM368 14.84h1.8v10.32h-1.8zM372 15.969h1.8v8.0627h-1.8zM376 15.854h1.8v8.2914h-1.8zM380 14.25h1.8v11.5h-1.8zM384 13.788h1.8v12.424h-1.8zM388 13.677h1.8v12.645h-1.8zM392 13.234h1.8v13.532h-1.8zM396 13.781h1.8v12.438h-1.8zM400 13.541h1.8v12.919h-1.8zM404 10.551h1.8v18.898h-1.8zM408 13.807h1.8v12.386h-1.8zM412 13.646h1.8v12.707h-1.8zM416 13.218h1.8v13.565h-1.8zM420 13.973h1.8v12.054h-1.8zM424 14.963h1.8v10.075h-1.8zM428 16.093h1.8v7.8138h-1.8zM432 16.126h1.8v7.7487h-1.8zM436 15.892h1.8v8.2161h-1.8zM440 17.053h1.8v5.893h-1.8zM444 17.544h1.8v4.9125h-1.8z%22/%3E%3C/svg%3E");
+        mask-image: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 445.8 40%22 preserveAspectRatio=%22none%22%3E%3Cpath fill=%22%23000%22 d=%22M0 16.924h1.8v6.1516h-1.8zM4 17.521h1.8v4.9575h-1.8zM8 16.796h1.8v6.4088h-1.8zM12 16.18h1.8v7.6397h-1.8zM16 16.156h1.8v7.688h-1.8zM20 17.1h1.8v5.8005h-1.8zM24 16.556h1.8v6.8873h-1.8zM28 15.725h1.8v8.5497h-1.8zM32 15.878h1.8v8.2439h-1.8zM36 16.544h1.8v6.9117h-1.8zM40 16.676h1.8v6.6487h-1.8zM44 16.275h1.8v7.4504h-1.8zM48 16.743h1.8v6.5141h-1.8zM52 14.934h1.8v10.133h-1.8zM56 15.849h1.8v8.3028h-1.8zM60 15.563h1.8v8.8735h-1.8zM64 14.873h1.8v10.254h-1.8zM68 14.914h1.8v10.172h-1.8zM72 15.161h1.8v9.6784h-1.8zM76 15.747h1.8v8.5055h-1.8zM80 14.517h1.8v10.967h-1.8zM84 14.5h1.8v11h-1.8zM88 16.028h1.8v7.9435h-1.8zM92 14.582h1.8v10.837h-1.8zM96 15.646h1.8v8.7072h-1.8zM100 13.066h1.8v13.869h-1.8zM104 13.861h1.8v12.278h-1.8zM108 13.971h1.8v12.059h-1.8zM112 13.291h1.8v13.418h-1.8zM116 13.71h1.8v12.58h-1.8zM120 13.743h1.8v12.514h-1.8zM124 15.112h1.8v9.7752h-1.8zM128 13.213h1.8v13.573h-1.8zM132 14.288h1.8v11.423h-1.8zM136 14.452h1.8v11.097h-1.8zM140 12.506h1.8v14.987h-1.8zM144 11.529h1.8v16.942h-1.8zM148 13.286h1.8v13.429h-1.8zM152 13.515h1.8v12.97h-1.8zM156 11.624h1.8v16.751h-1.8zM160 11.984h1.8v16.032h-1.8zM164 10.796h1.8v18.408h-1.8zM168 10.541h1.8v18.919h-1.8zM172 11.15h1.8v17.701h-1.8zM176 11.196h1.8v17.609h-1.8zM180 12.896h1.8v14.207h-1.8zM184 11.455h1.8v17.09h-1.8zM188 10.697h1.8v18.606h-1.8zM192 12.267h1.8v15.466h-1.8zM196 12.137h1.8v15.725h-1.8zM200 10.343h1.8v19.314h-1.8zM204 12.406h1.8v15.188h-1.8zM208 13.363h1.8v13.273h-1.8zM212 14.016h1.8v11.969h-1.8zM216 15.876h1.8v8.2486h-1.8zM220 15.507h1.8v8.9852h-1.8zM224 15.985h1.8v8.0306h-1.8zM228 14.485h1.8v11.03h-1.8zM232 10.385h1.8v19.229h-1.8zM236 10.183h1.8v19.634h-1.8zM240 6.9469h1.8v26.106h-1.8zM244 3.1471h1.8v33.706h-1.8zM248 7.2214h1.8v25.557h-1.8zM252 2.4835h1.8v35.033h-1.8zM256 4.382h1.8v31.236h-1.8zM260 4.1208h1.8v31.758h-1.8zM264 8.8485h1.8v22.303h-1.8zM268 5.6497h1.8v28.701h-1.8zM272 4.3984h1.8v31.203h-1.8zM276 6.4654h1.8v27.069h-1.8zM280 6.3596h1.8v27.281h-1.8zM284 5.2684h1.8v29.463h-1.8zM288 4.7029h1.8v30.594h-1.8zM292 1.8526h1.8v36.295h-1.8zM296 1.7498h1.8v36.5h-1.8zM300 7.6914h1.8v24.617h-1.8zM304 2.585h1.8v34.83h-1.8zM308 2.567h1.8v34.866h-1.8zM312 6.8979h1.8v26.204h-1.8zM316 8.4689h1.8v23.062h-1.8zM320 3.9945h1.8v32.011h-1.8zM324 6.6358h1.8v26.728h-1.8zM328 5.9095h1.8v28.181h-1.8zM332 6.5127h1.8v26.975h-1.8zM336 5.4202h1.8v29.16h-1.8zM340 6.175h1.8v27.65h-1.8zM344 7.7516h1.8v24.497h-1.8zM348 8.5085h1.8v22.983h-1.8zM352 9.9467h1.8v20.107h-1.8zM356 9.9562h1.8v20.088h-1.8zM360 9.8375h1.8v20.325h-1.8zM364 13.321h1.8v13.358h-1.8zM368 14.84h1.8v10.32h-1.8zM372 15.969h1.8v8.0627h-1.8zM376 15.854h1.8v8.2914h-1.8zM380 14.25h1.8v11.5h-1.8zM384 13.788h1.8v12.424h-1.8zM388 13.677h1.8v12.645h-1.8zM392 13.234h1.8v13.532h-1.8zM396 13.781h1.8v12.438h-1.8zM400 13.541h1.8v12.919h-1.8zM404 10.551h1.8v18.898h-1.8zM408 13.807h1.8v12.386h-1.8zM412 13.646h1.8v12.707h-1.8zM416 13.218h1.8v13.565h-1.8zM420 13.973h1.8v12.054h-1.8zM424 14.963h1.8v10.075h-1.8zM428 16.093h1.8v7.8138h-1.8zM432 16.126h1.8v7.7487h-1.8zM436 15.892h1.8v8.2161h-1.8zM440 17.053h1.8v5.893h-1.8zM444 17.544h1.8v4.9125h-1.8z%22/%3E%3C/svg%3E");
+      }
+
+      .rule-c {
+        -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 445.8 40%22 preserveAspectRatio=%22none%22%3E%3Cpath fill=%22%23000%22 d=%22M0 15.574h1.8v8.8518h-1.8zM4 15.514h1.8v8.9719h-1.8zM8 13.327h1.8v13.347h-1.8zM12 12.469h1.8v15.062h-1.8zM16 10.006h1.8v19.987h-1.8zM20 8.633h1.8v22.734h-1.8zM24 8.8874h1.8v22.225h-1.8zM28 9.2177h1.8v21.565h-1.8zM32 12.019h1.8v15.963h-1.8zM36 11.534h1.8v16.932h-1.8zM40 12.004h1.8v15.993h-1.8zM44 14.073h1.8v11.854h-1.8zM48 14.316h1.8v11.368h-1.8zM52 12.782h1.8v14.435h-1.8zM56 13.371h1.8v13.257h-1.8zM60 12.603h1.8v14.795h-1.8zM64 11.133h1.8v17.735h-1.8zM68 11.974h1.8v16.051h-1.8zM72 9.2447h1.8v21.511h-1.8zM76 10.125h1.8v19.75h-1.8zM80 10.417h1.8v19.165h-1.8zM84 8.3444h1.8v23.311h-1.8zM88 10.695h1.8v18.611h-1.8zM92 8.8838h1.8v22.232h-1.8zM96 6.3518h1.8v27.296h-1.8zM100 10.387h1.8v19.225h-1.8zM104 8.0088h1.8v23.982h-1.8zM108 10.419h1.8v19.162h-1.8zM112 11.305h1.8v17.39h-1.8zM116 14.451h1.8v11.098h-1.8zM120 13.179h1.8v13.643h-1.8zM124 12.34h1.8v15.32h-1.8zM128 12.728h1.8v14.544h-1.8zM132 11.784h1.8v16.433h-1.8zM136 10.017h1.8v19.967h-1.8zM140 8.4269h1.8v23.146h-1.8zM144 4.92h1.8v30.16h-1.8zM148 3.7648h1.8v32.47h-1.8zM152 8.71h1.8v22.58h-1.8zM156 4.2684h1.8v31.463h-1.8zM160 5.1729h1.8v29.654h-1.8zM164 9.9711h1.8v20.058h-1.8zM168 12.364h1.8v15.272h-1.8zM172 11.147h1.8v17.705h-1.8zM176 13.965h1.8v12.071h-1.8zM180 14.762h1.8v10.475h-1.8zM184 15.604h1.8v8.7915h-1.8zM188 15.309h1.8v9.3827h-1.8zM192 15.511h1.8v8.9786h-1.8zM196 16.036h1.8v7.9285h-1.8zM200 16.325h1.8v7.3492h-1.8zM204 16.674h1.8v6.6511h-1.8zM208 16.396h1.8v7.2078h-1.8zM212 15.894h1.8v8.2128h-1.8zM216 16.887h1.8v6.2253h-1.8zM220 17.238h1.8v5.5234h-1.8zM224 17.664h1.8v4.6729h-1.8zM228 17.61h1.8v4.7802h-1.8zM232 16.721h1.8v6.5585h-1.8zM236 16.479h1.8v7.0419h-1.8zM240 16.413h1.8v7.1739h-1.8zM244 16.134h1.8v7.7312h-1.8zM248 16.411h1.8v7.1775h-1.8zM252 16.24h1.8v7.5207h-1.8zM256 14.483h1.8v11.035h-1.8zM260 16.249h1.8v7.5021h-1.8zM264 15.319h1.8v9.3613h-1.8zM268 13.421h1.8v13.158h-1.8zM272 12.208h1.8v15.585h-1.8zM276 11.411h1.8v17.177h-1.8zM280 11.373h1.8v17.253h-1.8zM284 9.2621h1.8v21.476h-1.8zM288 6.2197h1.8v27.561h-1.8zM292 8.5912h1.8v22.818h-1.8zM296 10.145h1.8v19.711h-1.8zM300 10.99h1.8v18.021h-1.8zM304 8.4589h1.8v23.082h-1.8zM308 12.079h1.8v15.843h-1.8zM312 13.401h1.8v13.198h-1.8zM316 12.932h1.8v14.136h-1.8zM320 14.559h1.8v10.881h-1.8zM324 12.793h1.8v14.413h-1.8zM328 12.161h1.8v15.678h-1.8zM332 11.572h1.8v16.856h-1.8zM336 6.6669h1.8v26.666h-1.8zM340 8.2205h1.8v23.559h-1.8zM344 5.0022h1.8v29.996h-1.8zM348 2.5349h1.8v34.93h-1.8zM352 3.0419h1.8v33.916h-1.8zM356 8.9356h1.8v22.129h-1.8zM360 5.6997h1.8v28.601h-1.8zM364 8.3262h1.8v23.348h-1.8zM368 12.04h1.8v15.919h-1.8zM372 12.499h1.8v15.002h-1.8zM376 11.967h1.8v16.067h-1.8zM380 10.6h1.8v18.8h-1.8zM384 12.874h1.8v14.251h-1.8zM388 9.3795h1.8v21.241h-1.8zM392 8.1403h1.8v23.719h-1.8zM396 10.226h1.8v19.548h-1.8zM400 8.9975h1.8v22.005h-1.8zM404 9.9963h1.8v20.007h-1.8zM408 9.677h1.8v20.646h-1.8zM412 10.009h1.8v19.982h-1.8zM416 8.0757h1.8v23.849h-1.8zM420 9.2902h1.8v21.42h-1.8zM424 12.038h1.8v15.924h-1.8zM428 11.291h1.8v17.419h-1.8zM432 13.563h1.8v12.875h-1.8zM436 14.593h1.8v10.814h-1.8zM440 15.45h1.8v9.1006h-1.8zM444 17.05h1.8v5.8996h-1.8z%22/%3E%3C/svg%3E");
+        mask-image: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 445.8 40%22 preserveAspectRatio=%22none%22%3E%3Cpath fill=%22%23000%22 d=%22M0 15.574h1.8v8.8518h-1.8zM4 15.514h1.8v8.9719h-1.8zM8 13.327h1.8v13.347h-1.8zM12 12.469h1.8v15.062h-1.8zM16 10.006h1.8v19.987h-1.8zM20 8.633h1.8v22.734h-1.8zM24 8.8874h1.8v22.225h-1.8zM28 9.2177h1.8v21.565h-1.8zM32 12.019h1.8v15.963h-1.8zM36 11.534h1.8v16.932h-1.8zM40 12.004h1.8v15.993h-1.8zM44 14.073h1.8v11.854h-1.8zM48 14.316h1.8v11.368h-1.8zM52 12.782h1.8v14.435h-1.8zM56 13.371h1.8v13.257h-1.8zM60 12.603h1.8v14.795h-1.8zM64 11.133h1.8v17.735h-1.8zM68 11.974h1.8v16.051h-1.8zM72 9.2447h1.8v21.511h-1.8zM76 10.125h1.8v19.75h-1.8zM80 10.417h1.8v19.165h-1.8zM84 8.3444h1.8v23.311h-1.8zM88 10.695h1.8v18.611h-1.8zM92 8.8838h1.8v22.232h-1.8zM96 6.3518h1.8v27.296h-1.8zM100 10.387h1.8v19.225h-1.8zM104 8.0088h1.8v23.982h-1.8zM108 10.419h1.8v19.162h-1.8zM112 11.305h1.8v17.39h-1.8zM116 14.451h1.8v11.098h-1.8zM120 13.179h1.8v13.643h-1.8zM124 12.34h1.8v15.32h-1.8zM128 12.728h1.8v14.544h-1.8zM132 11.784h1.8v16.433h-1.8zM136 10.017h1.8v19.967h-1.8zM140 8.4269h1.8v23.146h-1.8zM144 4.92h1.8v30.16h-1.8zM148 3.7648h1.8v32.47h-1.8zM152 8.71h1.8v22.58h-1.8zM156 4.2684h1.8v31.463h-1.8zM160 5.1729h1.8v29.654h-1.8zM164 9.9711h1.8v20.058h-1.8zM168 12.364h1.8v15.272h-1.8zM172 11.147h1.8v17.705h-1.8zM176 13.965h1.8v12.071h-1.8zM180 14.762h1.8v10.475h-1.8zM184 15.604h1.8v8.7915h-1.8zM188 15.309h1.8v9.3827h-1.8zM192 15.511h1.8v8.9786h-1.8zM196 16.036h1.8v7.9285h-1.8zM200 16.325h1.8v7.3492h-1.8zM204 16.674h1.8v6.6511h-1.8zM208 16.396h1.8v7.2078h-1.8zM212 15.894h1.8v8.2128h-1.8zM216 16.887h1.8v6.2253h-1.8zM220 17.238h1.8v5.5234h-1.8zM224 17.664h1.8v4.6729h-1.8zM228 17.61h1.8v4.7802h-1.8zM232 16.721h1.8v6.5585h-1.8zM236 16.479h1.8v7.0419h-1.8zM240 16.413h1.8v7.1739h-1.8zM244 16.134h1.8v7.7312h-1.8zM248 16.411h1.8v7.1775h-1.8zM252 16.24h1.8v7.5207h-1.8zM256 14.483h1.8v11.035h-1.8zM260 16.249h1.8v7.5021h-1.8zM264 15.319h1.8v9.3613h-1.8zM268 13.421h1.8v13.158h-1.8zM272 12.208h1.8v15.585h-1.8zM276 11.411h1.8v17.177h-1.8zM280 11.373h1.8v17.253h-1.8zM284 9.2621h1.8v21.476h-1.8zM288 6.2197h1.8v27.561h-1.8zM292 8.5912h1.8v22.818h-1.8zM296 10.145h1.8v19.711h-1.8zM300 10.99h1.8v18.021h-1.8zM304 8.4589h1.8v23.082h-1.8zM308 12.079h1.8v15.843h-1.8zM312 13.401h1.8v13.198h-1.8zM316 12.932h1.8v14.136h-1.8zM320 14.559h1.8v10.881h-1.8zM324 12.793h1.8v14.413h-1.8zM328 12.161h1.8v15.678h-1.8zM332 11.572h1.8v16.856h-1.8zM336 6.6669h1.8v26.666h-1.8zM340 8.2205h1.8v23.559h-1.8zM344 5.0022h1.8v29.996h-1.8zM348 2.5349h1.8v34.93h-1.8zM352 3.0419h1.8v33.916h-1.8zM356 8.9356h1.8v22.129h-1.8zM360 5.6997h1.8v28.601h-1.8zM364 8.3262h1.8v23.348h-1.8zM368 12.04h1.8v15.919h-1.8zM372 12.499h1.8v15.002h-1.8zM376 11.967h1.8v16.067h-1.8zM380 10.6h1.8v18.8h-1.8zM384 12.874h1.8v14.251h-1.8zM388 9.3795h1.8v21.241h-1.8zM392 8.1403h1.8v23.719h-1.8zM396 10.226h1.8v19.548h-1.8zM400 8.9975h1.8v22.005h-1.8zM404 9.9963h1.8v20.007h-1.8zM408 9.677h1.8v20.646h-1.8zM412 10.009h1.8v19.982h-1.8zM416 8.0757h1.8v23.849h-1.8zM420 9.2902h1.8v21.42h-1.8zM424 12.038h1.8v15.924h-1.8zM428 11.291h1.8v17.419h-1.8zM432 13.563h1.8v12.875h-1.8zM436 14.593h1.8v10.814h-1.8zM440 15.45h1.8v9.1006h-1.8zM444 17.05h1.8v5.8996h-1.8z%22/%3E%3C/svg%3E");
+      }
+
+      .rule-d {
+        -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 445.8 40%22 preserveAspectRatio=%22none%22%3E%3Cpath fill=%22%23000%22 d=%22M0 15.399h1.8v9.2021h-1.8zM4 14.546h1.8v10.909h-1.8zM8 11.571h1.8v16.859h-1.8zM12 9.1059h1.8v21.788h-1.8zM16 11.171h1.8v17.658h-1.8zM20 6.2029h1.8v27.594h-1.8zM24 6.1824h1.8v27.635h-1.8zM28 10.493h1.8v19.014h-1.8zM32 12.788h1.8v14.424h-1.8zM36 11.709h1.8v16.582h-1.8zM40 14.255h1.8v11.489h-1.8zM44 14.448h1.8v11.104h-1.8zM48 14.084h1.8v11.831h-1.8zM52 12.053h1.8v15.894h-1.8zM56 10.607h1.8v18.786h-1.8zM60 10.156h1.8v19.688h-1.8zM64 9.8167h1.8v20.367h-1.8zM68 10.468h1.8v19.064h-1.8zM72 9.9577h1.8v20.085h-1.8zM76 9.3498h1.8v21.3h-1.8zM80 12.75h1.8v14.499h-1.8zM84 14.388h1.8v11.225h-1.8zM88 15.898h1.8v8.2037h-1.8zM92 16.216h1.8v7.5685h-1.8zM96 14.967h1.8v10.066h-1.8zM100 14.939h1.8v10.122h-1.8zM104 15.329h1.8v9.343h-1.8zM108 15.528h1.8v8.9441h-1.8zM112 16.332h1.8v7.3363h-1.8zM116 16.572h1.8v6.8553h-1.8zM120 15.404h1.8v9.1912h-1.8zM124 17.157h1.8v5.6851h-1.8zM128 17.11h1.8v5.7803h-1.8zM132 16.736h1.8v6.5273h-1.8zM136 16.746h1.8v6.5074h-1.8zM140 16.816h1.8v6.3682h-1.8zM144 17.011h1.8v5.9784h-1.8zM148 16.33h1.8v7.3395h-1.8zM152 15.169h1.8v9.6628h-1.8zM156 15.847h1.8v8.3051h-1.8zM160 16.23h1.8v7.5409h-1.8zM164 16.327h1.8v7.347h-1.8zM168 14.914h1.8v10.172h-1.8zM172 16.182h1.8v7.6363h-1.8zM176 16.508h1.8v6.9841h-1.8zM180 15.945h1.8v8.1109h-1.8zM184 16.732h1.8v6.5366h-1.8zM188 15.861h1.8v8.2785h-1.8zM192 16.055h1.8v7.8893h-1.8zM196 16.43h1.8v7.139h-1.8zM200 15.266h1.8v9.4671h-1.8zM204 16.415h1.8v7.1691h-1.8zM208 15.912h1.8v8.176h-1.8zM212 15.457h1.8v9.0863h-1.8zM216 15.515h1.8v8.9706h-1.8zM220 16.779h1.8v6.4414h-1.8zM224 15.122h1.8v9.7562h-1.8zM228 15.143h1.8v9.7145h-1.8zM232 15.907h1.8v8.1858h-1.8zM236 15.31h1.8v9.38h-1.8zM240 14.156h1.8v11.688h-1.8zM244 12.564h1.8v14.873h-1.8zM248 14.361h1.8v11.278h-1.8zM252 12.18h1.8v15.639h-1.8zM256 12.226h1.8v15.548h-1.8zM260 14.404h1.8v11.191h-1.8zM264 14.479h1.8v11.042h-1.8zM268 15.498h1.8v9.0044h-1.8zM272 15.668h1.8v8.6649h-1.8zM276 15.891h1.8v8.2189h-1.8zM280 14.864h1.8v10.272h-1.8zM284 14.41h1.8v11.181h-1.8zM288 14.271h1.8v11.458h-1.8zM292 10.866h1.8v18.268h-1.8zM296 10.021h1.8v19.957h-1.8zM300 7.8034h1.8v24.393h-1.8zM304 6.0351h1.8v27.93h-1.8zM308 9.5937h1.8v20.813h-1.8zM312 5.6076h1.8v28.785h-1.8zM316 7.1398h1.8v25.72h-1.8zM320 6.2276h1.8v27.545h-1.8zM324 7.2911h1.8v25.418h-1.8zM328 7.8534h1.8v24.293h-1.8zM332 8.3979h1.8v23.204h-1.8zM336 8.1475h1.8v23.705h-1.8zM340 9.3044h1.8v21.391h-1.8zM344 10.169h1.8v19.661h-1.8zM348 9.0937h1.8v21.813h-1.8zM352 9.4152h1.8v21.17h-1.8zM356 7.1113h1.8v25.777h-1.8zM360 7.5453h1.8v24.909h-1.8zM364 10.195h1.8v19.61h-1.8zM368 8.7584h1.8v22.483h-1.8zM372 4.6369h1.8v30.726h-1.8zM376 5.4919h1.8v29.016h-1.8zM380 3.3004h1.8v33.399h-1.8zM384 8.4004h1.8v23.199h-1.8zM388 8.2653h1.8v23.469h-1.8zM392 9.1582h1.8v21.684h-1.8zM396 10.071h1.8v19.858h-1.8zM400 10.017h1.8v19.966h-1.8zM404 9.7929h1.8v20.414h-1.8zM408 10.754h1.8v18.492h-1.8zM412 11.817h1.8v16.365h-1.8zM416 12.154h1.8v15.692h-1.8zM420 10.946h1.8v18.109h-1.8zM424 14.323h1.8v11.354h-1.8zM428 13.181h1.8v13.637h-1.8zM432 14.384h1.8v11.233h-1.8zM436 15.006h1.8v9.9883h-1.8zM440 16.163h1.8v7.6749h-1.8zM444 16.427h1.8v7.1466h-1.8z%22/%3E%3C/svg%3E");
+        mask-image: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 445.8 40%22 preserveAspectRatio=%22none%22%3E%3Cpath fill=%22%23000%22 d=%22M0 15.399h1.8v9.2021h-1.8zM4 14.546h1.8v10.909h-1.8zM8 11.571h1.8v16.859h-1.8zM12 9.1059h1.8v21.788h-1.8zM16 11.171h1.8v17.658h-1.8zM20 6.2029h1.8v27.594h-1.8zM24 6.1824h1.8v27.635h-1.8zM28 10.493h1.8v19.014h-1.8zM32 12.788h1.8v14.424h-1.8zM36 11.709h1.8v16.582h-1.8zM40 14.255h1.8v11.489h-1.8zM44 14.448h1.8v11.104h-1.8zM48 14.084h1.8v11.831h-1.8zM52 12.053h1.8v15.894h-1.8zM56 10.607h1.8v18.786h-1.8zM60 10.156h1.8v19.688h-1.8zM64 9.8167h1.8v20.367h-1.8zM68 10.468h1.8v19.064h-1.8zM72 9.9577h1.8v20.085h-1.8zM76 9.3498h1.8v21.3h-1.8zM80 12.75h1.8v14.499h-1.8zM84 14.388h1.8v11.225h-1.8zM88 15.898h1.8v8.2037h-1.8zM92 16.216h1.8v7.5685h-1.8zM96 14.967h1.8v10.066h-1.8zM100 14.939h1.8v10.122h-1.8zM104 15.329h1.8v9.343h-1.8zM108 15.528h1.8v8.9441h-1.8zM112 16.332h1.8v7.3363h-1.8zM116 16.572h1.8v6.8553h-1.8zM120 15.404h1.8v9.1912h-1.8zM124 17.157h1.8v5.6851h-1.8zM128 17.11h1.8v5.7803h-1.8zM132 16.736h1.8v6.5273h-1.8zM136 16.746h1.8v6.5074h-1.8zM140 16.816h1.8v6.3682h-1.8zM144 17.011h1.8v5.9784h-1.8zM148 16.33h1.8v7.3395h-1.8zM152 15.169h1.8v9.6628h-1.8zM156 15.847h1.8v8.3051h-1.8zM160 16.23h1.8v7.5409h-1.8zM164 16.327h1.8v7.347h-1.8zM168 14.914h1.8v10.172h-1.8zM172 16.182h1.8v7.6363h-1.8zM176 16.508h1.8v6.9841h-1.8zM180 15.945h1.8v8.1109h-1.8zM184 16.732h1.8v6.5366h-1.8zM188 15.861h1.8v8.2785h-1.8zM192 16.055h1.8v7.8893h-1.8zM196 16.43h1.8v7.139h-1.8zM200 15.266h1.8v9.4671h-1.8zM204 16.415h1.8v7.1691h-1.8zM208 15.912h1.8v8.176h-1.8zM212 15.457h1.8v9.0863h-1.8zM216 15.515h1.8v8.9706h-1.8zM220 16.779h1.8v6.4414h-1.8zM224 15.122h1.8v9.7562h-1.8zM228 15.143h1.8v9.7145h-1.8zM232 15.907h1.8v8.1858h-1.8zM236 15.31h1.8v9.38h-1.8zM240 14.156h1.8v11.688h-1.8zM244 12.564h1.8v14.873h-1.8zM248 14.361h1.8v11.278h-1.8zM252 12.18h1.8v15.639h-1.8zM256 12.226h1.8v15.548h-1.8zM260 14.404h1.8v11.191h-1.8zM264 14.479h1.8v11.042h-1.8zM268 15.498h1.8v9.0044h-1.8zM272 15.668h1.8v8.6649h-1.8zM276 15.891h1.8v8.2189h-1.8zM280 14.864h1.8v10.272h-1.8zM284 14.41h1.8v11.181h-1.8zM288 14.271h1.8v11.458h-1.8zM292 10.866h1.8v18.268h-1.8zM296 10.021h1.8v19.957h-1.8zM300 7.8034h1.8v24.393h-1.8zM304 6.0351h1.8v27.93h-1.8zM308 9.5937h1.8v20.813h-1.8zM312 5.6076h1.8v28.785h-1.8zM316 7.1398h1.8v25.72h-1.8zM320 6.2276h1.8v27.545h-1.8zM324 7.2911h1.8v25.418h-1.8zM328 7.8534h1.8v24.293h-1.8zM332 8.3979h1.8v23.204h-1.8zM336 8.1475h1.8v23.705h-1.8zM340 9.3044h1.8v21.391h-1.8zM344 10.169h1.8v19.661h-1.8zM348 9.0937h1.8v21.813h-1.8zM352 9.4152h1.8v21.17h-1.8zM356 7.1113h1.8v25.777h-1.8zM360 7.5453h1.8v24.909h-1.8zM364 10.195h1.8v19.61h-1.8zM368 8.7584h1.8v22.483h-1.8zM372 4.6369h1.8v30.726h-1.8zM376 5.4919h1.8v29.016h-1.8zM380 3.3004h1.8v33.399h-1.8zM384 8.4004h1.8v23.199h-1.8zM388 8.2653h1.8v23.469h-1.8zM392 9.1582h1.8v21.684h-1.8zM396 10.071h1.8v19.858h-1.8zM400 10.017h1.8v19.966h-1.8zM404 9.7929h1.8v20.414h-1.8zM408 10.754h1.8v18.492h-1.8zM412 11.817h1.8v16.365h-1.8zM416 12.154h1.8v15.692h-1.8zM420 10.946h1.8v18.109h-1.8zM424 14.323h1.8v11.354h-1.8zM428 13.181h1.8v13.637h-1.8zM432 14.384h1.8v11.233h-1.8zM436 15.006h1.8v9.9883h-1.8zM440 16.163h1.8v7.6749h-1.8zM444 16.427h1.8v7.1466h-1.8z%22/%3E%3C/svg%3E");
+      }
     }
 
     h2 {
@@ -1809,7 +2027,12 @@
       color: #fff;
     }
 
+    /* display:block matters: an inline SVG sits on the text baseline and
+       reserves descender space under it, so the chevron rode high by a couple
+       of pixels however the flexbox was aligned. As a block it is a plain box
+       and align-items centres it exactly. */
     .read-more svg {
+      display: block;
       width: 0.85em;
       height: 0.85em;
       stroke: currentColor;
@@ -1823,6 +2046,22 @@
       max-width: 1140px;
       margin: 0 auto;
       padding: 3em 2em;
+    }
+
+    /* Divided by --fit, not just set to it: a scaled slide is laid out at this
+       width and then shrunk by that same factor, so what lands on screen is
+       exactly --band-w whatever the scale. Without the division, a module long
+       enough to need scaling also came out a few pixels narrower than the
+       timeline above it, with its heading a few pixels inside "Oct 1". */
+    .curr-scroll.is-scroller .curr-slide-inner {
+      max-width: calc(var(--band-w) / var(--fit, 1));
+      /* Scale away from the top edge, not the middle. About the middle, a slide
+         scaled to fit also moves its own top down by half of what it lost --
+         which put the headings of the longer modules a good 25px below the
+         short ones on a phone, exactly the drift that top-aligning them was
+         meant to remove. "center" is still the horizontal half, so the column
+         stays centred. */
+      transform-origin: top center;
     }
 
     .curr-slide-inner {
@@ -1876,6 +2115,9 @@
        their stacked-list state down to hidden — a visible flash on load. */
     .curr-scroll.is-initialising .curr-slide,
     .curr-scroll.is-initialising .curr-media,
+    .curr-scroll.is-initialising .module-points li,
+    .curr-scroll.is-initialising .read-more,
+    .curr-scroll.is-initialising .curr-head>*,
     .curr-scroll.is-initialising .curr-copy>* {
       transition: none !important;
     }
@@ -1883,11 +2125,16 @@
     /* Pinned mode. The region is tall; a sticky stage holds one slide in place
        while the scroll offset inside it selects which module is showing. */
     .curr-scroll.is-scroller {
-      /* One viewport of pinned travel per week, plus the viewport the sticky
-         child itself occupies. Without the extra one the region only travels
-         slides - 1 viewports, and the last week becomes active exactly as the
-         region releases -- so it is never seen except on its way out. */
-      height: calc((var(--slides) + 1) * var(--vh, 1vh) * 100);
+      /* --step viewports of pinned travel per week, plus the whole viewport
+         the sticky child itself occupies. Without that extra one the region
+         only travels (slides - 1) steps, and the last week becomes active
+         exactly as the region releases -- so it is never seen except on its
+         way out.
+
+         Both --slides and --step are written by curriculum.js, which is the
+         one place the step is decided: the same number sizes this box, picks
+         which week is showing, and paces the timeline's cursor. */
+      height: calc((var(--slides) * var(--step, 0.5) + 1) * var(--vh, 1vh) * 100);
       position: relative;
     }
 
@@ -1910,10 +2157,25 @@
       position: absolute;
       inset: 0;
       display: flex;
-      align-items: center;
-      /* Top padding clears the timeline, which sits above the slide once the
-         curriculum takes over. */
-      padding: 10em 2em 3em;
+      /* Top, not centre. Centred, every module started at a different height
+         -- a long one rode up towards the dates and a short one sat well below
+         them -- so eight slides swapping in place never agreed on where the
+         heading lived. Anchored to the top they all begin on the same line,
+         and what varies is the space left underneath, which is the harmless
+         end to vary. */
+      align-items: flex-start;
+      /* Top padding clears the timeline and then sets that line. --tl-space is
+         where the bar's underside actually is -- its sticky offset plus its
+         own height -- measured and written by timeline.js, so growing the bar
+         (numbering the dots, or dropping the dates to a second row on a phone)
+         carries the headings down with it rather than letting one turn up
+         underneath it. The em on the end is the gap itself, and it is the only
+         number to touch to move every heading at once.
+
+         No side padding: the column is set by --band-w on the inner, which is
+         the timeline's width exactly, so the heading starts under "Oct 1"
+         rather than a couple of em inside it. */
+      padding: calc(var(--tl-space, 8.5em) + 3.5em) 0 3em;
       opacity: 0;
       visibility: hidden;
       transition: opacity 420ms var(--ease), visibility 420ms;
@@ -1924,65 +2186,92 @@
       visibility: visible;
     }
 
-    /* The outgoing video peels away and the incoming one takes its place. */
-    .curr-scroll.is-scroller .curr-media {
-      transform: translateX(7%) scale(0.93) rotate(1.2deg);
-      opacity: 0;
-      transition: transform 620ms var(--ease), opacity 420ms var(--ease);
-    }
+    /* --- How a slide arrives and leaves ---
+       Every part of it does the same thing: up from below and fading in when
+       it is the slide you are on, up and away when it is behind you, down and
+       away when it is still ahead. One movement, one direction, so eight
+       modules swapping in place read as one mechanism rather than as a video
+       doing one thing and its copy doing another.
 
-    .curr-scroll.is-scroller .curr-slide.is-before .curr-media {
-      transform: translateX(-7%) scale(0.93) rotate(-1.2deg);
-    }
+       The video used to peel sideways with a scale and a rotate while the text
+       rose -- two unrelated gestures at once, which is what made the section
+       feel inconsistent depending on which part you happened to watch.
 
-    .curr-scroll.is-scroller .curr-slide.is-active .curr-media {
-      transform: none;
-      opacity: 1;
-    }
-
-    /* Copy flies in behind it, staggered line by line. */
+       The order is the reading order, staggered: heading, outcome, video, then
+       the bullets one after another, then the button. */
     .curr-scroll.is-scroller .curr-head>*,
-    .curr-scroll.is-scroller .curr-copy>* {
-      transform: translateY(1.6em);
+    .curr-scroll.is-scroller .curr-media,
+    .curr-scroll.is-scroller .module-points li,
+    .curr-scroll.is-scroller .read-more {
+      transform: translateY(1.3em);
       opacity: 0;
-      transition: transform 560ms var(--ease), opacity 420ms var(--ease);
+      transition: transform 520ms var(--ease), opacity 360ms var(--ease);
     }
 
+    /* Behind you, so it leaves upward -- the mirror of how it arrived. This is
+       the whole of the direction-awareness: which way a slide travels changes
+       with the scroll, the order its parts arrive in does not. Staggering in
+       reverse as well was tried and read as strange: the eye still reads top to
+       bottom whichever way the page is moving, so a heading arriving after its
+       own bullets fights the reading rather than the scrolling. */
     .curr-scroll.is-scroller .curr-slide.is-before .curr-head>*,
-    .curr-scroll.is-scroller .curr-slide.is-before .curr-copy>* {
-      transform: translateY(-1.6em);
+    .curr-scroll.is-scroller .curr-slide.is-before .curr-media,
+    .curr-scroll.is-scroller .curr-slide.is-before .module-points li,
+    .curr-scroll.is-scroller .curr-slide.is-before .read-more {
+      transform: translateY(-1.3em);
     }
 
     .curr-scroll.is-scroller .curr-slide.is-active .curr-head>*,
-    .curr-scroll.is-scroller .curr-slide.is-active .curr-copy>* {
+    .curr-scroll.is-scroller .curr-slide.is-active .curr-media,
+    .curr-scroll.is-scroller .curr-slide.is-active .module-points li,
+    .curr-scroll.is-scroller .curr-slide.is-active .read-more {
       transform: none;
       opacity: 1;
     }
 
-    .curr-scroll.is-scroller .curr-slide.is-active .curr-head>*:nth-child(1) {
-      transition-delay: 60ms;
+    .curr-scroll.is-scroller .curr-slide.is-active h3 {
+      transition-delay: 50ms;
     }
 
-    .curr-scroll.is-scroller .curr-slide.is-active .curr-head>*:nth-child(2) {
+    .curr-scroll.is-scroller .curr-slide.is-active .module-outcome {
       transition-delay: 110ms;
     }
 
-    .curr-scroll.is-scroller .curr-slide.is-active .curr-head>*:nth-child(3) {
-      transition-delay: 165ms;
+    .curr-scroll.is-scroller .curr-slide.is-active .curr-media {
+      transition-delay: 170ms;
     }
 
-    .curr-scroll.is-scroller .curr-slide.is-active .curr-copy>*:nth-child(1) {
-      transition-delay: 215ms;
+    /* Each bullet a beat after the one above it. Written out rather than
+       counted from a custom property, because these are static list items and
+       there is no scroll handler that should ever have to touch them. */
+    .curr-scroll.is-scroller .curr-slide.is-active .module-points li:nth-child(1) {
+      transition-delay: 240ms;
     }
 
-    .curr-scroll.is-scroller .curr-slide.is-active .curr-copy>*:nth-child(2) {
-      transition-delay: 275ms;
+    .curr-scroll.is-scroller .curr-slide.is-active .module-points li:nth-child(2) {
+      transition-delay: 310ms;
+    }
+
+    .curr-scroll.is-scroller .curr-slide.is-active .module-points li:nth-child(3) {
+      transition-delay: 380ms;
+    }
+
+    .curr-scroll.is-scroller .curr-slide.is-active .module-points li:nth-child(4) {
+      transition-delay: 450ms;
+    }
+
+
+    .curr-scroll.is-scroller .curr-slide.is-active .read-more {
+      transition-delay: 580ms;
     }
 
     @media (prefers-reduced-motion: reduce) {
 
       .curr-scroll .curr-media,
       .curr-scroll .curr-copy>*,
+      .curr-scroll .module-points li,
+      .curr-scroll .read-more,
+      .curr-scroll .curr-head>*,
       .pl-controls {
         transition: none !important;
         animation: none !important;
@@ -1994,81 +2283,250 @@
     }
 
     /* --- Course timeline ---
-       One element, fixed to the viewport, that serves as the footer of the
-       curriculum title and then the header of the week slides. It is fixed
-       rather than duplicated because it has to travel between two different
-       scroll regions, and a handoff between two copies would show a seam.
-       --tl-y is its vertical position, --t its progress, both set by
-       timeline.js. */
+       The footer of the curriculum title and then the header of the week
+       slides, as one element rather than a copy in each -- a handoff between
+       two copies shows a seam however carefully they are aligned.
+
+       It is sticky inside .curr-band, which is the whole of the mechanism. In
+       flow it sits just under the title and its paragraph, because it belongs
+       to them; it holds under the nav for as long as the weeks are on screen,
+       because there it is their header; and it leaves with the band's bottom
+       edge the way a section header stops sticking at the end of its section.
+       Scrolling back up reverses all three for free.
+
+       This used to be position: fixed with its vertical position written from
+       a scroll handler, which meant JavaScript reimplementing sticky, badly:
+       it hovered at the foot of the viewport over content it had nothing to do
+       with, and needed an opacity of its own to be told when to stop. Being
+       genuinely in flow is what makes it read as part of this section.
+
+       --t is its progress, still set by timeline.js, because that is the one
+       thing about it the document's own layout cannot say. */
 
     .timeline {
-      position: fixed;
-      top: var(--tl-y, 100vh);
-      left: 50%;
-      transform: translateX(-50%);
-      width: min(1140px, calc(100vw - 3em));
+      position: sticky;
+      /* Clear of the fixed nav. --nav-h is measured and written by timeline.js;
+         the fallback is close enough to be unremarkable for the one frame
+         before it lands. */
+      top: calc(var(--nav-h, 3.4em) + 18px);
+      width: var(--band-w);
+      margin: 0 auto 4em;
+      /* The dot's outer diameter and its ring, in one place, because the
+         cursor is cut from them: it is exactly the interior, so when it is
+         over a mark it fills it rather than covering it. */
+      --dot-size: 28px;
+      --dot-border: 3px;
+      /* Grab room around the dot. Part of the button, not of the circle. */
+      --tap-pad: 8px;
       z-index: 50;
       display: flex;
-      align-items: flex-start;
-      gap: 1.1em;
-      opacity: var(--tl-vis, 0);
-      transition: opacity 260ms var(--ease);
-      pointer-events: none;
+      align-items: center;
+      /* Wide enough to clear the outermost dots, which sit centred on the ends
+         of the track and so hang half their width plus their tap padding into
+         this gap. */
+      gap: 1.45em;
+    }
+
+    /* The stacked fallback gives every week its own heading, so there is
+       nothing here for this to be the header of, and its progress would track
+       a pinned region that is not pinned. */
+    .timeline.is-off {
+      display: none;
+    }
+
+    /* --- Where the band stops holding the timeline ---
+       Sticky releases an element when its container's bottom edge reaches it,
+       and left alone the band's bottom is the region's bottom -- a whole
+       viewport after the last slide has started scrolling away. The bar would
+       stay pinned at the top through all of that, heading a section that had
+       already left, hovering over the next one.
+
+       So the band is told to end early. A negative bottom margin on its last
+       child pulls the band's own bottom edge up without moving any content:
+       the region still occupies exactly the space it did, but the box that
+       governs the sticky timeline now ends one viewport-minus-a-bar sooner --
+       which is precisely the moment week eight begins to scroll away. From
+       there the heading pushes the timeline up the screen, as a heading does.
+
+       This was a scroll handler writing a transform every frame, and it read
+       as jitter for the reason those always do: on a phone, scroll events do
+       not keep up with the compositor, so the bar was chasing the content it
+       was supposed to be attached to. Nothing to chase if the browser is doing
+       the moving. */
+    .curr-band > .curr-scroll.is-scroller {
+      margin-bottom: calc(var(--tl-space, 8.5em) - var(--vh, 1vh) * 100);
+    }
+
+    /* flow-root, so that negative margin stays inside the band. Left to
+       collapse, a last child's bottom margin becomes the parent's own, and it
+       then sums with the break's compensating top margin below -- the two
+       cancel, and the break lands most of a screen above the end of the
+       curriculum instead of below it. A block formatting context keeps the
+       margin where it was written. */
+    .curr-band {
+      display: flow-root;
+    }
+
+    /* ...and the break below gets that distance back, so what follows the
+       curriculum sits exactly where it did. */
+    .curr-band:has(> .is-scroller) + .rule {
+      margin-top: calc(5em + var(--vh, 1vh) * 100 - var(--tl-space, 8.5em));
     }
 
     /* --- The build ---
-       A one-shot, not tied to scroll: the line sweeps left to right, each mark
-       lands as the sweep passes it, the end date arrives last, and the cursor
-       joins once the track exists. Runs when the curriculum title has settled
-       and been scrolled a little past, then never again. */
+       Oct 1 lands, the line draws all the way to Nov 19, and the numbers chase
+       it -- each one arriving a beat after the drawn end has passed the place
+       it belongs. The chase is arithmetic, not feel: the line sweeps at a
+       constant rate from 200ms to 1100ms, so it reaches mark i at
+       200 + (i/7) x 900ms, and mark i lands 120ms after that. Which is exactly
+       the stagger below, 320ms + i x 129ms. Change the line's window and that
+       stagger has to move with it or the numbers stop chasing anything.
 
-    .tl-line {
-      transform: scaleX(0);
-      transform-origin: left center;
-      transition: transform 900ms cubic-bezier(0.33, 0.9, 0.3, 1);
-    }
-
-    .timeline.is-built .tl-line {
-      transform: scaleX(1);
-    }
+       It runs every time the bar arrives and backwards every time it leaves,
+       so the delays come in two sets. The ones under .is-built build it. The
+       ones on the resting state take it apart last-in-first-out -- cursor, then
+       the numbers right to left, Nov 19, the line retracting to where it
+       started, Oct 1 last -- and about half again as quick, because a teardown
+       that takes as long as the build is a teardown you wait for. */
 
     .tl-cap {
       opacity: 0;
-      transition: opacity 420ms var(--ease);
+      transition: opacity 380ms var(--ease);
+      /* Leaving: Oct 1 is the last thing out, as it was the first thing in. */
+      transition-delay: 1000ms;
+    }
+
+    .tl-end {
+      transition-delay: 200ms;
     }
 
     .timeline.is-built .tl-cap {
       opacity: 1;
+      transition-duration: 420ms;
+      transition-delay: 0ms;
     }
 
-    /* Lands as the sweep reaches it. */
+    /* Nov 19 arrives as the line reaches it. */
     .timeline.is-built .tl-end {
-      transition-delay: 820ms;
+      transition-delay: 1080ms;
+    }
+
+    .tl-line {
+      transform: translateY(-50%) scaleX(0);
+      transform-origin: left center;
+      /* Leaving: retracts to the left, back the way it was drawn. */
+      transition: transform 500ms var(--ease);
+      transition-delay: 560ms;
+    }
+
+    .timeline.is-built .tl-line {
+      transform: translateY(-50%) scaleX(1);
+      /* 200ms to 1100ms, at a constant rate -- the numbers are timed off it. */
+      transition: transform 900ms linear;
+      transition-delay: 200ms;
     }
 
     .tl-mark {
       opacity: 0;
-      /* Positioning transform has to survive the animated one. */
-      transform: translateX(-50%) scale(0.3);
-      transition: opacity 320ms var(--ease), transform 420ms var(--ease);
+      transition: opacity 240ms var(--ease);
+      /* Leaving: right to left, the mirror of the chase. */
+      transition-delay: calc(60ms + (7 - var(--i, 0)) * 62ms);
+    }
+
+    .tl-mark .tl-fill,
+    .tl-mark .tl-ring {
+      transform: scale(0.4);
+      transition-delay: calc(60ms + (7 - var(--i, 0)) * 62ms);
     }
 
     .timeline.is-built .tl-mark {
       opacity: 1;
-      transform: translateX(-50%) scale(1);
-      transition-delay: calc(180ms + var(--i, 0) * 105ms);
+      transition-duration: 300ms;
+      /* 120ms behind the drawn end of the line, all the way along. */
+      transition-delay: calc(320ms + var(--i, 0) * 129ms);
     }
 
-    .tl-progress,
-    .tl-cursor {
+    .timeline.is-built .tl-mark .tl-fill,
+    .timeline.is-built .tl-mark .tl-ring {
+      transform: scale(1);
+      transition-delay: calc(320ms + var(--i, 0) * 129ms);
+    }
+
+    /* The scroll-driven pair join once there is a track for them to sit on.
+       Only opacity transitions -- their transforms are rewritten every frame,
+       and a transition on those would put them permanently behind the scroll. */
+    .tl-progress {
       opacity: 0;
-      transition: opacity 400ms var(--ease);
+      /* Leaving: first out, since it was last in. */
+      transition: opacity 240ms var(--ease);
+      transition-delay: 0ms;
     }
 
-    .timeline.is-built .tl-progress,
-    .timeline.is-built .tl-cursor {
+    .timeline.is-built .tl-progress {
       opacity: 1;
-      transition-delay: 980ms;
+      transition-duration: 400ms;
+      transition-delay: 1320ms;
+    }
+
+    /* --- Handing the comet to the compositor ---
+       The two scroll-driven pieces -- the comet's position and the length of
+       the progress fill -- are declared again here as animations on a scroll
+       timeline, which since Safari 26.4 runs on the compositor thread rather
+       than the main one. Nothing about the movement changes; who evaluates it
+       does.
+
+       That is the whole of the jitter. Driven from JavaScript, the position is
+       recomputed in requestAnimationFrame, and rAF is throttled to 60Hz on a
+       ProMotion phone while the compositor scrolls the page at 120. The
+       content moves at twice the rate of the comet on top of it, and the eye
+       reads the difference as stutter even when our own frames are perfectly
+       even. On the compositor there is no second clock to disagree with.
+
+       Two things this depends on, both easy to break:
+
+       - The keyframes animate `transform` directly. Routing through a custom
+         property would be tidier and would defeat the entire point: custom
+         properties do not composite, registered or not, so the animation would
+         move to the timeline and stay on the main thread.
+       - `animation-timeline` is a reset-only value in the `animation`
+         shorthand, so it has to come after it. Above it, it is silently reset
+         to `auto` and these animations run once on load instead.
+
+       The range is where the curriculum starts and where its last week
+       arrives, in document pixels, written by timeline.js whenever the page
+       changes shape. Browsers without this keep the --t path below. */
+    @supports (animation-timeline: scroll()) {
+      @keyframes tl-travel {
+        from {
+          transform: translateX(0);
+        }
+
+        to {
+          transform: translateX(100%);
+        }
+      }
+
+      @keyframes tl-extend {
+        from {
+          transform: translateY(-50%) scaleX(0);
+        }
+
+        to {
+          transform: translateY(-50%) scaleX(1);
+        }
+      }
+
+      .timeline .tl-rail {
+        animation: tl-travel linear both;
+        animation-timeline: scroll(root block);
+        animation-range: var(--tl-from, 0px) var(--tl-to, 100%);
+      }
+
+      .timeline .tl-progress {
+        animation: tl-extend linear both;
+        animation-timeline: scroll(root block);
+        animation-range: var(--tl-from, 0px) var(--tl-to, 100%);
+      }
     }
 
     /* Reduced motion, and after a reload deep in the page: no sweep. */
@@ -2076,13 +2534,12 @@
     .timeline.no-build .tl-mark,
     .timeline.no-build .tl-cap,
     .timeline.no-build .tl-progress,
-    .timeline.no-build .tl-cursor {
+    .timeline.no-build .tl-cursor,
+    .timeline.no-build .tl-fill,
+    .timeline.no-build .tl-ring,
+    .timeline.no-build .tl-rail {
       transition: none;
       transition-delay: 0ms;
-    }
-
-    .timeline.is-interactive {
-      pointer-events: auto;
     }
 
     .tl-cap {
@@ -2092,127 +2549,355 @@
       text-transform: uppercase;
       color: var(--text-muted);
       white-space: nowrap;
-      padding-top: 0.1em;
     }
 
     .tl-track {
       position: relative;
       flex: 1;
-      height: 3.5em;
+      height: 2.6em;
       min-width: 0;
     }
 
     .tl-line,
     .tl-progress {
       position: absolute;
-      top: 0.62em;
+      top: 50%;
+      left: 0;
+      right: 0;
       height: 2px;
       border-radius: 2px;
+      transform-origin: left center;
     }
 
     .tl-line {
-      left: 0;
-      right: 0;
       background: rgba(255, 255, 255, 0.18);
     }
 
+    /* Full width and scaled down, rather than a width of --t * 100%: the paint
+       is identical and the update is not a layout. */
     .tl-progress {
-      left: 0;
-      width: calc(var(--t, 0) * 100%);
       background: linear-gradient(90deg, var(--accent), var(--warm));
+      transform: translateY(-50%) scaleX(var(--t, 0));
     }
 
+    /* Rides the track continuously, so the scroll always has something to show
+       for itself even between checkpoints. The rail is the width of the track,
+       which is what makes a percentage translate land exactly -- a percentage
+       on the cursor itself would resolve against the cursor.
+
+       That translate is also why the rail needs clipping of its own. Moved to
+       the far end it sticks a whole track-width past the right edge, and an
+       overflowing box widens the document: on a phone the page could be panned
+       sideways as soon as the reader was a week or two into the course. The
+       clip cannot go on .tl-track, which has to let the outermost dots hang
+       over its ends, so the rail gets a wrapper that clips nothing else. Both
+       ends of the travel put the cursor behind a dot anyway, so there is
+       nothing visible to lose at the edges. */
+    /* Threaded between a mark's fill and its ring. Widened by half a dot at
+       each end, because clipped flush to the track the cursor was sliced in
+       half while sitting on the first mark and the last -- exactly where it
+       spends most of its time. The rail inside stays track-width so the
+       percentage translate still lands on the marks. */
+    .tl-rail-clip {
+      position: absolute;
+      inset: 0 calc(var(--dot-size) / -2);
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .tl-rail {
+      position: absolute;
+      top: 50%;
+      left: calc(var(--dot-size) / 2);
+      right: calc(var(--dot-size) / 2);
+      height: 0;
+      transform: translateX(calc(var(--t, 0) * 100%));
+    }
+
+    /* A comet, not a dot. It belongs to the line rather than to the marks now
+       -- the marks say how far along you are by filling, so the head only has
+       to say where the scroll is this instant. Small enough to read as a light
+       running along the track, with the tail behind it. */
+    .tl-cursor {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 10px;
+      height: 10px;
+      margin: -5px 0 0 -5px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 0 0.5em 0.1em rgba(255, 255, 255, 0.75),
+        0 0 1.1em 0.35em rgba(255, 150, 80, 0.35);
+      /* Hidden until the scroll actually starts moving it. Parked on the
+         first mark it was a small white blob sitting behind a ring whose
+         interior had not filled yet, which read as a half-filled number --
+         the one state on the whole bar that had to look deliberate, since it
+         is the one everybody sees first. So week one simply fills, and the
+         comet emerges from it on the way to week two. */
+      transform: scale(0);
+      transition: transform 260ms cubic-bezier(0.34, 1.4, 0.5, 1);
+    }
+
+    /* Settled, not merely built: the comet is the last thing to arrive, and on
+       a reload with the scroll already deep in the course it otherwise turned
+       up on the first frame -- ahead of the line it is supposed to be running
+       along, and ahead of every number. Keyed on .is-running alone it also
+       survived a teardown and sat there on its own, a lit head and a tail with
+       no timeline under them. */
+    .timeline.is-settled.is-running .tl-cursor {
+      transform: scale(1);
+    }
+
+    /* The tail, lying along the line behind the head. Taller than the 2px
+       track and near-white for most of its length: at the track's own height
+       and in the track's own colours it was invisible, because the thing it
+       lies on top of is a purple-to-orange gradient of exactly that size. It
+       has to stand proud of the line to read as something travelling along it
+       rather than as a piece of it. */
+    .tl-cursor::before {
+      content: "";
+      position: absolute;
+      right: 50%;
+      top: 50%;
+      width: 4.2em;
+      height: 4px;
+      margin-top: -2px;
+      border-radius: 4px;
+      background: linear-gradient(270deg,
+          rgba(255, 255, 255, 0.95),
+          rgba(255, 214, 180, 0.55) 35%,
+          rgba(255, 150, 80, 0) 100%);
+      pointer-events: none;
+    }
+
+    /* A mark is two layers with the cursor threaded between them: an opaque
+       fill underneath, so the track's line does not show through the numeral,
+       and the ring and digit on top, so the cursor reads as filling the dot
+       rather than covering it.
+
+       Which is why there is no transform here. A transform -- any transform,
+       including a scale of 1 -- makes an element a stacking context, and a
+       stacking context is a sealed envelope: nothing outside it can be
+       layered between things inside it. So the mark is placed with calc(),
+       the build's scale lives on the two layers instead, and all three take
+       their place in the timeline's own stacking order. */
     .tl-mark {
       position: absolute;
-      top: 0;
-      left: var(--at);
-      transform: translateX(-50%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.5em;
+      left: calc(var(--at) - var(--dot-size) / 2 - var(--tap-pad));
+      top: calc(50% - var(--dot-size) / 2 - var(--tap-pad));
+      width: calc(var(--dot-size) + var(--tap-pad) * 2);
+      height: calc(var(--dot-size) + var(--tap-pad) * 2);
       background: none;
       border: none;
       padding: 0;
       font: inherit;
-      color: var(--text-muted);
       cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
     }
 
-    .tl-dot {
-      width: 0.6em;
-      height: 0.6em;
-      margin-top: 0.33em;
-      border-radius: 50%;
-      background: var(--bg);
-      border: 2px solid rgba(255, 255, 255, 0.32);
-      transition: transform 240ms var(--ease), background 240ms, border-color 240ms;
-    }
-
-    .tl-label {
-      font-size: 0.72em;
-      font-weight: 700;
-      letter-spacing: 0.07em;
-      text-transform: uppercase;
-      white-space: nowrap;
-      transition: color 240ms;
-    }
-
-    /* Weeks already passed read as filled, so the track shows how far along
-       the course you have scrolled rather than only where you are. */
-    .tl-mark.is-past .tl-dot {
-      background: var(--text-muted);
-      border-color: var(--text-muted);
-    }
-
-    .tl-mark.is-past .tl-label {
-      color: var(--text-muted);
-    }
-
-    .tl-mark:hover .tl-dot {
-      border-color: var(--accent);
-    }
-
-    .tl-mark:hover .tl-label {
-      color: var(--text);
-    }
-
-    .tl-mark[aria-current="true"] .tl-dot {
-      background: var(--accent);
-      border-color: var(--accent);
-      /* On the dot, not the mark: the mark's transform carries its position
-         along the track and the build's scale. */
-      transform: scale(1.4);
-      box-shadow: 0 0 0.9em var(--accent-glow);
-    }
-
-    .tl-mark[aria-current="true"] .tl-label {
-      color: #fff;
-    }
-
-    /* Rides the track continuously, so the scroll always has something to
-       show for itself even between checkpoints. */
-    .tl-cursor {
+    .tl-fill,
+    .tl-ring {
       position: absolute;
-      top: 0.62em;
-      left: calc(var(--t, 0) * 100%);
-      width: 0.85em;
-      height: 0.85em;
-      margin: -0.42em 0 0 -0.42em;
+      left: var(--tap-pad);
+      top: var(--tap-pad);
+      width: var(--dot-size);
+      height: var(--dot-size);
+      border-radius: 50%;
+      /* The build's scale only. Nothing here eases anything scroll-driven. */
+      transition: transform 300ms var(--ease), border-color 240ms,
+        box-shadow 240ms;
+    }
+
+    /* Under the comet. Opaque, so the line stops at the edge of a dot. */
+    .tl-fill {
+      z-index: 1;
+      background: var(--bg);
+    }
+
+    /* The white interior, growing from the middle when the comet reaches this
+       mark.
+       
+       Triggered, not tracked -- and that distinction is the whole of the
+       jitter. Bound to --t the fill was a function of scroll position, so it
+       could only be as smooth as the scroll events feeding it, which on a
+       phone means coarse and uneven steps that no amount of easing hides.
+       Triggered, the scroll decides only *when*; the growing itself runs on
+       the compositor at its own even rate, and looks identical whether the
+       reader crept up on the mark or flung past it.
+       
+       Short and slightly overshooting, so it reads as a snap rather than a
+       fade -- the earlier version eased a background colour over 240ms, which
+       is what made it feel like it was arriving late. Reverses on the way back
+       up for free. */
+    .tl-fill::after {
+      content: "";
+      position: absolute;
+      inset: 0;
       border-radius: 50%;
       background: #fff;
-      box-shadow: 0 0 0.7em rgba(255, 255, 255, 0.65);
+      transform: scale(0);
+      /* Emptying: a plain curve. The overshoot below belongs only to the way
+         in -- run backwards it undershoots past zero into a negative scale,
+         which is a flip, invisible at that size but not a thing to leave in. */
+      transition: transform 150ms var(--ease);
     }
 
-    /* Too narrow for eight labels; the dots and the end dates still carry it,
-       and the active week is named in the slide itself. */
-    @media (max-width: 780px) {
-      .tl-label {
-        display: none;
+    /* --- The spark ---
+       A small burst of orange and purple pixels when a week fills, the way
+       Twitter's heart bursts. Twitter does it with a 29-frame sprite sheet and
+       steps() -- unbeatable for a single famous heart, not worth authoring for
+       this. The same read comes out of a dozen 3px squares, and because every
+       one of them only ever animates transform and opacity, the whole burst is
+       handed to the compositor: no layout, no repaint, nothing that can stutter
+       under a scroll.
+
+       Only on the way in. The animation is declared under .is-filled, so
+       removing that class removes the animation rather than reversing it --
+       the pixels simply stop existing, which is what you want going backwards.
+       Re-adding it starts a fresh burst.
+
+       Each pixel's direction, distance, size and delay are written once by
+       timeline.js and never touched again. */
+    .tl-spark {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 0;
+      height: 0;
+      z-index: 4;
+      pointer-events: none;
+    }
+
+    .tl-spark i {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: var(--sz, 3px);
+      height: var(--sz, 3px);
+      margin: calc(var(--sz, 3px) / -2) 0 0 calc(var(--sz, 3px) / -2);
+      background: var(--warm);
+      opacity: 0;
+    }
+
+    .tl-spark i.is-cool {
+      background: var(--accent);
+    }
+
+    .tl-spark i.is-hot {
+      background: #ffd9c2;
+    }
+
+    /* .is-burst, not .is-filled: the burst belongs to the week just reached,
+       not to every week behind it. See setFilled in timeline.js. Still gated on
+       .is-settled so it waits for the bar to finish drawing itself. */
+    .timeline.is-settled .tl-mark.is-burst .tl-spark i {
+      animation: tl-spark var(--sdur, 560ms) cubic-bezier(0.15, 0.75, 0.3, 1)
+        var(--sdel, 0ms) both;
+    }
+
+    @keyframes tl-spark {
+      0% {
+        opacity: 0;
+        transform: translate(0, 0) scale(0.5);
       }
 
+      12% {
+        opacity: 1;
+      }
+
+      70% {
+        opacity: 0.9;
+      }
+
+      100% {
+        opacity: 0;
+        transform: translate(var(--dx, 0), var(--dy, 0)) scale(0.75);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .tl-spark {
+        display: none;
+      }
+    }
+
+    .tl-mark.is-filled .tl-fill::after {
+      transform: scale(1);
+      transition-duration: 200ms;
+      transition-timing-function: cubic-bezier(0.32, 1.5, 0.5, 1);
+    }
+
+    /* Over the cursor. */
+    .tl-ring {
+      z-index: 3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: var(--dot-border) solid var(--accent);
+      color: var(--warm);
+      font-size: calc(var(--dot-size) * 0.52);
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    /* The week being read. The fill is continuous and says how far along the
+       comet is; this says which module is actually on screen. */
+    .tl-mark[aria-current="true"] .tl-ring {
+      box-shadow: 0 0 0.75em rgba(255, 255, 255, 0.45);
+    }
+
+    .tl-mark:hover .tl-ring {
+      border-color: #c05ce8;
+    }
+
+    .tl-mark:focus-visible {
+      outline: none;
+    }
+
+    .tl-mark:focus-visible .tl-ring {
+      box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px #fff;
+    }
+
+    /* Eight numbered dots and two dates do not fit across a phone in one
+       line -- not with dots big enough to read a numeral in, which is the
+       point of numbering them. So the dates drop below and the track takes the
+       full width: eight dots across 342px is 49px between centres, which is
+       room to spare, where sharing the line left about seven. Reordered rather
+       than reworded, so it is still one element and still says the same thing.
+
+       .tl-cap comes first and last in the source because that is the reading
+       order; -1 puts the track on the row above without disturbing it. */
+    @media (max-width: 780px) {
       .tl-track {
-        height: 1.6em;
+        order: -1;
+        flex: 0 0 100%;
+        height: 2.4em;
+      }
+
+      .tl-cap {
+        flex: 1;
+        font-size: 0.72em;
+        letter-spacing: 0.06em;
+      }
+
+      .tl-end {
+        text-align: right;
+      }
+
+      /* Whole pixels, both of them. A fractional border renders rounded but
+         still computes at its written value, so the cursor -- cut from these
+         two numbers -- came out a pixel short of the interior it is supposed
+         to fill. */
+      .timeline {
+        --dot-size: 26px;
+        --dot-border: 2px;
+        --tap-pad: 7px;
+        flex-wrap: wrap;
+        align-items: baseline;
+        column-gap: 0;
+        row-gap: 0.2em;
       }
     }
 
@@ -2221,8 +2906,13 @@
        only apply while pinned -- the stacked fallback keeps its roomier
        setting. */
     @media (max-width: 900px) {
+      /* Much tighter than the desktop's 3.5em. There is less screen to spend,
+         the bar is two rows tall here so its underside is already well down
+         the page, and the dates directly above read as the module heading's
+         own kicker -- a wide gap made them look like they belonged to
+         something else. */
       .curr-scroll.is-scroller .curr-slide {
-        padding: 7em 1.2em 2em;
+        padding: calc(var(--tl-space, 8.5em) + 0.6em) 0 2em;
       }
 
       .curr-scroll.is-scroller .curr-head {
@@ -2234,9 +2924,13 @@
         margin: 0.05em 0 0.35em;
       }
 
+      /* The bullets are short noun phrases now rather than sentences, which
+         gives back enough height to let this line carry more weight -- it is
+         the promise of the module, and it was set smaller than the copy under
+         it. */
       .curr-scroll.is-scroller .module-outcome {
-        font-size: 1em;
-        line-height: 1.4;
+        font-size: 1.16em;
+        line-height: 1.38;
         margin-bottom: 0;
       }
 
@@ -2244,10 +2938,15 @@
         gap: 1.1em;
       }
 
-      /* A little narrower buys back vertical space at 16:9. */
+      /* Full width, so the video's edges land on the timeline's dates the way
+         the heading above it does. This used to be 84% to buy back vertical
+         space at 16:9, and that space is genuinely wanted -- the cost comes out
+         of fitSlides(), which scales a long module down a few percent on a
+         short phone to pay for it. Alignment was judged worth more than those
+         few percent. */
       .curr-scroll.is-scroller .curr-media {
-        width: 84%;
-        margin: 0 auto;
+        width: 100%;
+        margin: 0;
       }
 
       .curr-scroll.is-scroller .module-points {
@@ -2261,7 +2960,9 @@
 
       .curr-scroll.is-scroller .read-more {
         margin-top: 0.9em;
-        padding: 0.4em 1em;
+        padding: 0.55em 1em;
+        width: 100%;
+        justify-content: center;
       }
     }
 
@@ -2390,6 +3091,10 @@
       cursor: pointer;
     }
 
+    .modal-panel:focus {
+      outline: none;
+    }
+
     .modal-panel {
       position: relative;
       background: var(--surface);
@@ -2407,6 +3112,15 @@
       .modal-panel {
         padding: 1.8em 1.3em;
         max-height: 88vh;
+      }
+
+      /* .modal specificity on purpose: this block sits above the base rule in
+         the source, and a media query adds no specificity of its own, so a
+         bare .modal-close here loses to it and the override silently does
+         nothing. */
+      .modal .modal-close {
+        top: 1.33em;
+        right: 1em;
       }
     }
 
@@ -2446,12 +3160,15 @@
       color: var(--text-muted);
     }
 
+    /* Smaller ring, larger glyph. Its top is set from the panel's own padding
+       so the X sits on the same line as the week label beside it rather than
+       floating above it. */
     .modal-close {
       position: absolute;
-      top: 1em;
-      right: 1em;
-      width: 2.2em;
-      height: 2.2em;
+      top: calc(2.4em - 0.95em);
+      right: 1.1em;
+      width: 1.9em;
+      height: 1.9em;
       border-radius: 50%;
       border: 1px solid var(--border);
       background: var(--bg);
@@ -2460,13 +3177,35 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1em;
+      font-size: 1.15em;
       line-height: 1;
+    }
+
+    /* Two lines in a square viewBox, not a glyph. An X typed as a character
+       sits wherever the font's metrics put it inside the em square -- side
+       bearings, ascender, descender -- and flexbox can only centre the box
+       that glyph lives in, never the marks themselves. So it reads a pixel or
+       two off however the box is aligned, and no combination of line-height or
+       vertical-align fixes it, because the offset belongs to the typeface.
+       Drawn instead, the strokes are symmetric about the viewBox centre by
+       construction, and centring the box centres the X. */
+    .modal-close svg {
+      display: block;
+      width: 0.68em;
+      height: 0.68em;
+      stroke: currentColor;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      fill: none;
     }
 
     .modal-close:hover {
       border-color: var(--accent);
       color: #fff;
+    }
+
+    body.is-past-hero {
+      background: var(--bg);
     }
 
     body.modal-open {
@@ -2613,6 +3352,8 @@
         0 3em 7em rgba(0, 0, 0, 0.75);
     }
 
+    /* Its own background, so the purple canvas does not show through the
+       bottom of the page. */
     .site-footer {
       --fp: 0;
       position: relative;
@@ -2622,7 +3363,9 @@
         radial-gradient(120% 80% at 50% 0%, #2a1145 0%, rgba(42, 17, 69, 0) 70%),
         linear-gradient(180deg, #1d0c33 0%, #170a2a 55%, #0f0620 100%);
       color: var(--text);
-      padding: 8em 2em 4em;
+      /* Bottom inset so the last line clears the home indicator, which the
+         page now paints behind. */
+      padding: 8em 2em calc(4em + env(safe-area-inset-bottom, 0px));
       text-align: center;
       border-top: none;
       font-size: 1em;
@@ -2737,49 +3480,47 @@
 
     @media (max-width: 640px) {
       .site-nav {
-        padding: 0.6em 1.2em;
+        padding: calc(0.6em + env(safe-area-inset-top, 0px)) 0.8em 0.6em;
+        gap: 0.6em;
       }
 
+      /* "Free class" became "Free sample class" and the button grew by about
+         a third, which is enough to run it off the right edge of a 390px
+         phone -- the brand on the left does not shrink to make room. The bar
+         is a fixed width budget, so the copy change has to be paid for here:
+         smaller type, tighter sides, and a brand that gives way first. */
+      .site-nav .cta-nav a {
+        font-size: 0.84em;
+        padding-left: 0.65em;
+        padding-right: 0.65em;
+      }
+
+      /* The crumb was set at 20px here, which is headline size for what is
+         really a location label -- and it was spending 250px of a 390px bar.
+         Bringing it down to 16px is what buys "avand.fm /" its place back
+         next to the longer button, rather than dropping it. */
+
+
+      /* The button is the thing being clicked, so it keeps its size and the
+         brand is what gives way. Below the width where both fit, the crumb
+         drops to just this page's name -- avand.fm is one tap away up the
+         breadcrumb everywhere else, and a truncated "AVAND.FM / HEADRO..."
+         serves nobody. */
+      .site-nav .cta-nav {
+        flex: none;
+      }
+
+      /* nowrap is load-bearing, not cosmetic: a brand that wraps doubles the
+         nav's height, which timeline.js measures as --nav-h, which sets the
+         sticky bar's offset and --tl-space, which sets every module slide's
+         padding. One wrapped crumb shifts the whole curriculum down. */
       .site-nav .brand {
-        /* Larger base type pushed this onto two lines on a phone. */
-        font-size: 0.8em;
+        min-width: 0;
         white-space: nowrap;
-      }
-
-      .hero-details {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0.5em;
-        justify-items: center;
-        /* The price shares its row with "12 students" here too. */
-        align-items: baseline;
-      }
-
-      section {
-        padding: 3em 1.2em;
-      }
-
-
-      .curr-slide {
-        padding: 2em 1.2em;
-      }
-
-      .final-cta {
-        padding: 5em 1.2em;
-      }
-
-      .final-cta h2 {
-        font-size: 1.9em;
-      }
-
-      .credential-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .format-grid {
-        grid-template-columns: 1fr;
+        font-size: clamp(13px, 3.6vw, 17px);
       }
     }
+
     /* --- Background art ---
        Only the matching rule's image is ever fetched, so each device
        downloads exactly one file per background.
@@ -2906,7 +3647,7 @@
   <nav class="site-nav">
     <div class="brand"><a href="../">avand.fm</a> <span class="brand-sep">/</span> <span class="brand-here">headroom</span></div>
     <div class="cta-nav">
-      <a href="#notify">Free class</a>
+      <a href="#notify">Free sample class</a>
     </div>
   </nav>
 
@@ -2926,15 +3667,15 @@
         find your flow <span class="no-break">amongst the chaos.</span>
       </p>
       <div class="hero-details">
-        <span>8 weeks</span>
-        <span>2 hrs / week</span>
-        <span>12 students</span>
-        <!-- The fourth cell of the row: 1x4 on desktop, 2x2 on a phone. The
-             tag sits under the figures rather than beside them so the cell
-             stays the same width as the other three. -->
+        <span class="stat"><svg class="stat-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/></svg>8 weeks</span>
+        <span class="stat"><svg class="stat-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>2 hrs / week</span>
+        <span class="stat"><svg class="stat-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><path d="M16 5.2a3.2 3.2 0 0 1 0 5.9M17.5 14.9c2.1.6 3.5 2.4 3.5 5.1"/></svg>12 students</span>
+        <!-- The fourth cell of the row. The tag sits under the figures rather
+             than beside them so the cell stays the same width as the other
+             three; the row itself wraps on its own at narrow widths. -->
         <span class="hero-price">
-          <span class="hero-price-figures">
-            <s class="price-was">$1,600</s><span class="price-now">$800</span>
+          <span class="hero-price-figures stat">
+            <svg class="stat-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/></svg><s class="price-was">$1,600</s><span class="price-now">$800</span>
           </span>
           <!-- The empty span is the comet's glow. It exists because a blur has
                to sit on a different element from the mask it softens; see
@@ -2943,14 +3684,14 @@
         </span>
       </div>
 
-      <a class="btn-primary" href="#notify">Come to a free class</a>
+      <a class="btn-primary" href="#notify">Join a free sample class</a>
     </div>
   </div>
 
   <h2 class="hero-video-heading">What is Headroom?</h2>
 
   <div class="hero-video">
-    <div class="player" data-video="brand" data-autoplay data-captions
+    <div class="player" data-video="brand" data-duration="206.581" data-autoplay data-captions
       data-captions-into="brand-captions" data-label="Why I built Headroom"></div>
   </div>
 
@@ -2958,512 +3699,527 @@
        the picture. See renderLyrics in player.js. -->
   <div class="brand-captions" id="brand-captions" aria-live="off"></div>
 
-  <div class="hero-intro" id="hero-intro">
-    <div class="hero-intro-inner">
-      <h2 class="reveal">The Curriculum</h2>
-      <p class="section-lead reveal">
-        At the white-hot center of every world-class set is a relaxed,
-        composed DJ. Headroom distills decades of experience into eight
-        focused modules&mdash;one per week&mdash;covering the technical
-        foundations, preparation techniques, and relational dynamics that
-        turn capable DJs into confident performers.
-      </p>
-    </div>
-  </div>
+  <!-- The curriculum, as one band: its title, the timeline, the weeks.
+       The timeline is sticky inside this wrapper, which is what makes it
+       flow under the title, hold at the top through the weeks, and leave
+       with the last one -- no element outside this band should be able to
+       see it or push it around. -->
+  <hr class="rule rule-d">
 
-  <!-- The Curriculum -->
-  <div class="curr-scroll" id="curr-scroll" data-anchor="curriculum">
-    <div class="curr-stage">
-
-      <div class="curr-slides">
-
-        <!-- Week 1: Sound -->
-        <article class="curr-slide">
-          <div class="curr-slide-inner">
-            <header class="curr-head">
-              <span class="module-week">Week 1</span>
-              <h3>Sound</h3>
-              <p class="module-outcome">
-              Understand what sound actually is and how it exists in the physical world.
-              </p>
-            </header>
-
-            <div class="curr-cols">
-              <div class="curr-media">
-              <div class="player" data-video="m1-sound" data-manual data-captions
-              data-label="Module 1, Sound"></div>
-              </div>
-              <div class="curr-copy">
-                <ul class="module-points">
-                <li>How sound is created, transmitted, perceived, recorded, and reproduced</li>
-                <li>How frequency, amplitude, and wavelength shape pitch, loudness, and physical sensation</li>
-                <li>The 20 Hz&ndash;20 kHz spectrum&mdash;what&rsquo;s felt vs. heard</li>
-                <li>Microphones, analog signal on a wire, and how digital systems sample and play back</li>
-                </ul>
-                <button class="read-more">
-                Read more
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M9 6l6 6-6 6" />
-                </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="module-full" hidden>
-            <p>In this module, students build a foundational understanding of sound. They learn how sound is created,
-              transmitted, perceived, recorded, and reproduced, creating the mental framework needed to understand every
-              other topic in the course&mdash;from gain staging and EQs to mixers, speakers, signal flow, and digital
-              audio systems.</p>
-            <p>Students begin by exploring sound as a physical phenomenon: energy moving through a medium as a pressure
-              wave. They learn how the human body hears and feels sound, and how frequency, amplitude, and wavelength
-              shape our perception of pitch, loudness, and physical sensation.</p>
-            <p>Students examine how vibrating objects&mdash;from musical instruments to loudspeakers&mdash;create sound
-              waves in the air. They learn how simple waveforms combine through superposition to create the complex
-              sounds we hear in music, and how multiple sounds are summed together both acoustically in physical space
-              and electrically within audio systems.</p>
-            <p>This module also explores how frequency ranges, from 20 Hz to 20 kHz, are felt vs. heard. It sets the
-              stage for why sound systems and mixers are generally stacked into low-, mid-, and high-range frequencies
-              and the impact each of those ranges has on the audience.</p>
-            <p>The module then follows sound as it travels through the audio chain. Students learn how microphones
-              convert pressure waves into electrical signals, how analog audio is carried over a wire, and how digital
-              systems capture, store, and reproduce sound through sampling and playback.</p>
-            <p>By the end of the module, students will understand not only what sound is, but how sound moves through
-              every stage of a modern audio system&mdash;from a vibrating object, to an electrical signal, to a
-              loudspeaker, and ultimately to the listener&rsquo;s body.</p>
-            <h4>Example assignment</h4>
-            <p class="assignment">Pick a specific sound that you encounter during the week and trace its complete journey
-              from the source to the listener. Bonus points for identifying ways in which the physical world affects the
-              sound and changes how it&rsquo;s perceived.</p>
-          </div>
-        </article>
-
-        <!-- Week 2: Signal Flow -->
-        <article class="curr-slide">
-          <div class="curr-slide-inner">
-            <header class="curr-head">
-              <span class="module-week">Week 2</span>
-              <h3>Signal Flow</h3>
-              <p class="module-outcome">
-              Trace an audio signal through a system and know what each piece of gear is doing to it.
-              </p>
-            </header>
-
-            <div class="curr-cols">
-              <div class="curr-media">
-              <div class="player" data-video="m2-signal-flow" data-manual data-captions
-              data-label="Module 2, Signal Flow"></div>
-              </div>
-              <div class="curr-copy">
-                <ul class="module-points">
-                <li>Analog vs. digital, balanced vs. unbalanced, mono vs. stereo</li>
-                <li>Line-, mic-, and speaker-level signals</li>
-                <li>What&rsquo;s really happening when a signal is gained, clipped, EQ&rsquo;d, filtered, routed, and
-                mixed</li>
-                <li>Ground loops, hum, and adapting to unfamiliar environments</li>
-                <li>Identify, trace, and diagram signal flow through any DJ, studio, or live rig</li>
-                </ul>
-                <button class="read-more">
-                Read more
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M9 6l6 6-6 6" />
-                </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="module-full" hidden>
-            <p>Building directly on the concepts introduced in Module 1, students learn how sound is represented,
-              transmitted, processed, and reproduced throughout modern audio systems.</p>
-            <p>Students begin by exploring the relationship between sound and audio signals, learning how acoustic energy
-              is converted into analog and digital representations that can be stored, transmitted, manipulated, and
-              reproduced. They will develop a practical understanding of how audio moves through a system and how signal
-              flow serves as the foundation of every DJ setup, recording studio, sound system, and live performance
-              environment.</p>
-            <p>Students will learn how signals travel between devices, how different types of connections and cables
-              carry audio, and why signal format and signal level make the difference between a vibey dance floor and a
-              shouting match. Students will be introduced to common audio connections and learn the differences between
-              analog and digital transmission, balanced and unbalanced connections, mono and stereo signals, and
-              line-level, microphone-level, and speaker-level signals.</p>
-            <p>The module also explores how signals are modified and combined within an audio system. Students will learn
-              what is happening fundamentally when a signal is gained, attenuated, clipped, EQ&rsquo;d, filtered, routed,
-              and mixed. By understanding audio as information moving through a chain of devices, it will become second
-              nature for students to quickly troubleshoot equipment, feel at home in unfamiliar setups, and reason
-              through signal-path problems.</p>
-            <p>By the end of the module, students will be able to identify, trace, and diagram signal flow through common
-              DJ, studio, and live sound systems.</p>
-            <h4>Example assignment</h4>
-            <p class="assignment">Draw the signal paths for the following systems: (1) phone to Bluetooth speaker, (2)
-              laptop to controller to PA, (3) CDJ to mixer to speakers.</p>
-          </div>
-        </article>
-
-        <!-- Week 3: Gear -->
-        <article class="curr-slide">
-          <div class="curr-slide-inner">
-            <header class="curr-head">
-              <span class="module-week">Week 3</span>
-              <h3>Gear</h3>
-              <p class="module-outcome">
-              Reason about unfamiliar gear, understand its role in the stack, and feel at home on it without prior
-              experience.
-              </p>
-            </header>
-
-            <div class="curr-cols">
-              <div class="curr-media">
-              <div class="player" data-video="m3-gear" data-manual data-captions
-              data-label="Module 3, Gear"></div>
-              </div>
-              <div class="curr-copy">
-                <ul class="module-points">
-                <li>The tradeoffs between laptop-only, controller, all-in-one, and CDJ setups</li>
-                <li>When and why to add a mixer, plus booth reference and multi-DJ setups</li>
-                <li>Power distribution, batteries, and generators for house parties and renegades</li>
-                <li>Stereo fields, crossovers, and dynamic range across different system types</li>
-                <li>Ergonomics, portability, backups, and the go-bag you never gig without</li>
-                </ul>
-                <button class="read-more">
-                Read more
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M9 6l6 6-6 6" />
-                </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="module-full" hidden>
-            <p>With the basics of sound and signal flow covered, Module 3 delves into specific pieces of equipment DJs
-              are likely to encounter in club setups.</p>
-            <p>Players can range from cheap (and approachable) controllers to expensive (and equally intimidating)
-              standalone machines. Students will learn the key tradeoffs between playing on laptop-only, controller,
-              all-in-one, and CDJs.</p>
-            <p>Students will learn when and why to add an additional mixer to the signal path and how to properly
-              configure reference sources and multi-performer situations to improve performance continuity.</p>
-            <p>For house parties and renegades, we&rsquo;ll cover the basics of power distribution, batteries, and
-              generators&mdash;how to set things up to prevent blow ups or shut downs.</p>
-            <p>In addition to covering the kinds of systems students will find in clubs, Module 3 also covers DIY setups
-              from small travel-sized kits to block-party-sized setups that can still travel in the back of a car.
-              It&rsquo;s crucial for DJs to understand the differences in sound reproduction across different types of
-              systems: why it&rsquo;s important to create a stereo field, how crossovers can be used to maximize dynamic
-              range, increase detail, and create more energy.</p>
-            <p>It&rsquo;s also important to protect gear and set it up comfortably. We&rsquo;ll spend some time talking
-              about the importance of ergonomics and how to optimize for portability without sacrificing quality. Along
-              the same vein, students will learn about battery-powered speaker setups and wireless setups too.</p>
-            <p>Students will learn the importance of being adaptable with different equipment as well as how to think
-              modularly about each piece of gear in the chain. They&rsquo;ll also develop their go bag of adapters and
-              cables they never go to a gig without.</p>
-            <h4>Example assignment</h4>
-            <p class="assignment">Your friend has a house in Costa Rica and he loves to throw parties. You have a budget
-              of $3,000 to provide all the equipment he might need&mdash;mixers, speakers, players, etc. What do you buy
-              and why?</p>
-          </div>
-        </article>
-
-        <!-- Week 4: Tracks -->
-        <article class="curr-slide">
-          <div class="curr-slide-inner">
-            <header class="curr-head">
-              <span class="module-week">Week 4</span>
-              <h3>Tracks</h3>
-              <p class="module-outcome">
-              Understand how music is structured, composed, and organized&mdash;and how it&rsquo;s stored in digital
-              files.
-              </p>
-            </header>
-
-            <div class="curr-cols">
-              <div class="curr-media">
-              <div class="player" data-video="m4-tracks" data-manual data-captions
-              data-label="Module 4, Tracks"></div>
-              </div>
-              <div class="curr-copy">
-                <ul class="module-points">
-                <li>Notes into bars, bars into phrases, phrases into structure&mdash;and how genres differ</li>
-                <li>Pitch, tempo, Master Tempo, and whether the beat-sync debate is warranted</li>
-                <li>Beatgrids, hot cues, and what quantize is actually doing</li>
-                <li>File formats and encoders: what compression loses&mdash;transients, reverb tails, spatial detail</li>
-                <li>ID3 tags for portability, less data loss, and a smoother workflow</li>
-                </ul>
-                <button class="read-more">
-                Read more
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M9 6l6 6-6 6" />
-                </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="module-full" hidden>
-            <p>Module 4 focuses on the defining characteristics of a track. This is the prerequisite to Module 5, which
-              then uses these characteristics to develop music preparation skills.</p>
-            <p>Students will first cover the very basics of how notes are put together into bars/measures and how bars
-              build into phrases and ultimately compose the entire song&rsquo;s structure. Electronic music is
-              particularly formulaic but this module will explore how other genres are composed and how different genres
-              can be mixed to create dynamic range and variety.</p>
-            <p>Module 4 covers the nuances of pitch and tempo: the intricacies of when and why to use Master Tempo, when
-              and how to naturally speed up or slow down and by how much, and if all the controversy around beat sync and
-              being able to beat match by ear is warranted.</p>
-            <p>Module 4 introduces the fundamentals of digital files: why there are different formats, and what the
-              differences are between them. Core to this understanding is explaining how an encoder works to compress
-              music and how quiet details, transients, reverb tails, and spatial information are lost in the process. A
-              DJ is ultimately responsible for the way the dance floor feels. Big systems expose details that are often
-              missed on headphones, car stereos, and small sound systems. With sound as a DJ&rsquo;s medium, every step
-              of the chain matters and the quality of the audio signal is critical. Lossless files can even reduce
-              psycho-acoustic fatigue during long sets.</p>
-            <p>Beyond signal quality differences, choosing the right file format also affects track preparation as
-              certain file formats don&rsquo;t always read and write track metadata consistently across devices. In this
-              module, students will learn what an ID3 tag is and how it can be used to create more portability, reduce
-              data loss, and improve workflow efficiency.</p>
-            <h4>Example assignment</h4>
-            <p class="assignment">Listen to your favorite song of the moment and identify the key sonic elements. Try and
-              list them all out and note when they appear and disappear and the result it creates for the listener.
-              What&rsquo;s happening sonically at your favorite moment?</p>
-          </div>
-        </article>
-
-        <!-- Week 5: Library -->
-        <article class="curr-slide">
-          <div class="curr-slide-inner">
-            <header class="curr-head">
-              <span class="module-week">Week 5</span>
-              <h3>Library</h3>
-              <p class="module-outcome">
-              Master your DJ chores and build systems that create confidence, reduce cognitive load, and induce flow
-              during a set.
-              </p>
-            </header>
-
-            <div class="curr-cols">
-              <div class="curr-media">
-              <div class="player" data-video="m5-library" data-manual data-captions
-              data-label="Module 5, Library"></div>
-              </div>
-              <div class="curr-copy">
-                <ul class="module-points">
-                <li>File hygiene: knowing where your music and metadata live, and keeping it portable</li>
-                <li>Systematic track prep with tools like Platinum Notes and Mixed In Key</li>
-                <li>Smart playlists by tempo, key, lyrics, vibe, tag, and acoustic similarity</li>
-                <li>How many tracks to prepare for different kinds of gigs</li>
-                <li>A pre-flight checklist so you&rsquo;re locked in from the first track</li>
-                </ul>
-                <button class="read-more">
-                Read more
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M9 6l6 6-6 6" />
-                </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="module-full" hidden>
-            <p>Module 5 covers file system hygiene: why it&rsquo;s important to know where your music files live and
-              where the metadata about those tracks lives. Students will be able to apply these skills to prevent data
-              loss, improve sanity and efficiency, as well as to make their library more portable between ecosystems.</p>
-            <p>Students will learn how to systematically prepare tracks to unlock ease and flow behind the decks. From
-              using pre-library tools like Platinum Notes or Mixed In Key to ensuring proper beat grids and hot cues,
-              students will dramatically improve their performing experience.</p>
-            <p>In this module, students will learn how to organize the tracks in their library. This module unlocks the
-              power of intelligent/smart playlists and how they can be used in conjunction with static playlists to
-              improvise or to play a more prepared setlist. By the end of this module, students will gain confidence in
-              knowing how many tracks to prepare for different styles of gigs and have new organizational systems that
-              eliminate stress while improvising. These systems include being able to find tracks by concrete attributes
-              like lyrics, genre, tempo, key, but also by more subjective attributes like vibe, tag, and acoustic
-              similarity.</p>
-            <p>Finally, for when it comes time to play, this module introduces the &ldquo;pre-flight checklist.&rdquo;
-              Just like pilots don&rsquo;t take off without checking all critical systems, in this module students will
-              learn how to systematically check in before they start playing to ensure that they&rsquo;re locked in from
-              the moment they press play.</p>
-            <h4>Example assignment</h4>
-            <p class="assignment">Evaluate the last 100 tracks in your library to determine if there are any new
-              commonalities. Capture these similarities in the track metadata and build 5&ndash;10 intelligent/smart
-              playlists based on the metadata.</p>
-          </div>
-        </article>
-
-        <!-- Week 6: Playing -->
-        <article class="curr-slide">
-          <div class="curr-slide-inner">
-            <header class="curr-head">
-              <span class="module-week">Week 6</span>
-              <h3>Playing</h3>
-              <p class="module-outcome">
-              Fill the gaps in your self-taught technique&mdash;wider genre range, more dynamic mixes, and energy you
-              can build on demand.
-              </p>
-            </header>
-
-            <div class="curr-cols">
-              <div class="curr-media">
-              <div class="player" data-video="m6-playing" data-manual data-captions
-              data-label="Module 6, Playing"></div>
-              </div>
-              <div class="curr-copy">
-                <ul class="module-points">
-                <li>A tour of common players and mixers, Pioneer/AlphaTheta and beyond</li>
-                <li>Phrase matching, EQ-based mixing, and effects</li>
-                <li>Using more than two decks for deeper continuity and energy</li>
-                <li>Reliable transitions across broader genres and tempo ranges</li>
-                <li>Advanced looping: auto-loops, loop rolls, hot-cue jumping, and loop builds</li>
-                </ul>
-                <button class="read-more">
-                Read more
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M9 6l6 6-6 6" />
-                </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="module-full" hidden>
-            <p>This module will start with a fairly exhaustive review of common music players: DDJ-FLX4, XDJ-RX3,
-              CDJ-3000. We&rsquo;ll also look at non-Pioneer/AlphaTheta products to compare and contrast features.
-              Versatility is important and it&rsquo;s important for students to understand the tools they want and need
-              and seek them out vs. accept what a company decides they need and be content.</p>
-            <p>Students will also be exposed to different styles of mixers. Mixers differ by far more than simply how
-              many channels are available. We&rsquo;ll look into all the features that may or may not exist on a mixer to
-              further deepen the student&rsquo;s adaptability.</p>
-            <p>There are an infinite number of ways to mix two tracks together, largely dependent on performance style,
-              environment, and genre, however, Module 6 covers the core concepts that can be adapted by each student. For
-              example, students will learn when and how using more than two decks can create deeper continuity and
-              increase energy by preserving sounds that are holding the dance floor. Students will also learn reliable
-              methods to transition between broader genres and tempo ranges.</p>
-            <p>This module also covers more advanced looping and positioning techniques like auto-looping, loop rolls,
-              hot-cue jumping, and loop builds.</p>
-            <p>This module will not teach every possible mixing trick because there are infinite, but it will point
-              students to external resources to further their practice.</p>
-            <h4>Example assignment</h4>
-            <p class="assignment">Pick two tracks that you really like and have never mixed together. Practice going back
-              and forth between the two tracks 10 times using deliberately different techniques. Make it a continuous
-              mix&mdash;don&rsquo;t stop and start, just keep playing.</p>
-          </div>
-        </article>
-
-        <!-- Week 7: Attunement -->
-        <article class="curr-slide">
-          <div class="curr-slide-inner">
-            <header class="curr-head">
-              <span class="module-week">Week 7</span>
-              <h3>Attunement</h3>
-              <p class="module-outcome">
-              Develop the awareness, communication, and etiquette to navigate high-stakes, shared performance spaces
-              with confidence and ease.
-              </p>
-            </header>
-
-            <div class="curr-cols">
-              <div class="curr-media">
-              <div class="player" data-video="m7-attunement" data-manual data-captions
-              data-label="Module 7, Attunement"></div>
-              </div>
-              <div class="curr-copy">
-                <ul class="module-points">
-                <li>Treating equipment like an extension of someone&rsquo;s body</li>
-                <li>Applying the principles of consent to the decks for smoother hand-offs</li>
-                <li>Being easy to work with&mdash;and building the reputation that gets you invited back</li>
-                <li>Meeting the crowd where it is and earning the trust to take it on a journey</li>
-                <li>&ldquo;Playing what I want&rdquo; vs. &ldquo;playing what they want,&rdquo; authentically</li>
-                </ul>
-                <button class="read-more">
-                Read more
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M9 6l6 6-6 6" />
-                </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="module-full" hidden>
-            <p>In the crowded, chaotic, and often over-hyped world of being a DJ, interacting with others is a core
-              competency that is often overlooked. In this module, students will learn how to present themselves and
-              interact with their colleagues and peers in ways that open doors.</p>
-            <p>Starting at the decks, students will learn how to treat equipment like an extension of a person&rsquo;s
-              body. Students will learn how to apply the principles of consent to the decks, resulting in smoother
-              hand-offs between DJs. These principles will also give students a leg up in being easy to work with and
-              result in developing better reputations and being invited to play more gigs.</p>
-            <p>Module 7 will also cover the relationship between the DJ and the crowd. Students will learn the importance
-              of always meeting their audience where they are at and how to earn their trust in taking them on a journey.
-              At the core of this lesson is understanding the differences between &ldquo;playing what I want to
-              play&rdquo; vs. &ldquo;playing what they want to play&rdquo; and how to mix these two modalities to stay
-              authentic and connect to the audience.</p>
-            <h4>Example assignment</h4>
-            <p class="assignment">Create an opportunity to play with another DJ. Observe the differences in system setup
-              between you both. Focus on creating a shared flow and take note of what issues get in the way. How could
-              you overcome these issues in the future?</p>
-          </div>
-        </article>
-
-        <!-- Week 8: Showtime -->
-        <article class="curr-slide">
-          <div class="curr-slide-inner">
-            <header class="curr-head">
-              <span class="module-week">Week 8</span>
-              <h3>Showtime</h3>
-              <p class="module-outcome">
-              Become a true performer: how to prepare for a show, take the stage, engage the audience, and close.
-              </p>
-            </header>
-
-            <div class="curr-cols">
-              <div class="curr-media">
-              <div class="player" data-video="m8-showtime" data-manual data-captions
-              data-label="Module 8, Showtime"></div>
-              </div>
-              <div class="curr-copy">
-                <ul class="module-points">
-                <li>Pre-show routines&mdash;and what a rider is actually for</li>
-                <li>Taking the pulse of the room and taking the reins from the previous performer</li>
-                <li>Building a slot-appropriate set and taking moments for promotion</li>
-                <li>How to close: the comedown vs. the big finish, and when each one fits</li>
-                <li>Teardown, post-show self-care, and what to do after the lights come up</li>
-                </ul>
-                <button class="read-more">
-                Read more
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M9 6l6 6-6 6" />
-                </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="module-full" hidden>
-            <p>The last module is dedicated to the performance aspect of being a DJ, which is often overlooked by amateur
-              and self-taught DJs, who have no training as performers.</p>
-            <p>Students will learn how to prepare themselves for a show. This goes beyond set prep. How do you practice
-              your set and key moments? What is your day-before/day-of routine to get into the right headspace? A rider
-              isn&rsquo;t about being VIP, it&rsquo;s about acknowledging that you&rsquo;re about to really give of
-              yourself to a group and that it takes something to do that. We&rsquo;ll look at examples of ways performers
-              can stay grounded and students will be inspired to develop their own preparatory routines.</p>
-            <p>Students will then learn how to take the stage: how to take the pulse of the room before getting onstage
-              and how to take the reins from a previous performer. We&rsquo;ll discuss the advantages and disadvantages
-              of playing continuously through from a previous set.</p>
-            <p>Students will then learn how to create an engaging, slot-appropriate performance as well as how to take
-              moments for self- or other-promotion (e.g., getting on the mic, acknowledging openers).</p>
-            <p>Students will also learn how to close. This isn&rsquo;t just about choosing the last track. This is about
-              the difference between a comedown close and a big-finish close and how the choice depends on the slot and
-              the event.</p>
-            <p>Lastly, students will learn how to tear down and handle post-show self-care. How to nourish themselves and
-              also what post-show actions may be necessary (e.g., posting a recording of the set, social media).</p>
-            <h4>Example assignment</h4>
-            <p class="assignment">Develop your own personal rider. What&rsquo;s your pre-set routine? What makes you feel
-              prepared and resourced to play a great show?</p>
-          </div>
-        </article>
-
+  <div class="curr-band">
+    <div class="hero-intro" id="hero-intro">
+      <div class="hero-intro-inner">
+        <h2 class="reveal">The Curriculum</h2>
+        <p class="section-lead">
+          At the white-hot center of every world-class set is a relaxed,
+          composed DJ. Headroom distills decades of experience into eight
+          focused modules&mdash;one per week&mdash;covering the technical
+          foundations, preparation techniques, and relational dynamics that
+          turn capable DJs into confident performers.
+        </p>
       </div>
     </div>
-  </div>
+
+    <!-- The Curriculum -->
+    <!-- Course timeline: footer of the curriculum title, header of the weeks -->
+    <nav class="timeline" id="timeline" aria-label="Course timeline">
+      <span class="tl-cap tl-start">Oct 1</span>
+      <div class="tl-track">
+        <div class="tl-line"></div>
+        <div class="tl-progress"></div>
+        <!-- The cursor moves by translating this full-width rail, so its
+             percentage resolves against the track. Before the marks in the
+             source, so it tucks behind each dot as it passes. -->
+        <div class="tl-rail-clip"><div class="tl-rail"><span class="tl-cursor"></span></div></div>
+        <button class="tl-mark" type="button" style="--at: 0%" aria-current="false"
+          aria-label="Week 1">
+          <span class="tl-fill"></span><span class="tl-ring">1</span>
+        </button>
+        <button class="tl-mark" type="button" style="--at: 14.2857%" aria-current="false"
+          aria-label="Week 2">
+          <span class="tl-fill"></span><span class="tl-ring">2</span>
+        </button>
+        <button class="tl-mark" type="button" style="--at: 28.5714%" aria-current="false"
+          aria-label="Week 3">
+          <span class="tl-fill"></span><span class="tl-ring">3</span>
+        </button>
+        <button class="tl-mark" type="button" style="--at: 42.8571%" aria-current="false"
+          aria-label="Week 4">
+          <span class="tl-fill"></span><span class="tl-ring">4</span>
+        </button>
+        <button class="tl-mark" type="button" style="--at: 57.1429%" aria-current="false"
+          aria-label="Week 5">
+          <span class="tl-fill"></span><span class="tl-ring">5</span>
+        </button>
+        <button class="tl-mark" type="button" style="--at: 71.4286%" aria-current="false"
+          aria-label="Week 6">
+          <span class="tl-fill"></span><span class="tl-ring">6</span>
+        </button>
+        <button class="tl-mark" type="button" style="--at: 85.7143%" aria-current="false"
+          aria-label="Week 7">
+          <span class="tl-fill"></span><span class="tl-ring">7</span>
+        </button>
+        <button class="tl-mark" type="button" style="--at: 100%" aria-current="false"
+          aria-label="Week 8">
+          <span class="tl-fill"></span><span class="tl-ring">8</span>
+        </button>
+      </div>
+      <span class="tl-cap tl-end">Nov 19</span>
+    </nav>
+
+    <div class="curr-scroll" id="curr-scroll" data-anchor="curriculum">
+      <div class="curr-stage">
+
+        <div class="curr-slides">
+
+          <!-- Week 1: Sound -->
+          <article class="curr-slide">
+            <div class="curr-slide-inner">
+              <header class="curr-head">
+                <span class="module-week">Week 1</span>
+                <h3>Sound</h3>
+                <p class="module-outcome">
+                Understand what sound actually is and how it exists in the physical world.
+                </p>
+              </header>
+
+              <div class="curr-cols">
+                <div class="curr-media">
+                <div class="player" data-video="m1-sound" data-duration="38.163" data-manual data-captions
+                data-label="Module 1, Sound"></div>
+                </div>
+                <div class="curr-copy">
+                  <ul class="module-points">
+                  <li>Recording, transmission, &amp; reproduction</li>
+                  <li>Spectrum &amp; physical perception</li>
+                  <li>Frequency, amplitude, wavelength</li>
+                  <li>Loudspeaker design, airflow, &amp; vibration</li>
+                </ul>
+                  <button class="read-more">
+                  Learn more
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" />
+                  </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="module-full" hidden>
+              <p>In this module, students build a foundational understanding of sound. They learn how sound is created,
+                transmitted, perceived, recorded, and reproduced, creating the mental framework needed to understand every
+                other topic in the course&mdash;from gain staging and EQs to mixers, speakers, signal flow, and digital
+                audio systems.</p>
+              <p>Students begin by exploring sound as a physical phenomenon: energy moving through a medium as a pressure
+                wave. They learn how the human body hears and feels sound, and how frequency, amplitude, and wavelength
+                shape our perception of pitch, loudness, and physical sensation.</p>
+              <p>Students examine how vibrating objects&mdash;from musical instruments to loudspeakers&mdash;create sound
+                waves in the air. They learn how simple waveforms combine through superposition to create the complex
+                sounds we hear in music, and how multiple sounds are summed together both acoustically in physical space
+                and electrically within audio systems.</p>
+              <p>This module also explores how frequency ranges, from 20 Hz to 20 kHz, are felt vs. heard. It sets the
+                stage for why sound systems and mixers are generally stacked into low-, mid-, and high-range frequencies
+                and the impact each of those ranges has on the audience.</p>
+              <p>The module then follows sound as it travels through the audio chain. Students learn how microphones
+                convert pressure waves into electrical signals, how analog audio is carried over a wire, and how digital
+                systems capture, store, and reproduce sound through sampling and playback.</p>
+              <p>By the end of the module, students will understand not only what sound is, but how sound moves through
+                every stage of a modern audio system&mdash;from a vibrating object, to an electrical signal, to a
+                loudspeaker, and ultimately to the listener&rsquo;s body.</p>
+            </div>
+          </article>
+
+          <!-- Week 2: Signal Flow -->
+          <article class="curr-slide">
+            <div class="curr-slide-inner">
+              <header class="curr-head">
+                <span class="module-week">Week 2</span>
+                <h3>Signal Flow</h3>
+                <p class="module-outcome">
+                Learn how to preserve signal integrity as it travels through a system.
+                </p>
+              </header>
+
+              <div class="curr-cols">
+                <div class="curr-media">
+                <div class="player" data-video="m2-signal-flow" data-duration="41.083" data-manual data-captions
+                data-label="Module 2, Signal Flow"></div>
+                </div>
+                <div class="curr-copy">
+                  <ul class="module-points">
+                  <li>Analog vs. digital signals</li>
+                  <li>Signal formats, levels, &amp; gain staging</li>
+                  <li>Interconnects &amp; signal integrity</li>
+                  <li>Phase, summing, &amp; cancellation</li>
+                </ul>
+                  <button class="read-more">
+                  Learn more
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" />
+                  </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="module-full" hidden>
+              <p>Building directly on the concepts introduced in Module 1, students learn how sound is represented,
+                transmitted, processed, and reproduced throughout modern audio systems.</p>
+              <p>Students begin by exploring the relationship between sound and audio signals, learning how acoustic energy
+                is converted into analog and digital representations that can be stored, transmitted, manipulated, and
+                reproduced. They will develop a practical understanding of how audio moves through a system and how signal
+                flow serves as the foundation of every DJ setup, recording studio, sound system, and live performance
+                environment.</p>
+              <p>Students will learn how signals travel between devices, how different types of connections and cables
+                carry audio, and why signal format and signal level make the difference between a vibey dance floor and a
+                shouting match. Students will be introduced to common audio connections and learn the differences between
+                analog and digital transmission, balanced and unbalanced connections, mono and stereo signals, and
+                line-level, microphone-level, and speaker-level signals.</p>
+              <p>The module also explores how signals are modified and combined within an audio system. Students will learn
+                what is happening fundamentally when a signal is gained, attenuated, clipped, EQ&rsquo;d, filtered, routed,
+                and mixed. By understanding audio as information moving through a chain of devices, it will become second
+                nature for students to quickly troubleshoot equipment, feel at home in unfamiliar setups, and reason
+                through signal-path problems.</p>
+              <p>By the end of the module, students will be able to identify, trace, and diagram signal flow through common
+                DJ, studio, and live sound systems.</p>
+            </div>
+          </article>
+
+          <!-- Week 3: Gear -->
+          <article class="curr-slide">
+            <div class="curr-slide-inner">
+              <header class="curr-head">
+                <span class="module-week">Week 3</span>
+                <h3>Gear</h3>
+                <p class="module-outcome">
+                Reason about unfamiliar gear, understand its role in the stack.
+                </p>
+              </header>
+
+              <div class="curr-cols">
+                <div class="curr-media">
+                <div class="player" data-video="m3-gear" data-duration="41.375" data-manual data-captions
+                data-label="Module 3, Gear"></div>
+                </div>
+                <div class="curr-copy">
+                  <ul class="module-points">
+                  <li>Laptops, controllers, all-in-ones, &amp; CDJs</li>
+                  <li>Mixers, booth, &amp; multi-DJ configurations</li>
+                  <li>Power distribution, batteries, &amp; generators</li>
+                  <li>Ergonomics, portability, &amp; backups</li>
+                </ul>
+                  <button class="read-more">
+                  Learn more
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" />
+                  </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="module-full" hidden>
+              <p>With the basics of sound and signal flow covered, Module 3 delves into specific pieces of equipment DJs
+                are likely to encounter in club setups.</p>
+              <p>Players can range from cheap (and approachable) controllers to expensive (and equally intimidating)
+                standalone machines. Students will learn the key tradeoffs between playing on laptop-only, controller,
+                all-in-one, and CDJs.</p>
+              <p>Students will learn when and why to add an additional mixer to the signal path and how to properly
+                configure reference sources and multi-performer situations to improve performance continuity.</p>
+              <p>For house parties and renegades, we&rsquo;ll cover the basics of power distribution, batteries, and
+                generators&mdash;how to set things up to prevent blow ups or shut downs.</p>
+              <p>In addition to covering the kinds of systems students will find in clubs, Module 3 also covers DIY setups
+                from small travel-sized kits to block-party-sized setups that can still travel in the back of a car.
+                It&rsquo;s crucial for DJs to understand the differences in sound reproduction across different types of
+                systems: why it&rsquo;s important to create a stereo field, how crossovers can be used to maximize dynamic
+                range, increase detail, and create more energy.</p>
+              <p>It&rsquo;s also important to protect gear and set it up comfortably. We&rsquo;ll spend some time talking
+                about the importance of ergonomics and how to optimize for portability without sacrificing quality. Along
+                the same vein, students will learn about battery-powered speaker setups and wireless setups too.</p>
+              <p>Students will learn the importance of being adaptable with different equipment as well as how to think
+                modularly about each piece of gear in the chain. They&rsquo;ll also develop their go bag of adapters and
+                cables they never go to a gig without.</p>
+            </div>
+          </article>
+
+          <!-- Week 4: Tracks -->
+          <article class="curr-slide">
+            <div class="curr-slide-inner">
+              <header class="curr-head">
+                <span class="module-week">Week 4</span>
+                <h3>Tracks</h3>
+                <p class="module-outcome">
+                Understand how music is structured and how it&rsquo;s digitally represented.
+                </p>
+              </header>
+
+              <div class="curr-cols">
+                <div class="curr-media">
+                <div class="player" data-video="m4-tracks" data-duration="39.498" data-manual data-captions
+                data-label="Module 4, Tracks"></div>
+                </div>
+                <div class="curr-copy">
+                  <ul class="module-points">
+                  <li>Notes, bars, phrases, &amp; song structure</li>
+                  <li>Pitch, tempo, &amp; Master Tempo</li>
+                  <li>Beatgrids, hot cues, &amp; quantize</li>
+                  <li>File formats, compression, &amp; ID3 tags</li>
+                </ul>
+                  <button class="read-more">
+                  Learn more
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" />
+                  </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="module-full" hidden>
+              <p>Module 4 focuses on the defining characteristics of a track. This is the prerequisite to Module 5, which
+                then uses these characteristics to develop music preparation skills.</p>
+              <p>Students will first cover the very basics of how notes are put together into bars/measures and how bars
+                build into phrases and ultimately compose the entire song&rsquo;s structure. Electronic music is
+                particularly formulaic but this module will explore how other genres are composed and how different genres
+                can be mixed to create dynamic range and variety.</p>
+              <p>Module 4 covers the nuances of pitch and tempo: the intricacies of when and why to use Master Tempo, when
+                and how to naturally speed up or slow down and by how much, and if all the controversy around beat sync and
+                being able to beat match by ear is warranted.</p>
+              <p>Module 4 introduces the fundamentals of digital files: why there are different formats, and what the
+                differences are between them. Core to this understanding is explaining how an encoder works to compress
+                music and how quiet details, transients, reverb tails, and spatial information are lost in the process. A
+                DJ is ultimately responsible for the way the dance floor feels. Big systems expose details that are often
+                missed on headphones, car stereos, and small sound systems. With sound as a DJ&rsquo;s medium, every step
+                of the chain matters and the quality of the audio signal is critical. Lossless files can even reduce
+                psycho-acoustic fatigue during long sets.</p>
+              <p>Beyond signal quality differences, choosing the right file format also affects track preparation as
+                certain file formats don&rsquo;t always read and write track metadata consistently across devices. In this
+                module, students will learn what an ID3 tag is and how it can be used to create more portability, reduce
+                data loss, and improve workflow efficiency.</p>
+            </div>
+          </article>
+
+          <!-- Week 5: Library -->
+          <article class="curr-slide">
+            <div class="curr-slide-inner">
+              <header class="curr-head">
+                <span class="module-week">Week 5</span>
+                <h3>Library</h3>
+                <p class="module-outcome">
+                Master DJ chores with efficiency and reliable systems.
+                </p>
+              </header>
+
+              <div class="curr-cols">
+                <div class="curr-media">
+                <div class="player" data-video="m5-library" data-duration="37.663" data-manual data-captions
+                data-label="Module 5, Library"></div>
+                </div>
+                <div class="curr-copy">
+                  <ul class="module-points">
+                  <li>File system hygiene</li>
+                  <li>Track prep &amp; analysis tools</li>
+                  <li>Set prep methods</li>
+                </ul>
+                  <button class="read-more">
+                  Learn more
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" />
+                  </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="module-full" hidden>
+              <p>Module 5 covers file system hygiene: why it&rsquo;s important to know where your music files live and
+                where the metadata about those tracks lives. Students will be able to apply these skills to prevent data
+                loss, improve sanity and efficiency, as well as to make their library more portable between ecosystems.</p>
+              <p>Students will learn how to systematically prepare tracks to unlock ease and flow behind the decks. From
+                using pre-library tools like Platinum Notes or Mixed In Key to ensuring proper beat grids and hot cues,
+                students will dramatically improve their performing experience.</p>
+              <p>In this module, students will learn how to organize the tracks in their library. This module unlocks the
+                power of intelligent/smart playlists and how they can be used in conjunction with static playlists to
+                improvise or to play a more prepared setlist. By the end of this module, students will gain confidence in
+                knowing how many tracks to prepare for different styles of gigs and have new organizational systems that
+                eliminate stress while improvising. These systems include being able to find tracks by concrete attributes
+                like lyrics, genre, tempo, key, but also by more subjective attributes like vibe, tag, and acoustic
+                similarity.</p>
+              <p>Finally, for when it comes time to play, this module introduces the &ldquo;pre-flight checklist.&rdquo;
+                Just like pilots don&rsquo;t take off without checking all critical systems, in this module students will
+                learn how to systematically check in before they start playing to ensure that they&rsquo;re locked in from
+                the moment they press play.</p>
+            </div>
+          </article>
+
+          <!-- Week 6: Playing -->
+          <article class="curr-slide">
+            <div class="curr-slide-inner">
+              <header class="curr-head">
+                <span class="module-week">Week 6</span>
+                <h3>Playing</h3>
+                <p class="module-outcome">
+                Fill the gaps in your self-taught technique&mdash;wider genre range, more dynamic mixes, and energy you
+                can build on demand.
+                </p>
+              </header>
+
+              <div class="curr-cols">
+                <div class="curr-media">
+                <div class="player" data-video="m6-playing" data-duration="52.636" data-manual data-captions
+                data-label="Module 6, Playing"></div>
+                </div>
+                <div class="curr-copy">
+                  <ul class="module-points">
+                  <li>Players, mixers, &amp; controllers</li>
+                  <li>Phrase matching, EQ mixing, &amp; effects</li>
+                  <li>Three- &amp; four-deck continuity</li>
+                  <li>Auto-loops, loop rolls, &amp; hot cues</li>
+                </ul>
+                  <button class="read-more">
+                  Learn more
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" />
+                  </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="module-full" hidden>
+              <p>This module will start with a fairly exhaustive review of common music players: DDJ-FLX4, XDJ-RX3,
+                CDJ-3000. We&rsquo;ll also look at non-Pioneer/AlphaTheta products to compare and contrast features.
+                Versatility is important and it&rsquo;s important for students to understand the tools they want and need
+                and seek them out vs. accept what a company decides they need and be content.</p>
+              <p>Students will also be exposed to different styles of mixers. Mixers differ by far more than simply how
+                many channels are available. We&rsquo;ll look into all the features that may or may not exist on a mixer to
+                further deepen the student&rsquo;s adaptability.</p>
+              <p>There are an infinite number of ways to mix two tracks together, largely dependent on performance style,
+                environment, and genre, however, Module 6 covers the core concepts that can be adapted by each student. For
+                example, students will learn when and how using more than two decks can create deeper continuity and
+                increase energy by preserving sounds that are holding the dance floor. Students will also learn reliable
+                methods to transition between broader genres and tempo ranges.</p>
+              <p>This module also covers more advanced looping and positioning techniques like auto-looping, loop rolls,
+                hot-cue jumping, and loop builds.</p>
+              <p>This module will not teach every possible mixing trick because there are infinite, but it will point
+                students to external resources to further their practice.</p>
+            </div>
+          </article>
+
+          <!-- Week 7: Attunement -->
+          <article class="curr-slide">
+            <div class="curr-slide-inner">
+              <header class="curr-head">
+                <span class="module-week">Week 7</span>
+                <h3>Attunement</h3>
+                <p class="module-outcome">
+                Develop the awareness, communication, and etiquette to navigate high-stakes, shared performance spaces
+                with confidence and ease.
+                </p>
+              </header>
+
+              <div class="curr-cols">
+                <div class="curr-media">
+                <div class="player" data-video="m7-attunement" data-duration="36.411" data-manual data-captions
+                data-label="Module 7, Attunement"></div>
+                </div>
+                <div class="curr-copy">
+                  <ul class="module-points">
+                  <li>Equipment as an extension of the body</li>
+                  <li>Consent &amp; clean hand-offs</li>
+                  <li>Reputation &amp; being easy to work with</li>
+                  <li>Reading the crowd &amp; earning trust</li>
+                </ul>
+                  <button class="read-more">
+                  Learn more
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" />
+                  </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="module-full" hidden>
+              <p>In the crowded, chaotic, and often over-hyped world of being a DJ, interacting with others is a core
+                competency that is often overlooked. In this module, students will learn how to present themselves and
+                interact with their colleagues and peers in ways that open doors.</p>
+              <p>Starting at the decks, students will learn how to treat equipment like an extension of a person&rsquo;s
+                body. Students will learn how to apply the principles of consent to the decks, resulting in smoother
+                hand-offs between DJs. These principles will also give students a leg up in being easy to work with and
+                result in developing better reputations and being invited to play more gigs.</p>
+              <p>Module 7 will also cover the relationship between the DJ and the crowd. Students will learn the importance
+                of always meeting their audience where they are at and how to earn their trust in taking them on a journey.
+                At the core of this lesson is understanding the differences between &ldquo;playing what I want to
+                play&rdquo; vs. &ldquo;playing what they want to play&rdquo; and how to mix these two modalities to stay
+                authentic and connect to the audience.</p>
+            </div>
+          </article>
+
+          <!-- Week 8: Showtime -->
+          <article class="curr-slide">
+            <div class="curr-slide-inner">
+              <header class="curr-head">
+                <span class="module-week">Week 8</span>
+                <h3>Showtime</h3>
+                <p class="module-outcome">
+                Become a true performer: how to prepare for a show, take the stage, engage the audience, and close.
+                </p>
+              </header>
+
+              <div class="curr-cols">
+                <div class="curr-media">
+                <div class="player" data-video="m8-showtime" data-duration="38.872" data-manual data-captions
+                data-label="Module 8, Showtime"></div>
+                </div>
+                <div class="curr-copy">
+                  <ul class="module-points">
+                  <li>Pre-show routines &amp; riders</li>
+                  <li>Reading the room &amp; taking the reins</li>
+                  <li>Slot-appropriate sets &amp; promotion</li>
+                  <li>Closing, teardown, &amp; post-show care</li>
+                </ul>
+                  <button class="read-more">
+                  Learn more
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" />
+                  </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="module-full" hidden>
+              <p>The last module is dedicated to the performance aspect of being a DJ, which is often overlooked by amateur
+                and self-taught DJs, who have no training as performers.</p>
+              <p>Students will learn how to prepare themselves for a show. This goes beyond set prep. How do you practice
+                your set and key moments? What is your day-before/day-of routine to get into the right headspace? A rider
+                isn&rsquo;t about being VIP, it&rsquo;s about acknowledging that you&rsquo;re about to really give of
+                yourself to a group and that it takes something to do that. We&rsquo;ll look at examples of ways performers
+                can stay grounded and students will be inspired to develop their own preparatory routines.</p>
+              <p>Students will then learn how to take the stage: how to take the pulse of the room before getting onstage
+                and how to take the reins from a previous performer. We&rsquo;ll discuss the advantages and disadvantages
+                of playing continuously through from a previous set.</p>
+              <p>Students will then learn how to create an engaging, slot-appropriate performance as well as how to take
+                moments for self- or other-promotion (e.g., getting on the mic, acknowledging openers).</p>
+              <p>Students will also learn how to close. This isn&rsquo;t just about choosing the last track. This is about
+                the difference between a comedown close and a big-finish close and how the choice depends on the slot and
+                the event.</p>
+              <p>Lastly, students will learn how to tear down and handle post-show self-care. How to nourish themselves and
+                also what post-show actions may be necessary (e.g., posting a recording of the set, social media).</p>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </div>
+  </div><!-- /.curr-band -->
+
+  <hr class="rule">
 
   <!-- Instructor -->
   <section>
-    <h2>Your instructor</h2>
+    <h2>Your Instructor</h2>
     <p class="section-lead">
       I&rsquo;m Avand&mdash;a DJ and software engineer who has spent over a decade
       obsessing over how sound systems work so the music sounds exactly right.
@@ -3513,6 +4269,8 @@
     </div>
   </section>
 
+  <hr class="rule rule-b">
+
   <!-- Format -->
   <section>
     <h2>How it works</h2>
@@ -3540,6 +4298,8 @@
     </div>
   </section>
 
+  <hr class="rule rule-c">
+
   <!-- Guarantee -->
   <section>
     <div class="guarantee">
@@ -3554,9 +4314,9 @@
 
   <!-- Final CTA -->
   <div class="final-cta" id="notify">
-    <h2>Start with a free class</h2>
+    <h2>Start with a free sample class</h2>
     <p>
-      One free hour before the cohort starts. I&rsquo;ll teach you the AI workflow I
+      One free sample hour before the cohort starts. I&rsquo;ll teach you the AI workflow I
       use to find, buy, and import new music automatically&mdash;yours to keep
       either way&mdash;then answer anything you want to ask. Join the list for the
       dates, and first word when the 12 spots open at $800.
@@ -3602,7 +4362,7 @@
       <p class="reward-cue">Still here?</p>
 
       <div class="reward-frame">
-        <div class="player" data-video="bloopers" data-autoplay data-captions
+        <div class="player" data-video="bloopers" data-duration="137.512" data-autoplay data-captions
           data-label="Blooper reel"></div>
       </div>
       <p class="reward-caption">
@@ -3615,54 +4375,11 @@
     </div>
   </footer>
 
-  <!-- Course timeline: footer of the curriculum title, header of the weeks -->
-  <nav class="timeline" id="timeline" aria-label="Course timeline">
-    <span class="tl-cap tl-start">Oct 1</span>
-    <div class="tl-track">
-      <div class="tl-line"></div>
-      <div class="tl-progress"></div>
-      <button class="tl-mark" type="button" style="--at: 0.0%" aria-current="false">
-        <span class="tl-dot"></span>
-        <span class="tl-label"><span class="tl-word">Week </span>1</span>
-      </button>
-      <button class="tl-mark" type="button" style="--at: 14.2857%" aria-current="false">
-        <span class="tl-dot"></span>
-        <span class="tl-label"><span class="tl-word">Week </span>2</span>
-      </button>
-      <button class="tl-mark" type="button" style="--at: 28.5714%" aria-current="false">
-        <span class="tl-dot"></span>
-        <span class="tl-label"><span class="tl-word">Week </span>3</span>
-      </button>
-      <button class="tl-mark" type="button" style="--at: 42.8571%" aria-current="false">
-        <span class="tl-dot"></span>
-        <span class="tl-label"><span class="tl-word">Week </span>4</span>
-      </button>
-      <button class="tl-mark" type="button" style="--at: 57.1429%" aria-current="false">
-        <span class="tl-dot"></span>
-        <span class="tl-label"><span class="tl-word">Week </span>5</span>
-      </button>
-      <button class="tl-mark" type="button" style="--at: 71.4286%" aria-current="false">
-        <span class="tl-dot"></span>
-        <span class="tl-label"><span class="tl-word">Week </span>6</span>
-      </button>
-      <button class="tl-mark" type="button" style="--at: 85.7143%" aria-current="false">
-        <span class="tl-dot"></span>
-        <span class="tl-label"><span class="tl-word">Week </span>7</span>
-      </button>
-      <button class="tl-mark" type="button" style="--at: 100.0%" aria-current="false">
-        <span class="tl-dot"></span>
-        <span class="tl-label"><span class="tl-word">Week </span>8</span>
-      </button>
-      <div class="tl-cursor"></div>
-    </div>
-    <span class="tl-cap tl-end">Nov 19</span>
-  </nav>
-
   <!-- Module detail modal -->
   <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
     <button class="modal-backdrop" tabindex="-1" aria-label="Close"></button>
-    <div class="modal-panel">
-      <button class="modal-close" aria-label="Close">&#10005;</button>
+    <div class="modal-panel" tabindex="-1">
+      <button class="modal-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6 18 18M18 6 6 18"/></svg></button>
       <span class="modal-week" id="modal-week"></span>
       <h3 id="modal-title"></h3>
       <div class="modal-body" id="modal-body"></div>
@@ -3674,11 +4391,11 @@
        in Cloudflare's edge cache (or Safari's) surviving a hard-reload of the
        page. Bump the number whenever a JS change needs to actually reach a
        phone under test. -->
-  <script src="player.js?v=14" defer></script>
-  <script src="hero.js?v=14" defer></script>
-  <script src="curriculum.js?v=14" defer></script>
-  <script src="timeline.js?v=14" defer></script>
-  <script src="footer.js?v=14" defer></script>
+  <script src="player.js?v=62" defer></script>
+  <script src="hero.js?v=62" defer></script>
+  <script src="curriculum.js?v=62" defer></script>
+  <script src="timeline.js?v=62" defer></script>
+  <script src="footer.js?v=62" defer></script>
   <script>
     /* ---------- Module "read more" modal ---------- */
     (function () {
@@ -3718,7 +4435,9 @@
         modal.classList.add("is-open");
         document.body.classList.add("modal-open");
         panel.scrollTop = 0;
-        modal.querySelector(".modal-close").focus();
+        // The dialog, not its close button -- focusing the button lands the
+        // focus ring on it every time the modal opens. Tab still reaches it.
+        panel.focus();
         openIndex = index;
       }
 
