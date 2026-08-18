@@ -183,6 +183,13 @@
   var lastY = -1;
   var goingDown = true;
 
+  /* Which mark was tapped, while a jump is in flight. Tapping week seven from
+     week two scrolls smoothly through five weeks, and each one of them arrives
+     in turn -- so every one used to throw its burst on the way past. They are
+     travel, not arrival; only the mark that was asked for is an arrival. */
+  var jumpTarget = -1;
+  var jumpTimer = 0;
+
   /* How many marks the comet has reached. Mark i sits at i/(count-1) along the
      track, so it is filled once progress has passed that -- which makes the
      whole state a single number, and the DOM worth touching only on the eight
@@ -197,6 +204,12 @@
     var previous = filledCount;
     filledCount = n;
 
+    // Arrived where the tap asked for; ordinary scrolling resumes.
+    if (jumpTarget >= 0 && n - 1 === jumpTarget) {
+      clearTimeout(jumpTimer);
+      jumpTarget = -1;
+    }
+
     marks.forEach(function (mark, i) {
       mark.classList.toggle("is-filled", i < n);
 
@@ -210,7 +223,8 @@
          the declaration started applying to them. Bursting the newest mark
          only makes arriving at a module by link look like arriving at it by
          scrolling, which is the point. */
-      mark.classList.toggle("is-burst", i === n - 1 && n > previous);
+      var asked = jumpTarget < 0 || i === jumpTarget;
+      mark.classList.toggle("is-burst", i === n - 1 && n > previous && asked);
     });
   }
   function setActive(index) {
@@ -307,7 +321,19 @@
   marks.forEach(function (mark, i) {
     mark.addEventListener("click", function () {
       var curr = curriculum();
-      if (curr) curr.jumpTo(i);
+      if (!curr) return;
+
+      /* Held until the scroll lands on it, so the weeks it passes through stay
+         quiet. The timer is the escape hatch: a smooth scroll that is
+         interrupted, or one that stops a pixel short of the band, would
+         otherwise leave every later burst suppressed for good. */
+      jumpTarget = i;
+      clearTimeout(jumpTimer);
+      jumpTimer = setTimeout(function () {
+        jumpTarget = -1;
+      }, 2400);
+
+      curr.jumpTo(i);
     });
   });
 
