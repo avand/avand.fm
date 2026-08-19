@@ -18,11 +18,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Headroom — Advanced DJ Training for Aspiring Performers</title>
   <meta name="description" content="Advanced DJ training for aspiring performers. An eight-week, end-to-end up-leveling of your entire stack so you can step into any booth and find your flow." />
+  <!-- The share card is the 4:5 ad, captions burned into the picture. They
+       have to be burned in: a link preview autoplays muted and there is no
+       sidecar caption track in any of these formats, so open captions are the
+       only way a silent autoplay says anything.
+
+       og:type is video.other rather than website because that is what gets
+       Facebook to render a player rather than a still. Everything else here
+       ignores the type.
+
+       og:image is not optional even with a video. It is the frame shown before
+       playback, and on every surface that will not play video -- iMessage,
+       Slack, WhatsApp, LinkedIn -- it is the whole preview. This one is the
+       brand card from the middle of the ad: a wordmark on black survives the
+       centre-crop that a portrait image gets on a 2:1 card, where a face would
+       lose its head. Absolute URLs throughout, because a scraper resolves
+       these against nothing. -->
+  <meta property="og:type" content="video.other" />
+  <meta property="og:url" content="https://avand.fm/headroom/" />
   <meta property="og:title" content="Headroom — Advanced DJ Training for Aspiring Performers" />
   <meta property="og:description" content="Advanced DJ training for aspiring performers. An eight-week, end-to-end up-leveling of your entire stack so you can step into any booth and find your flow." />
-  <meta property="og:image" content="og-image.jpg" />
-  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://video.avand.fm/og/poster.jpg" />
+  <meta property="og:image:width" content="1080" />
+  <meta property="og:image:height" content="1350" />
+  <meta property="og:image:alt" content="The Headroom wordmark inside a glowing ring." />
+  <meta property="og:video" content="https://video.avand.fm/og/video.mp4" />
+  <meta property="og:video:secure_url" content="https://video.avand.fm/og/video.mp4" />
+  <meta property="og:video:type" content="video/mp4" />
+  <meta property="og:video:width" content="1080" />
+  <meta property="og:video:height" content="1350" />
   <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://video.avand.fm/og/poster.jpg" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
