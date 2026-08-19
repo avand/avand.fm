@@ -109,6 +109,20 @@
       --border: rgba(255, 255, 255, 0.08);
       --text: #e4e4eb;
       --text-muted: #8a8a9a;
+      /* Where the hero photograph meets the top of the screen, and the one
+         colour the notch arrangement is built on.
+
+         Measured rather than picked: the top edge of the hero image is
+         #5218E0 on the portrait crop and #5B1DCF on the landscape ones, and
+         .hero-bg lays rgba(10,10,15,0.55) over both, which composites to
+         #2A106D and #2E1365. This is the average of those two, so it is a
+         near miss for the real top of either file and an exact match for the
+         band that is painted over them. */
+      --hero-top: #2c1169;
+      /* The same colour at zero alpha, for the fade to run out into. Written
+         out rather than left as `transparent` so there is no question of what
+         it interpolates through. */
+      --hero-top-clear: rgba(44, 17, 105, 0);
       --accent: #9207c3;
       --accent-glow: rgba(146, 7, 195, 0.3);
       --warm: #ff6116;
@@ -127,22 +141,61 @@
       font-size: 115%;
     }
 
-    /* The canvas colour, which is also what iOS paints behind the status bar
-       when nothing fixed is up there to sample instead. So it starts as the
-       hero's own top row: at rest the strip reads as a continuation of the
-       photograph, and the moment the page scrolls the photograph itself is
-       genuinely under there -- viewport-fit=cover puts it there, and Safari's
-       colour extension gives way once the page moves.
-       
-       hero.js hands it back to the page background once the nav has arrived,
-       since by then the nav is what sits under the notch, not the picture.
+    /* The two links to the signup section -- the hero's CTA and the nav's --
+       glide there instead of teleporting. CSS rather than a click handler, so
+       it costs nothing and keeps the anchors as plain anchors: the hash still
+       lands in the URL and back still works.
+
+       Safe against the scripted scrolls because every one of them passes an
+       explicit behavior of its own, which wins over this: see jumpTo() in
+       curriculum.js, where a deep link deliberately asks for "auto" so it
+       arrives already there rather than gliding in from the top of the page.
+
+       Guarded on no-preference rather than switched off in a reduce block. A
+       long animated scroll is exactly the kind of motion that setting is for,
+       and this way the declaration is never made in the first place. */
+    @media (prefers-reduced-motion: no-preference) {
+      html {
+        scroll-behavior: smooth;
+      }
+    }
+
+    /* The canvas colour, and the whole of the notch arrangement in four
+       moves:
+
+         1. the top 25px of the hero fades to --hero-top, so the photograph's
+            top edge is that flat colour rather than whatever pixel row the
+            crop happened to land on;
+         2. the body is the same colour, so at rest the strip behind the notch
+            -- which Safari fills from the body when nothing fixed is up there
+            to sample -- matches the top of the picture exactly;
+         3. scrolling slides that band up under the notch, and because both
+            sides of the seam are the same colour there is no seam to see;
+         4. past the hero, hero.js swaps this for the page's black, and the
+            strip goes black with it.
+
+       Nothing samples a translucent surface and nothing depends on a safe-area
+       inset. The nav's glass sits on an absolutely positioned child precisely
+       so that Safari keeps reading the body here and step 4 stays true.
+
        Everything between is covered by .sheet and .site-footer, which carry
        their own backgrounds; this shows only at the very top and in the
        overscroll past the end. */
     body {
       font-family: "Cairo", sans-serif;
-      background: #29106a;
-      transition: background-color 220ms linear;
+      background: var(--hero-top);
+      /* No transition, and this is the whole of a bug worth writing down.
+         There used to be a 220ms linear fade here, so for a fifth of a second
+         as the header arrived the body was neither colour but a blend of the
+         two -- and Safari samples the strip behind the notch once and keeps
+         what it got. Sampled a third of the way through that fade, purple to
+         black gives #200F4A, which is exactly the dark indigo that kept
+         showing up above the header instead of black.
+
+         The swap is instantaneous now, so whenever Safari looks, the only two
+         answers available are the two correct ones. Nothing is lost visually
+         either: the header slides in over 340ms across the same moment, which
+         is far more motion than a background step behind it. */
       color: var(--text);
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
@@ -188,11 +241,11 @@
       left: 0;
       right: 0;
       z-index: 100;
-      /* Deliberately not backdrop-filter. A blur behind a fixed bar has to be
-         recomputed against whatever is moving underneath it, every frame, for
-         the whole length of the page -- the single most expensive thing on a
-         phone here. Nearly opaque looks the same on a dark page and costs
-         nothing. */
+      /* The fallback, and what anything without backdrop-filter keeps: a
+         nearly opaque strip. The glass is applied over this in the @supports
+         below, so an engine that cannot blur never ends up with the thin tint
+         and no frost behind it -- which would leave the brand and the button
+         sitting on raw video. */
       background: rgba(10, 10, 15, 0.94);
       border-bottom: 1px solid var(--border);
       display: flex;
@@ -205,6 +258,106 @@
          timeline follows on its own. */
       padding: calc(0.8em + env(safe-area-inset-top, 0px)) 2em 0.8em;
       gap: 1em;
+    }
+
+    /* --- The bar as dark glass ---
+       This reverses an earlier decision, which is worth saying plainly: the
+       bar used to be nearly opaque on the grounds that a blur behind a fixed
+       element has to be recomputed against whatever is moving underneath it.
+       That is true, but the cost is set by the blurred area, not by how much
+       page scrolls past it -- one pass over a strip the width of the screen
+       and about fifty pixels tall. That is a bargain worth making now in a way
+       it was not a few years ago, and the bar only exists at all once you are
+       past the hero, so it is not on screen for the whole page either.
+
+       The glass sits on an absolutely positioned child rather than on the bar
+       itself, which is the documented shape for a translucent fixed header and
+       is load-bearing here for a second reason. Safari reads background-color
+       and backdrop-filter off fixed and sticky elements to decide what to put
+       behind the notch, and reads only their own properties -- absolutely
+       positioned children are ignored. Sampling a translucent surface is
+       documented as unpredictable, because the answer depends on whatever
+       happens to be behind it at the time. A bar that is transparent to that
+       algorithm leaves Safari reading the body instead, which is a colour this
+       page sets deliberately. See the note on body.
+
+       The rest is what separates glass from fog. saturate is most of it: a
+       plain blur greys out whatever is behind, and pulling the colour back up
+       is what makes the purple of the instructor band and the module videos
+       actually bleed through. The gradient is a sheen down the pane, brightest
+       where the light would catch it. The hairline below is the lit edge --
+       a pane has a thickness, and that edge is where you see it. */
+    @supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+      .site-nav {
+        /* Nothing of its own to sample. The glass is on the child below, and
+           that is the point rather than a detail: Safari reads only the fixed
+           element's own background-color and backdrop-filter and ignores its
+           absolutely positioned children, so a bar that is transparent here
+           leaves it reading the body -- which is the colour the notch
+           arrangement drives. Put the glass back on the bar itself and step 4
+           of that arrangement stops working. */
+        background: transparent;
+        /* Kept, at zero alpha, rather than removed: timeline.js measures this
+           element's height for --nav-h and the sticky timeline hangs off it.
+           Dropping a 1px border to draw the edge as a pseudo-element instead
+           would quietly move everything below by a pixel. */
+        border-bottom-color: transparent;
+      }
+
+      /* The pane itself. Absolutely positioned, so it is out of the bar's flex
+         flow and not one of its items, and so it can be taller than the bar. */
+      .site-nav::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background:
+          linear-gradient(to bottom,
+            rgba(255, 255, 255, 0.07) 0%,
+            rgba(255, 255, 255, 0.02) 55%,
+            rgba(255, 255, 255, 0) 100%),
+          rgba(10, 10, 15, 0.55);
+        /* More blur as the tint comes down: they trade against each other for
+           legibility. At 0.55 the page underneath is genuinely visible, so the
+           blur has to be the thing keeping the brand and the button off it. */
+        -webkit-backdrop-filter: blur(26px) saturate(190%);
+        backdrop-filter: blur(26px) saturate(190%);
+      }
+
+      /* The lit edge. A gradient rather than a flat rule so it is brightest
+         across the middle and gone by the corners, which is how an edge
+         catches light and is the detail that stops this reading as a panel
+         with a border. */
+      .site-nav::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 1px;
+        pointer-events: none;
+        background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.16) 18%,
+            rgba(255, 255, 255, 0.16) 82%,
+            transparent 100%);
+      }
+    }
+
+    /* Transparency is an accessibility setting on both platforms this ships
+       to, and it is set by people who find layered translucency hard to read
+       through. Hand them back the flat bar. */
+    @media (prefers-reduced-transparency: reduce) {
+      .site-nav {
+        background: rgba(10, 10, 15, 0.97);
+        border-bottom-color: var(--border);
+      }
+
+      .site-nav::before,
+      .site-nav::after {
+        display: none;
+      }
     }
 
     .site-nav .brand {
@@ -533,6 +686,44 @@
         url('hero-bg-1600.webp') center / cover no-repeat;
     }
 
+    /* The top of the photograph, resolved to a flat colour over 25px.
+
+       The crops do not agree about their top row -- portrait and landscape are
+       different pictures of the same room -- so without this the colour behind
+       the notch could only ever match one of them. Fading the last 25px to
+       --hero-top makes the hero's top edge the same colour on every breakpoint,
+       which is what lets one body colour match all of them.
+
+       A pseudo-element rather than another background layer: the media queries
+       at the foot of the stylesheet restate .hero-bg's background-image to swap
+       the file, so a layer added here would have to be repeated in each of them
+       and would be quietly dropped from any that were missed. */
+    .hero-bg::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      /* 25px was the first try and it read as a hard line on a phone. The
+         colours either side of that line were already right -- sampled at the
+         seam, the strip and the photograph's first row are the same value --
+         but a flat field meeting a photograph over a quarter of an inch is an
+         edge whatever the two colours are. What removes it is distance. */
+      height: 160px;
+      /* And a curve, not a ramp. A linear fade spends its first stops barely
+         moving and then releases the picture all at once around the middle,
+         which puts a second, softer edge halfway down. These stops hold the
+         flat colour nearly solid through the top third and let go slowly, so
+         there is no point on the way down where the image can be said to
+         start. */
+      background: linear-gradient(to bottom,
+          var(--hero-top) 0%,
+          rgba(44, 17, 105, 0.94) 20%,
+          rgba(44, 17, 105, 0.78) 40%,
+          rgba(44, 17, 105, 0.52) 60%,
+          rgba(44, 17, 105, 0.24) 80%,
+          var(--hero-top-clear) 100%);
+      pointer-events: none;
+    }
+
     /* The vignette the hero has always had. A gradient rather than an inset
        box-shadow: the shadow's blur radius is about 150px across the whole
        viewport, which is expensive to paint even as a one-off on a phone. */
@@ -585,8 +776,15 @@
     /* Each figure in its own pill: at four across, containment is what stops
        the row reading as one long sentence. Translucent white rather than a
        flat fill, so it takes its tint from whatever the photograph is doing
-       behind it. Deliberately not backdrop-filter -- see the note on .site-nav
-       for why a blur over a moving background is the wrong bargain here. */
+       behind it.
+
+       These used to carry a note saying deliberately not backdrop-filter, on
+       the same reasoning the nav used to carry. That reasoning is gone from
+       the nav and it goes from here too: the blurred area is four small pills,
+       and they sit on the hero, which is one screen at the top of the page
+       rather than something scrolling past for the whole document. Lighter
+       than the bar's glass, because there is a photograph behind these that is
+       worth still being able to see. */
     .hero-details .stat {
       display: inline-flex;
       align-items: center;
@@ -595,7 +793,22 @@
       border-radius: 2em;
       background: rgba(255, 255, 255, 0.07);
       border: 1px solid rgba(255, 255, 255, 0.13);
+      -webkit-backdrop-filter: blur(10px) saturate(150%);
+      backdrop-filter: blur(10px) saturate(150%);
       white-space: nowrap;
+      /* The figures are the content; the row's muted grey is for the space
+         around them. Set on the pill rather than on .hero-details so the icons
+         can stay behind -- they take their stroke from currentColor, so they
+         would have come up to white with everything else. */
+      color: var(--text);
+    }
+
+    /* ...and held back, deliberately, one step further than the row used to
+       be. An icon that reads at a glance has done its whole job; brought up to
+       the figures' weight it starts competing with them. */
+    .hero-details .stat .stat-icon {
+      color: var(--text-muted);
+      opacity: 0.85;
     }
 
     /* Enough to say which figure is which at a glance, and no more: one
@@ -632,10 +845,10 @@
       display: flex;
       gap: 1em;
       flex-wrap: wrap;
-      /* Baseline, not centre: the price cell is two lines tall and the rest
-         are one, and centring it would float the figures off the line the
-         other three sit on. This puts the figures *on* that line and lets the
-         tag hang below it. */
+      /* Baseline, not centre. All four cells are one line tall now that the
+         launch-price tag has gone, so this mostly does not matter -- but it is
+         the right rule for a row of figures either way, and it is what keeps
+         them on one line if a cell ever grows again. */
       align-items: baseline;
       justify-content: center;
       font-size: 1.05em;
@@ -663,9 +876,18 @@
     /* Warm rather than accent: the CTA below is a solid block of accent, and
        two purples that close together compete instead of leading one to the
        other. */
-    .hero-price {
-      /* Overrides the row layout the other three cells use. */
+    .price-reveal {
+      /* Figures on one line, the pill under them. In the hero this overrides
+         the row layout the other three cells of that strip use; stated in full
+         here because the same block runs again down in "How it works", where
+         nothing above it has made it a flex container. */
+      display: flex;
       flex-direction: column;
+      /* Otherwise the pill stretches to whatever it is sitting in -- a
+         full-width outline round a two-word label in the "How it works" cell.
+         The hero centres it instead, from the row rule above, which is why
+         that copy looks right without this. */
+      align-items: flex-start;
       gap: 0.2em;
 
       /* When the rule starts being drawn through $1,600, and how long it takes.
@@ -686,7 +908,7 @@
       --wipe-start: calc(var(--strike-start) + var(--strike-dur));
     }
 
-    .hero-price-figures {
+    .price-reveal-figures {
       display: flex;
       align-items: baseline;
       /* This is the whole gap now: the markup used to carry an &nbsp; between
@@ -695,7 +917,7 @@
       gap: 0.45em;
     }
 
-    .hero-price-tag {
+    .price-reveal-tag {
       position: relative;
       font-size: 0.52em;
       font-weight: 700;
@@ -731,6 +953,102 @@
       line-height: 1.4;
     }
 
+    /* Round the hero's price pill the ring sits outside a hairline the pill
+       keeps rather than replacing a border, so it needs to clear it -- and it
+       is drawn heavier, because the same 1.5px that reads as a ring round a
+       two-word label reads as a thread round something this size.
+
+       tag-settle is dropped from the list here: it paints the label pill's own
+       dark fill and orange text, which on a glass pill would be a black lozenge
+       appearing under the price. The trace and the bloom are all this one
+       wants. */
+    .hero-details .comet {
+      --ring-inset: -3px;
+      --ring-w: 2px;
+      --halo-inset: -4.5px;
+      --halo-w: 3.5px;
+
+      /* The bloom, moved onto the lap.
+
+         Both of these are worked out from --tag-text-start by default -- the
+         moment the launch-price label begins -- because that is what they were
+         built to punctuate. There is no label on this pill, so that reference
+         put the bloom 180ms after the comet had already finished and gone: two
+         separate events, a beat apart, neither explaining the other.
+
+         Against the lap instead. Half a lap in, running very nearly a whole
+         one, which puts the peak at about 770ms into a 780ms trip -- the light
+         swells as the head comes back round to where it started, and the two
+         crest together.
+
+         The start moves with the duration, not independently. Slowing the
+         bloom while leaving it starting where it was would have slid the peak
+         past the end of the lap, so the swell would arrive after the thing it
+         is meant to be swelling for. */
+      --tag-pulse-start: calc(var(--tag-start) + var(--tag-lap) * 0.5);
+      --tag-pulse-dur: calc(var(--tag-lap) * 0.975);
+
+      /* A fifth off the bloom. It is doing a different job here than it does
+         round the label: there it punctuates a small pill arriving, here it
+         swells around something already large and lit. Turned down rather than
+         retimed -- the overlap above is what it was wanted for. Knobs rather
+         than new keyframes, so the label's copy is left at full strength. */
+      --bloom-near: 0.48;
+      --bloom-far: 0.3;
+      animation:
+        tag-draw var(--tag-lap) linear var(--tag-start) both,
+        tag-pulse var(--tag-pulse-dur) var(--ease) var(--tag-pulse-start) both;
+    }
+
+    /* A light that passes, rather than a line that is drawn.
+
+       Round the label the trace is a pen: the gradient paints solid warm from
+       0deg all the way to the head, so by the end of the lap there is a
+       complete orange ring, and the ring is the point -- it is what marks the
+       pill out afterwards. Here it must leave nothing. This pill has to settle
+       looking exactly like the three beside it, so an outline that persists is
+       the one thing it cannot end with.
+
+       So the tail is finite. Transparent until 120deg behind the head, warming
+       through to the head itself, which means what travels round is a comet
+       with a tail and not a stroke with a hot tip. The stops go out of order
+       for the first part of the lap -- angle minus 120 is negative until the
+       head has come round that far -- and CSS clamps an out-of-order stop to
+       the one before it, so the tail simply starts short and grows to length,
+       which is what it should do anyway.
+
+       comet-pass then takes the whole thing off at the end. Between the finite
+       tail and that fade there is nothing left on the pill a moment later. */
+    .hero-details .comet::after {
+      background: conic-gradient(from 0deg,
+          transparent 0deg,
+          transparent calc(var(--tag-angle) - 120deg),
+          rgba(255, 97, 22, 0.42) calc(var(--tag-angle) - 62deg),
+          var(--warm) calc(var(--tag-angle) - 16deg),
+          var(--tag-head) var(--tag-angle),
+          transparent calc(var(--tag-angle) + 0.5deg),
+          transparent 360deg);
+      animation: comet-pass var(--tag-lap) linear var(--tag-start) both;
+    }
+
+    /* Full strength for almost the whole lap, then gone. The fade is in the
+       last tenth rather than tag-halo's last fifth: the head is still moving
+       through it, and a tail that starts dimming a quarter of a lap out reads
+       as the light running down rather than leaving. */
+    @keyframes comet-pass {
+      0% {
+        opacity: 0;
+      }
+
+      8%, 90% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0;
+      }
+    }
+
     /* The reveal: $1,600 alone, a rule drawn through it, the old price sliding
        aside as the new one arrives, then the tag.
 
@@ -738,29 +1056,45 @@
        it belongs to, held in place by animation-fill-mode: both. Put opacity:0
        on .price-now itself and anything that doesn't run the animation --
        reduced motion, an older engine -- would hide the price permanently. */
-    .hero-price .price-was {
+    .price-reveal .price-was {
       position: relative;
       /* Replaced by the drawn rule below, which line-through can't be: text
          decorations aren't animatable. */
       text-decoration: none;
-      /* Same delay, duration and easing as the strike below, so the move and
-         the line are one gesture: by the time the rule lands, the space for
-         the new price is already open and it has only to fade into it. */
+      /* Same delay, duration and easing as the strike below, so the move, the
+         fade from white to grey and the line are one gesture: by the time the
+         rule lands, the space for the new price is already open and it has only
+         to fade into it. */
       animation: price-shift var(--strike-dur) linear var(--strike-start) both;
     }
 
-    .hero-price .price-was::after {
+    .price-reveal .price-was::after {
       content: "";
       position: absolute;
       /* A touch past the digits on each side, the way a struck-out figure is
          crossed by hand. */
       left: -0.06em;
       right: -0.06em;
+      /* Vertically placed here rather than in the transform, so the one
+         thing the transform does is the drawing.
+
+         50% is the middle of the line box, and the line box is not what the
+         eye is measuring against -- the digits are. Measured in Cairo at this
+         size: the baseline lands 22.46px down a 30.89px box, and lining
+         figures run 12.96px above it and 0.19px below, so their optical centre
+         is at 16.07px while the box's is at 15.45px. The rule was drawing
+         0.63px high, which is nothing on its own and clearly visible once the
+         two horizontals are next to each other. 0.03em is that difference back,
+         in a unit that keeps it once the type is scaled.
+
+         -1px re-centres the 2px rule on the point, which is what the
+         translateY used to be doing. */
       top: 50%;
       height: 2px;
+      margin-top: calc(-1px + 0.03em);
       border-radius: 2px;
       background: var(--warm);
-      transform: translateY(-50%) scaleX(0);
+      transform: scaleX(0);
       transform-origin: left center;
       /* Linear: a line being drawn travels at the speed of the hand drawing
          it, and an eased one arrives looking like it slowed down to stop. */
@@ -769,16 +1103,39 @@
 
     /* Wiped in left to right rather than faded, so it reads in the same
        direction as the rule that was just drawn through the old price. The
-       mask is 2.2x the width of the text: parked right, the text sits under
-       its transparent tail; travelling left, the opaque head passes over and
-       uncovers it. */
-    .hero-price .price-now {
+       mask is wider than the text: parked right, the text sits under its
+       transparent tail; travelling left, the opaque head passes over and
+       uncovers it.
+
+       The three stops and the 240% are one calculation, and it is worth
+       writing down because eyeballing them is what went wrong twice.
+
+       At rest the mask sits at position 100%, which puts its right edge on the
+       text's right edge -- so the image covers from -140% to +100% of the
+       text. For the text to be completely hidden there, the last stop has to
+       have gone transparent by the time it reaches x=0, which is 140/240 =
+       58.3% of the way along the image. And at the end, position 0%, the image
+       covers 0% to 240%, so the first stop has to still be opaque at x=100%,
+       which is 100/240 = 41.7% along. Every stop has to live between those two
+       numbers. 44 / 50 / 56 does, with about 5% of clearance at each end.
+
+       It was 45 / 52 / 60 at 220%, which failed both tests by a little: the
+       tail lay across the first eighth of the word, so $800 opened every
+       reveal with its dollar sign a quarter visible, and the head stopped 1%
+       short at the other end. The first repair was to park the mask at 115%
+       instead, which is legal and works, but it fixes the arithmetic by
+       feeding an out-of-range position to something whose handling of
+       out-of-range positions is the very thing in question -- and it showed:
+       Chrome went clean, Safari drew a bright vertical slice through $800
+       where a sliver of the head was landing. Fixing the stops instead means
+       no engine is being asked to agree about anything unusual. */
+    .price-reveal .price-now {
       -webkit-mask-image: linear-gradient(to right,
-          #000 45%, rgba(0, 0, 0, 0.35) 52%, transparent 60%);
+          #000 44%, rgba(0, 0, 0, 0.35) 50%, transparent 56%);
       mask-image: linear-gradient(to right,
-          #000 45%, rgba(0, 0, 0, 0.35) 52%, transparent 60%);
-      -webkit-mask-size: 220% 100%;
-      mask-size: 220% 100%;
+          #000 44%, rgba(0, 0, 0, 0.35) 50%, transparent 56%);
+      -webkit-mask-size: 240% 100%;
+      mask-size: 240% 100%;
       -webkit-mask-repeat: no-repeat;
       mask-repeat: no-repeat;
       /* Starts as the move finishes -- the gap it lands in is already open. */
@@ -801,7 +1158,7 @@
         2200   shimmer, fill and sear all settle
 
        The table is a consequence rather than a thing to maintain: it falls out
-       of --strike-start and --strike-dur on .hero-price and the four levers
+       of --strike-start and --strike-dur on .price-reveal and the four levers
        below. Nothing in the reveal carries a delay that another value already
        implies -- the wipe starts where the strike ends, the comet a fixed beat
        after the strike begins, the fill and the pulse off the lap itself -- so
@@ -813,8 +1170,15 @@
        especially: *both* pseudo-elements read it -- the crisp border and the
        glow riding with its head -- and an inherited registered property
        animated on the parent is the only way they stay locked to one value.
-       Animating it on either one would leave the other reading 0deg forever. */
-    .hero-price-tag {
+       Animating it on either one would leave the other reading 0deg forever.
+
+       On .comet rather than on the pill, because there are two pills now: the
+       launch-price label further down the page, and the hero's price pill,
+       which is three times the size and a different shape. The trace is the
+       same trace; only what it is going round differs, which is what the two
+       ring knobs below are for. */
+    .comet {
+      position: relative;
       /* The four levers. Everything else in the reveal is worked out from
          these, so they are the only numbers to change.
 
@@ -889,8 +1253,8 @@
 
       50% {
         box-shadow:
-          0 0 12px rgba(255, 156, 96, 0.6),
-          0 0 26px rgba(255, 97, 22, 0.38);
+          0 0 12px rgba(255, 156, 96, var(--bloom-near, 0.6)),
+          0 0 26px rgba(255, 97, 22, var(--bloom-far, 0.38));
       }
 
       100% {
@@ -927,12 +1291,16 @@
        extremes: negative at the start, past 360deg at the end. That is
        well-defined -- a stop before the one preceding it is clamped up to it,
        which is exactly the behaviour wanted -- so no clamping is spelled out. */
-    .hero-price-tag::after {
+    .comet::after {
       content: "";
       position: absolute;
-      inset: -1.5px;
+      /* The two knobs that let one trace serve two pills. Round the label the
+         ring is the border; round the hero's price pill it runs just outside a
+         hairline that pill keeps, and a little heavier, because it is going
+         round something three times the size. */
+      inset: var(--ring-inset, -1.5px);
       border-radius: inherit;
-      padding: 1.5px;
+      padding: var(--ring-w, 1.5px);
       background: conic-gradient(from 0deg,
           var(--warm) 0deg,
           var(--warm) calc(var(--tag-angle) - 45deg),
@@ -970,9 +1338,9 @@
        It is drawn before ::after in paint order, being a real child where that
        is a pseudo-element on the same parent, so the crisp border lands on top
        of its own glow without either one needing a z-index. */
-    .hero-price-tag .tag-glow {
+    .comet .tag-glow {
       position: absolute;
-      inset: -3px;
+      inset: var(--halo-inset, -3px);
       border-radius: 2em;
       filter: blur(3.5px);
       opacity: 0;
@@ -983,12 +1351,12 @@
     /* Only the last stretch of the arc: brightest at the tip, falling away
        behind it, nothing at all in front. Wider and hotter than the border it
        accompanies, since the blur above spends most of it. */
-    .hero-price-tag .tag-glow::before {
+    .comet .tag-glow::before {
       content: "";
       position: absolute;
       inset: 0;
       border-radius: inherit;
-      padding: 3px;
+      padding: var(--halo-w, 3px);
       background: conic-gradient(from 0deg,
           transparent 0deg,
           transparent calc(var(--tag-angle) - 55deg),
@@ -1023,7 +1391,7 @@
        Linear here means nominal time and perceived time are the same thing, so
        "three quarters of the shimmer" is a place on screen and not just a place
        in the timeline. */
-    .hero-price-tag .tag-label {
+    .price-reveal-tag .tag-label {
       opacity: 0;
       animation:
         tag-label-in calc(var(--tag-text-dur) * 0.4) var(--ease) var(--tag-text-start) both,
@@ -1041,7 +1409,7 @@
        glyphs and losing the label entirely. Either both apply or neither does,
        and neither leaves the label inheriting the pill's own colour. */
     @supports (-webkit-background-clip: text) or (background-clip: text) {
-      .hero-price-tag .tag-label {
+      .price-reveal-tag .tag-label {
         background-image: linear-gradient(100deg,
             var(--warm) 0%,
             var(--warm) 40%,
@@ -1159,32 +1527,139 @@
 
     @keyframes price-strike {
       to {
-        transform: translateY(-50%) scaleX(1);
+        transform: scaleX(1);
       }
     }
 
     /* Roughly half the width of "$800" plus the gap, so the old price sits
        near enough to centred while it is the only thing there. */
+    /* The old price moving aside, and going quiet as it does.
+
+       --was-shift is where it starts, relative to where it ends. The hero's
+       row is centred, so its lone $1,600 begins a little right of its final
+       slot and slides left as $800 wipes in behind it -- the move is what
+       opens the space. A left-aligned copy has no such space to open: it is
+       flush with the column above it and has to stay there, or its first
+       moments read as an indent nothing else on the page has. So the distance
+       is a knob rather than a number, and that copy sets it to zero.
+
+       The colour rides along rather than getting an animation of its own,
+       because it is the same event: white is what the live price looks like,
+       and $1,600 is the live price right up until the rule goes through it. By
+       the time the line lands it is a former price and reads as one. Putting it
+       in these keyframes means it inherits the strike's delay, duration and
+       easing for free -- one gesture, one clock, and nothing to keep in step by
+       hand.
+
+       The resting colour in .price-was is the same muted grey this ends on, so
+       anything that never runs this -- reduced motion, a held copy, an engine
+       without the animation -- shows a settled struck price rather than a white
+       one stranded mid-thought. */
     @keyframes price-shift {
       from {
-        transform: translateX(1.25em);
+        transform: translateX(var(--was-shift, 1.25em));
+        color: var(--text);
       }
 
       to {
         transform: translateX(0);
+        color: var(--text-muted);
       }
     }
 
+    /* Plain 100% to 0%. Which stop sits where is worked out against exactly
+       these two positions -- see the note on .price-now -- so nothing here
+       needs to reach outside the range every engine agrees on.
+
+       The opacity is a belt to that braces. It costs one interpolated frame
+       and it makes the delay's held state -- the several seconds this spends
+       waiting to be scrolled to -- not depend on mask arithmetic at all. Two
+       different engines have now drawn two different artefacts in that frame,
+       and the second was only visible on a browser not available to test
+       here; something that cannot be checked wants a floor under it. By 6% the
+       mask has barely moved and is still covering everything, so the fade is
+       over before there is anything to see. */
     @keyframes price-wipe {
       from {
         -webkit-mask-position: 100% 0;
         mask-position: 100% 0;
+        opacity: 0;
+      }
+
+      6% {
+        opacity: 1;
       }
 
       to {
         -webkit-mask-position: 0 0;
         mask-position: 0 0;
       }
+    }
+
+    /* --- Holding the reveal until it is watched ---
+       The hero's copy of this plays on load, which is right: it is on screen
+       on load. The one down in "How it works" is three or four screens below
+       the fold, and left alone it would perform the whole thing to an empty
+       room and be sitting there finished by the time anyone arrived. So it is
+       held, and price.js lets it go when it comes into view.
+
+       Held by taking the animations away rather than by pausing them, because
+       the two resume differently and only one of them is a reveal. Pausing
+       preserves the playhead, so a hold applied a moment after load -- which
+       is exactly when a deferred script gets to run -- would freeze the strike
+       part-drawn and then resume it from there in front of the reader, who
+       never saw it start. Removing the animation and putting it back starts a
+       new one, from zero, every time.
+
+       The direction of the switch is the other half of it. This is a hold that
+       JavaScript applies, not one it releases: with no script, or a script
+       that failed, the class is never added, nothing is held, and the reveal
+       simply plays on load the way the hero's does. Nobody is left looking at
+       a masked-out price that had been waiting for an observer that never
+       came. */
+    .price-reveal.is-held .price-was,
+    .price-reveal.is-held .price-was::after,
+    .price-reveal.is-held .price-now,
+    .price-reveal.is-held .comet,
+    .price-reveal.is-held .comet::after,
+    .price-reveal.is-held .tag-glow,
+    .price-reveal.is-held .tag-glow::before,
+    .price-reveal.is-held .tag-label {
+      animation: none;
+    }
+
+    /* A beat longer than the hero's 400ms. The hero's reveal begins while the
+       page is still settling and the reader's eye is already on it; this one
+       begins the moment a scroll brings it in, mid-motion, and needs the extra
+       moment for the scroll to stop and the eye to land before the rule starts
+       being drawn. Everything else in the reveal is written against this, so
+       it is the only number that moves. */
+    [data-reveal-on-view] {
+      /* Two and a half times the hero's 400ms. The hero's reveal begins while
+         the page is still settling and the reader's eye is already on it; this
+         one begins the moment a scroll brings it in, mid-motion, and needs
+         long enough for the scroll to stop, the eye to land, and $1,600 to be
+         read as a price before anything happens to it. Everything else in the
+         reveal is written against this, so it is the only number that moves. */
+      --strike-start: 1050ms;
+
+      /* Beside the figures rather than under them. The hero stacks because its
+         cell has to stay the same width as the three next to it; this one is a
+         grid cell with its own row, and a pill on the same line keeps the whole
+         claim -- old price, new price, why -- as one thing to read.
+
+         Centred rather than on the baseline: the label inside the pill is
+         0.52em and its own baseline sits well up inside the ring, so aligning
+         the two baselines hangs the pill below the figures rather than beside
+         them. */
+      flex-direction: row;
+      align-items: center;
+      gap: 0.7em;
+
+      /* Flush left from the first frame. See price-shift: the hero's opening
+         offset is there to open a gap in a centred row, and here it would only
+         indent $1,600 past the three values above it. */
+      --was-shift: 0px;
     }
 
 
@@ -1220,11 +1695,22 @@
        empty column under the video on a phone. */
     .brand-captions {
       position: relative;
-      max-width: 30em;
-      /* No bottom margin of its own: the break below owns that gap, and this
-         element's em is a clamped, larger one -- 4em here came out as 96px
-         against the 92px every other break uses, and adjacent margins collapse
-         to the larger of the two, so it would have quietly won. */
+      /* Wide enough for a clause.
+
+         The cues this renders are cut on the clock, not on the sentence -- a
+         caption file generated at two-second intervals -- so at 30em a line
+         like "It's very easy to get started as a DJ" was followed by "these
+         days," on a line of its own. That reads as a bad wrap, but nothing was
+         wrapping: the break was the cue boundary. Re-cut to clause length (see
+         video/brand-captions-merged.vtt) the longest line is 64 characters,
+         and this is what holds one without turning it over. */
+      max-width: 33em;
+      /* No bottom margin of its own. It used to be that the break below owned
+         that gap; there is no break now, and the curriculum's own 92px of top
+         padding owns it instead. Either way not here -- this element's em is a
+         clamped, larger one, so 4em came out as 96px against the 92px used
+         everywhere else, and adjacent margins collapse to the larger of the
+         two, so it would have quietly won. */
       margin: 0 auto;
       padding: 0 1.5em;
       text-align: center;
@@ -1379,11 +1865,24 @@
       box-shadow: 0 0 1.5em var(--accent-glow);
     }
 
-    /* The hero's CTA, built exactly like the nav button and scaled up: black
-       face, solid accent border at rest, the same comet laid over it. Scoped
-       to the hero so the form's submit button keeps the plain accent fill. */
-    .hero-content .btn-primary {
+    /* The comet treatment, built exactly like the nav button and scaled up:
+       black face, solid accent border at rest, the same comet laid over it.
+       Worn by the two buttons that ask for the same thing -- the hero's CTA
+       and the signup form's submit -- so the page opens and closes on the same
+       object.
+
+       A class rather than a descendant selector: it used to be scoped as
+       .hero-content .btn-primary, which put the treatment somewhere it could
+       not be reused. The compound keeps the old specificity exactly, so it
+       still wins against the plain .btn-primary:hover below without that rule
+       having to move. */
+    .btn-primary.btn-comet {
       position: relative;
+      /* Solid black, not glass. Glass was tried here at three strengths and
+         the crisp version won: the pills above are a row of quiet facts and
+         want to sit in the photograph, but this is the one thing on the screen
+         to press, and a hard edge between it and the picture is what makes it
+         read that way. */
       background: #000;
       color: var(--text);
       border: 2px solid var(--accent);
@@ -1401,7 +1900,7 @@
       animation: cta-sweep 9s ease-in-out 2.2s infinite;
     }
 
-    .hero-content .btn-primary::before {
+    .btn-primary.btn-comet::before {
       content: "";
       position: absolute;
       inset: -2px;
@@ -1444,7 +1943,7 @@
       }
     }
 
-    .hero-content .btn-primary:hover {
+    .btn-primary.btn-comet:hover {
       animation: nav-spin 2.4s linear infinite;
       color: #fff;
       transform: none;
@@ -1453,7 +1952,7 @@
         0 0 32px rgba(255, 97, 22, 0.3);
     }
 
-    .hero-content .btn-primary:hover::before {
+    .btn-primary.btn-comet:hover::before {
       opacity: 1;
       animation: none;
     }
@@ -1510,16 +2009,6 @@
           var(--accent) 30%,
           var(--accent) 70%,
           transparent);
-    }
-
-    /* Every break gets the same 92px of air above and below it, measured to
-       the nearest painted edge rather than assumed from the box model. The
-       other three inherit it from the 5em padding the sections either side
-       carry; this one has a captions block above and the band below, neither
-       of which brings 5em of its own, so it is stated here. Collapses with the
-       captions' own 4em bottom margin to the larger of the two. */
-    .rule-d {
-      margin-top: 5em;
     }
 
     @supports ((-webkit-mask-image: linear-gradient(#000, #000)) or (mask-image: linear-gradient(#000, #000))) {
@@ -1979,14 +2468,14 @@
     .module-points {
       list-style: none;
       display: grid;
-      gap: 0.4em;
+      gap: 0.48em;
     }
 
     .module-points li {
       position: relative;
       padding-left: 1.4em;
       color: var(--text-muted);
-      font-size: 1em;
+      font-size: 1.1em;
     }
 
     .module-points li::before {
@@ -2011,8 +2500,10 @@
       border: 1px solid var(--border);
       color: var(--text);
       font-family: inherit;
-      font-size: 0.92em;
-      font-weight: 600;
+      /* The same size as the bullets it sits under, so the column reads as one
+         block of type rather than a list with a smaller footnote after it. */
+      font-size: 1.1em;
+      font-weight: 700;
       padding: 0.5em 1.2em;
       border-radius: 2em;
       cursor: pointer;
@@ -2030,9 +2521,17 @@
     /* display:block matters: an inline SVG sits on the text baseline and
        reserves descender space under it, so the chevron rode high by a couple
        of pixels however the flexbox was aligned. As a block it is a plain box
-       and align-items centres it exactly. */
+       and align-items centres it exactly.
+
+       The margin is the optical correction on top of that: centred on the box,
+       the chevron reads high against the word beside it. A margin on one side
+       only moves a centred item by half itself, so -0.1em drops it by 0.05em.
+       The sign is by eye, not by metrics -- the arithmetic of where the ink
+       sits inside the em box argues the other way, and the eye is the one
+       being served. */
     .read-more svg {
       display: block;
+      margin-bottom: -0.1em;
       width: 0.85em;
       height: 0.85em;
       stroke: currentColor;
@@ -2314,6 +2813,30 @@
       /* The dot's outer diameter and its ring, in one place, because the
          cursor is cut from them: it is exactly the interior, so when it is
          over a mark it fills it rather than covering it. */
+      /* Week eight's spark burst is the grand finale, its particles are
+         thrown furthest, and the rightmost dot is already at the edge of the
+         band. Measured on a 390px phone they took the document to 414px for
+         about half a second -- and mobile Safari answers a document wider than
+         the viewport by zooming out to fit it, so the whole page quietly got
+         smaller and stayed that way. It reads as the page resizing on arrival
+         at whatever section comes next, which is why it took a while to pin on
+         a firework eight modules earlier.
+
+         Clipped here rather than anywhere further up. The first attempt put
+         overflow-x: clip on .sheet, which is correct in theory -- clip is not
+         a scroll container, so sticky still resolves against the viewport --
+         but it re-drew the paint tree around the pinned curriculum and the
+         slides picked up a vertical shake while scrolling. This bar is the
+         thing overflowing, so this bar is what gets clipped, and nothing
+         upstream of it has to change.
+
+         x only: the sparks are supposed to fly above and below the bar, and
+         clipping those would be clipping the effect rather than the bug. The
+         clip margin is the gap between the band and the edge of the screen,
+         so on a phone the cut lands exactly at the viewport edge -- as far out
+         as they can go without costing anything. */
+      overflow: clip;
+      overflow-clip-margin: 1.5em;
       --dot-size: 28px;
       --dot-border: 3px;
       /* Grab room around the dot. Part of the button, not of the circle. */
@@ -2367,10 +2890,16 @@
       display: flow-root;
     }
 
-    /* ...and the break below gets that distance back, so what follows the
-       curriculum sits exactly where it did. */
-    .curr-band:has(> .is-scroller) + .rule {
-      margin-top: calc(5em + var(--vh, 1vh) * 100 - var(--tl-space, 8.5em));
+    /* ...and whatever follows gets that distance back, so it sits exactly
+       where it did.
+
+       Named as the next sibling rather than as a break, because it is not one
+       any more: the instructor band follows the curriculum directly now. It
+       brings its own air in the form of 8em of padding, which is why there is
+       no additional gap in here the way there was when a rule sat between the
+       two and needed one. */
+    .curr-band:has(> .is-scroller) + * {
+      margin-top: calc(var(--vh, 1vh) * 100 - var(--tl-space, 8.5em));
     }
 
     /* --- The build ---
@@ -2913,6 +3442,10 @@
          something else. */
       .curr-scroll.is-scroller .curr-slide {
         padding: calc(var(--tl-space, 8.5em) + 0.6em) 0 2em;
+        /* The bullets' size on a phone, and the button matches them. Declared
+           once here because two rules below need the same number; see the note
+           on .curr-cols. */
+        --read-more-size: 1.01em;
       }
 
       .curr-scroll.is-scroller .curr-head {
@@ -2934,8 +3467,20 @@
         margin-bottom: 0;
       }
 
+      /* The gap under the video, and it is deliberately the same distance as
+         the gap above the Learn more button below the bullets -- so the two
+         things that bracket the bullet list sit off it by an equal amount.
+
+         Stated as two numbers that happen to agree would be a coincidence
+         waiting to break, so they are written to agree by construction. Both
+         sides read --read-more-size off the slide: the button takes it as its
+         font-size and adds a margin-top of one em of its own, and this takes
+         it as the gap. An em in a var() resolves against whichever element
+         uses it, and .curr-copy sets no size of its own, so both land on the
+         same number of slide ems. Retune --read-more-size and the pair stays
+         matched. */
       .curr-scroll.is-scroller .curr-cols {
-        gap: 1.1em;
+        gap: var(--read-more-size);
       }
 
       /* Full width, so the video's edges land on the timeline's dates the way
@@ -2950,58 +3495,372 @@
       }
 
       .curr-scroll.is-scroller .module-points {
-        gap: 0.2em;
+        gap: 0.24em;
       }
 
       .curr-scroll.is-scroller .module-points li {
-        font-size: 0.92em;
+        font-size: 1.01em;
         line-height: 1.4;
       }
 
       .curr-scroll.is-scroller .read-more {
-        margin-top: 0.9em;
+        /* One line of its own type. See the note on .curr-cols above -- this
+           is the other half of that pair. */
+        font-size: var(--read-more-size);
+        margin-top: 1em;
         padding: 0.55em 1em;
         width: 100%;
         justify-content: center;
       }
     }
 
-    /* --- Instructor --- */
+    /* --- Instructor ---
+       The one place on the page where the person teaching the course is the
+       page, rather than a thumbnail beside it. A full-bleed band: the room he
+       actually plays in on the right, the copy over the purple haze on the
+       left, no frame around either.
 
-    .instructor {
-      display: grid;
-      grid-template-columns: 200px 1fr;
-      gap: 2.5em;
-      align-items: start;
+       It is a room the page walks into and back out of, so it is built in
+       three layers -- the purple it is lit by, the photograph, and a scrim
+       that returns both to the page's black at the top and bottom edges. The
+       transition is the same one the final CTA makes, for the same reason: an
+       image band with hard edges reads as a banner dropped on the page, and
+       one that arrives out of the black reads as somewhere the page went. */
+
+    .instructor-band {
+      position: relative;
+      max-width: none;
+      padding: 8em 2em;
+      /* Its own stacking context. The layers below are ordered against each
+         other and nothing outside should be able to interleave with them --
+         the sticky timeline in particular passes over this band on its way
+         down the page. */
+      isolation: isolate;
+      /* The photograph is sized to the band's height, so on a narrow-but-tall
+         band it is wider than the band is. It hangs off the left, under the
+         copy, and is clipped here rather than allowed to widen the document
+         the way the timeline's cursor once did. */
+      overflow: hidden;
+      /* The light in the room, carrying on past where the photograph stops.
+         Sampled from the photograph's own left edge (#432abd at the middle of
+         it, cooler and darker toward the corners) so the feathered seam has
+         nothing to give away. */
+      background:
+        radial-gradient(120% 90% at 78% 42%, #4a26ab 0%, rgba(74, 38, 171, 0) 62%),
+        linear-gradient(105deg, #190a3f 0%, #2a1268 42%, #3a1c8c 78%, #35197f 100%);
+    }
+
+    /* The photograph. Height-fitted and anchored right rather than covering
+       the band, because the source is portrait and a cover would crop it to a
+       letterbox slice of his chest at any width worth having. Fitted to the
+       height instead, it keeps its whole composition -- ball, face, shoulders
+       -- and simply occupies however much of the right side that comes to.
+       What is left is the copy's half, and it is real photograph there too,
+       feathered rather than cut.
+
+       An element and not a background, which matters for one reason above the
+       others: the feather has to reach fully transparent exactly at the
+       photograph's left edge, and that edge is wherever the band's height puts
+       it. As a background on a full-width layer the mask could only be
+       measured against the band, so the ramp reached the edge already part
+       opaque and drew a soft vertical seam down the whole section -- visible,
+       and in a different place at every width. On the image's own box the
+       percentages are the image's, so the feather starts where it starts.
+       Being an element also gets the man in the picture an alt attribute back,
+       which a CSS background could never have given him. */
+    .instructor-band picture {
+      display: contents;
     }
 
     .instructor-photo {
-      width: 200px;
-      height: 200px;
-      border-radius: 0.5em;
+      position: absolute;
+      top: 0;
+      right: 0;
+      z-index: -2;
+      height: 100%;
+      width: auto;
+      max-width: none;
       object-fit: cover;
+      /* Two fifths of the picture, which lands the fully-lit part just left of
+         his shoulder at every width the band is laid out at. */
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 40%);
+      mask-image: linear-gradient(to right, transparent 0%, #000 40%);
     }
 
+    /* The edges. Top and bottom return to the page's own background so the
+       band has no border -- the rules above and below it land on black, and
+       measure the same as the other three. The left is a gentle darkening for
+       the copy; the photograph's haze is already dark enough for white text on
+       its own, so this is insurance against the bright bokeh, not a curtain. */
+    .instructor-band::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background:
+        linear-gradient(to right,
+          rgba(16, 7, 44, 0.34) 0%,
+          rgba(16, 7, 44, 0.16) 38%,
+          rgba(16, 7, 44, 0) 62%),
+        linear-gradient(to bottom,
+          var(--bg) 0%,
+          rgba(10, 10, 15, 0) 15%,
+          rgba(10, 10, 15, 0) 82%,
+          var(--bg) 100%);
+    }
+
+    .instructor-inner {
+      position: relative;
+      max-width: 1140px;
+      margin: 0 auto;
+    }
+
+    /* Narrower than the band by a good margin: the copy has to stay clear of
+       him, and the measure is better for it anyway. */
+    .instructor-copy {
+      max-width: 30em;
+    }
+
+    .instructor-copy p+p {
+      margin-top: 1em;
+    }
+
+    /* On the photograph, the muted grey the rest of the page uses for a lead
+       goes flat and slightly dirty. Everything in here is white, at the
+       weights the mockup had. */
+    .instructor-band h2 {
+      font-size: 2.4em;
+      text-shadow: 0 2px 14px rgba(8, 3, 24, 0.55);
+    }
+
+    .instructor-band .section-lead {
+      color: var(--text);
+      font-size: 1.22em;
+      max-width: 26em;
+      margin-bottom: 1.6em;
+      text-shadow: 0 1px 10px rgba(8, 3, 24, 0.6);
+    }
+
+    .instructor-band .instructor-copy p {
+      color: rgba(255, 255, 255, 0.88);
+      text-shadow: 0 1px 10px rgba(8, 3, 24, 0.6);
+    }
+
+    .instructor-band .instructor-copy a {
+      color: #fff;
+      text-decoration: underline;
+      text-decoration-style: dotted;
+      text-underline-offset: 0.2em;
+    }
+
+    /* Glass rather than the page's dark card: on a lit background a panel of
+       --surface reads as a hole punched in the photograph. */
+    .instructor-band .credential {
+      border-color: rgba(255, 255, 255, 0.22);
+      background: rgba(255, 255, 255, 0.1);
+      -webkit-backdrop-filter: blur(14px) saturate(1.3);
+      backdrop-filter: blur(14px) saturate(1.3);
+    }
+
+    .instructor-band .credential .label {
+      color: rgba(255, 255, 255, 0.74);
+      font-size: 0.74em;
+      /* Uppercase and letterspaced at three quarters size goes thin on a lit
+         background in a way it doesn't on the page's black. 600 is the next
+         weight the family is loaded at, and it is enough. */
+      font-weight: 600;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      line-height: 1.35;
+    }
+
+    /* --- The stats, lit by the room they are sitting in ---
+       Every colour below is sampled out of the photograph itself: the sky blue
+       off the ceiling wash (#69A7DF), the mirror ball's pale lavender
+       (#D3BEF6), the violet and magenta of the lights behind him (#9957E6,
+       #9C40C5). Lit rather than tinted -- the point is that the figures look
+       like they are catching what is falling on them, not like they have been
+       recoloured.
+
+       Lightened by raising each one's lightness and leaving its saturation
+       alone, rather than by mixing it toward white. Mixing with white is the
+       obvious way to do it and it takes the colour out on the way: the first
+       pass came back a row of greys with a hint of lilac, near enough
+       identical to each other, and the differences between the three stops
+       stopped being visible at text size. Holding the saturation and moving
+       only the lightness keeps them pale and keeps them coloured.
+
+       The three are windows on to one field rather than three unrelated
+       gradients. It runs sky -> lavender -> violet -> magenta, and each stat
+       takes the next slice of it, so read left to right along the row they
+       hand off to each other; read alone, each is its own colour. The angle
+       walks round with them, which is what stops the row looking like one
+       gradient photocopied three times.
+
+       Against the band's brightest purple the palest of these is 7.9:1 and the
+       deepest 3.3:1. These are 1.8em at weight 900, so even the bottom of that
+       clears the 3:1 that large text needs -- and the deep stops are endpoints
+       that only ever land on a few glyphs, never a whole figure.
+
+       Both halves inside the @supports, following the pill's shimmer: an
+       engine that has the gradient but not the clip would paint a block of
+       lavender behind the digits, and colour: transparent without a gradient
+       to fill the glyphs would lose the figures altogether. Either both apply
+       or neither does, and neither leaves the number unreadable. */
+    @supports (-webkit-background-clip: text) or (background-clip: text) {
+      .instructor-band .credential .number {
+        /* Only as wide as the digits. Left as a block the gradient would be
+           laid across the whole card and the text would sample whatever
+           happened to be behind it -- a different slice in each stat depending
+           on how long the words are, which is the one kind of variation not
+           wanted here. */
+        width: fit-content;
+        background-image: linear-gradient(var(--stat-angle),
+            var(--stat-from) 0%,
+            var(--stat-lift) 46%,
+            var(--stat-to) 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      /* Off-square on purpose. A flat 90deg would blend across only, and the
+         vertical fall of the light in the photograph is half of what makes it
+         read as light. */
+      .instructor-band .credential:nth-child(1) .number {
+        --stat-angle: 104deg;
+        --stat-from: #82baed;
+        --stat-lift: #e1d2f9;
+        --stat-to: #c9a2f6;
+      }
+
+      .instructor-band .credential:nth-child(2) .number {
+        --stat-angle: 120deg;
+        --stat-from: #ceb7f5;
+        --stat-lift: #ede4fb;
+        --stat-to: #b37bf4;
+      }
+
+      .instructor-band .credential:nth-child(3) .number {
+        --stat-angle: 136deg;
+        --stat-from: #c399f5;
+        --stat-lift: #e4d7f9;
+        --stat-to: #c67fe6;
+      }
+    }
+
+    @media (max-width: 1250px) {
+      .instructor-band {
+        padding: 7em 2em;
+      }
+
+      /* Where the photograph stops fitting. It is 1.25 times as wide as it is
+         tall and it is sized to the band's height, so it runs off the left of
+         the screen once the viewport is narrower than 1.25 band-heights --
+         about 1250px, which is where this starts. Off the left it takes the
+         feather with it, and the copy ends up on a fully opaque photograph:
+         at 1024 the lead ran straight across the lit mirror ball.
+
+         Capped, the image crops toward its own right instead, which is where
+         he is, and the feather stays on screen where the copy needs it. */
+      .instructor-photo {
+        max-width: 74%;
+        object-position: 72% center;
+      }
+
+      /* And the copy pulls in to meet it, so the measure ends before the
+         feather has finished. */
+      .instructor-copy {
+        max-width: 26em;
+      }
+
+      .instructor-band::after {
+        background:
+          linear-gradient(to right,
+            rgba(16, 7, 44, 0.72) 0%,
+            rgba(16, 7, 44, 0.5) 45%,
+            rgba(16, 7, 44, 0.15) 78%),
+          linear-gradient(to bottom,
+            var(--bg) 0%,
+            rgba(10, 10, 15, 0) 15%,
+            rgba(10, 10, 15, 0) 82%,
+            var(--bg) 100%);
+      }
+    }
+
+    /* A phone has no left half to give him, so the band stops being a
+       side-by-side and becomes a stack: the photograph across the top at the
+       portrait crop it was shot in, dissolving downward into the purple, and
+       the copy underneath on the same light. Still one room, entered the same
+       way. */
     @media (max-width: 640px) {
-      .instructor {
-        grid-template-columns: 1fr;
+      .instructor-band {
+        padding: 0 0 5em;
       }
 
       .instructor-photo {
-        /* The column is full width here, so the old 140px thumbnail looked
-           like an afterthought next to it. */
+        left: 0;
         width: 100%;
-        max-width: 320px;
-        height: auto;
-        aspect-ratio: 1;
+        max-width: none;
+        /* The one length the phone layout is built on. The picture gets this
+           much of the screen, and the copy starts far enough down it to sit in
+           the part that has already dissolved.
+
+           The locked unit, not raw vh: a phone's toolbar sliding away changes
+           vh mid-scroll, and here that would re-cut the photograph and move
+           the copy up its face while it was being read. */
+        height: calc(var(--vh, 1vh) * 60);
+        object-position: center 18%;
+        -webkit-mask-image: linear-gradient(to bottom, #000 46%, transparent 100%);
+        mask-image: linear-gradient(to bottom, #000 46%, transparent 100%);
+      }
+
+      /* The band runs to two or three screens here, so a percentage fade would
+         be a fade several screens long at the bottom and none at all at the
+         top. Stated as a distance instead, which is what it is: the page goes
+         from black to the room over about a tenth of a screen, and back. */
+      .instructor-band::after {
+        background:
+          linear-gradient(to bottom,
+            var(--bg) 0,
+            rgba(10, 10, 15, 0) calc(var(--vh, 1vh) * 11),
+            rgba(10, 10, 15, 0) calc(100% - var(--vh, 1vh) * 14),
+            var(--bg) 100%);
+      }
+
+      /* Where the copy starts, and therefore how much of him is above it.
+         Measured against the same 60 the photograph is given: at 48 the
+         heading lands where the picture is about a third of the way through
+         dissolving, which is clear of his chin and still on him. Both move
+         together on a short phone as well as a tall one. */
+      .instructor-inner {
+        padding: calc(var(--vh, 1vh) * 48) 1.5em 0;
+      }
+
+      .instructor-copy {
+        max-width: none;
+      }
+
+      .instructor-band h2 {
+        font-size: 2em;
+      }
+
+      .instructor-band .section-lead {
+        font-size: 1.1em;
       }
     }
 
+    /* Three of them, and they say short things, so they go in a row wherever
+       there is room for one -- 2+1 only once the row would start truncating.
+       Wider than the copy above them on purpose: they are the section's
+       receipts, and reading as a band across the bottom is the point. */
     .credential-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(auto-fit, minmax(11em, 1fr));
       gap: 1em;
-      margin-top: 1.5em;
+      margin-top: 2em;
+      max-width: 40em;
     }
 
     .credential {
@@ -3109,19 +3968,26 @@
     }
 
     @media (max-width: 640px) {
+      /* The close button used to need its own inset here to stay level with
+         the label under the smaller padding. It is laid out in the row now, so
+         it follows this on its own. */
       .modal-panel {
         padding: 1.8em 1.3em;
         max-height: 88vh;
       }
+    }
 
-      /* .modal specificity on purpose: this block sits above the base rule in
-         the source, and a media query adds no specificity of its own, so a
-         bare .modal-close here loses to it and the override silently does
-         nothing. */
-      .modal .modal-close {
-        top: 1.33em;
-        right: 1em;
-      }
+    /* The week label and the close button share a row rather than the button
+       being positioned over the corner. Laid out, its right edge lands on the
+       panel's content edge -- the same line the heading and body text end on --
+       instead of on a hand-set inset that has to be re-tuned every time the
+       panel's padding changes. align-items centres the two against each other,
+       whichever is taller. */
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1em;
     }
 
     .modal-week {
@@ -3160,13 +4026,13 @@
       color: var(--text-muted);
     }
 
-    /* Smaller ring, larger glyph. Its top is set from the panel's own padding
-       so the X sits on the same line as the week label beside it rather than
-       floating above it. */
+    /* Smaller ring, larger glyph. Placed by .modal-head, not by inset, so it
+       cannot drift out of line with the week label or the content edge.
+       flex-shrink because the label is the part that should give if the row
+       ever runs out of room -- a squashed circle would be the more obvious
+       failure. */
     .modal-close {
-      position: absolute;
-      top: calc(2.4em - 0.95em);
-      right: 1.1em;
+      flex: 0 0 auto;
       width: 1.9em;
       height: 1.9em;
       border-radius: 50%;
@@ -3247,29 +4113,36 @@
       font-size: 1.2em;
       position: relative;
       text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
-      max-width: 540px;
+      /* Was 540px, which set a shorter line than the copy wanted; this is
+         around 60 characters at this size, still inside a comfortable measure.
+         Deliberately not the form's width below -- see .signup, which is a
+         narrower column on purpose. Only desktop feels this;
+         below ~680px the viewport and the section's padding are the narrower
+         constraint. */
+      max-width: 640px;
       margin-left: auto;
       margin-right: auto;
     }
 
+    /* Narrower than the paragraph above it. A stacked form is a short column
+       of three identical bars, and it wants to be about as wide as one of them
+       should be rather than as wide as the text it sits under -- a 640px-wide
+       text field reads as a page element, not as something to type a first
+       name into. Centred under the copy instead of edge-matched to it. */
     .signup {
       position: relative;
-      max-width: 640px;
+      max-width: 480px;
       margin: 0 auto;
     }
 
+    /* One column at every width. It was two fields and a button in a row on
+       desktop, which put three different jobs on one line and left each of
+       them narrower than it wanted; stacked, they are the same shape and the
+       eye runs straight down them. The fields stretch to the column, and so
+       does the button -- a grid item fills its track unless told not to. */
     .signup-fields {
       display: grid;
-      /* The email needs more room than the first name, or its placeholder
-         truncates once the button has taken its share. */
-      grid-template-columns: 0.75fr 1.2fr auto;
       gap: 0.6em;
-    }
-
-    @media (max-width: 640px) {
-      .signup-fields {
-        grid-template-columns: 1fr;
-      }
     }
 
     .signup input[type="text"],
@@ -3294,22 +4167,18 @@
       box-shadow: 0 0 0 3px var(--accent-glow);
     }
 
+    /* No size of its own: it takes .btn-primary's type and padding, the same
+       as the hero's, so the two really are one button in two places rather
+       than two that resemble each other. Its padding no longer competes with
+       anything now that it has a row to itself. nowrap so a narrow phone
+       breaks the column before it breaks the label. */
     .signup button[type="submit"] {
       white-space: nowrap;
-      font-size: 1em;
-      padding: 0.75em 1.8em;
     }
 
     .signup button[disabled] {
       opacity: 0.6;
       cursor: not-allowed;
-    }
-
-    .signup-note {
-      font-size: 0.9em;
-      color: var(--text-muted);
-      margin-top: 1em;
-      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
     }
 
     .signup-status {
@@ -3337,143 +4206,70 @@
     }
 
 
-    /* --- Footer ---
-       The page proper is a sheet of near-black that ends with a hard, shadowed
-       edge. The footer is a layer of dark purple underneath it, uncovered as
-       the sheet scrolls away, with its content lagging slightly behind the
-       scroll so it reads as being revealed rather than pushed up. */
-
+    /* The page proper. The heavy drop shadow it used to carry was there to
+       give the footer something to be revealed from under; with the footer
+       flat there is nothing beneath it to cast onto. */
     .sheet {
       position: relative;
       z-index: 1;
       background: var(--bg);
-      box-shadow:
-        0 1.2em 3em rgba(0, 0, 0, 0.85),
-        0 3em 7em rgba(0, 0, 0, 0.75);
     }
 
-    /* Its own background, so the purple canvas does not show through the
-       bottom of the page. */
+    /* --- Footer ---
+       A plain block at the end of the page: a few credits, a sign-off, a
+       colophon.
+
+       It used to be a layer of dark purple underneath the page, uncovered as
+       the sheet of near-black scrolled away, with its contents lagging behind
+       the scroll so it read as being revealed rather than arriving. That is
+       gone, and with it footer.js -- which drove the lag from a scroll
+       listener that measured the footer and every acknowledgement on it, once
+       a frame. Two forced layouts per frame for the length of the page, for an
+       effect nobody was going to see twice. */
     .site-footer {
-      --fp: 0;
       position: relative;
-      z-index: 0;
-      overflow: hidden;
-      background:
-        radial-gradient(120% 80% at 50% 0%, #2a1145 0%, rgba(42, 17, 69, 0) 70%),
-        linear-gradient(180deg, #1d0c33 0%, #170a2a 55%, #0f0620 100%);
-      color: var(--text);
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
       /* Bottom inset so the last line clears the home indicator, which the
          page now paints behind. */
-      padding: 8em 2em calc(4em + env(safe-area-inset-bottom, 0px));
+      padding: 4.5em 2em calc(3em + env(safe-area-inset-bottom, 0px));
       text-align: center;
-      border-top: none;
-      font-size: 1em;
+      font-size: 0.95em;
     }
 
     .footer-inner {
-      max-width: 760px;
+      max-width: 680px;
       margin: 0 auto;
-      transform: translateY(calc((1 - var(--fp)) * 7vh));
-    }
-
-    .footer-inner h2 {
-      font-size: clamp(1.9em, 3.4vw, 2.6em);
-      margin-bottom: 0.5em;
-    }
-
-    .footer-lede {
-      color: #c3aee0;
-      max-width: 34em;
-      margin: 0 auto 3.5em;
-    }
-
-    .thanks {
-      list-style: none;
       display: grid;
-      gap: 1.6em;
-      text-align: left;
-      margin-bottom: 6em;
+      gap: 0.9em;
     }
 
-    .thanks li {
-      color: #b8a3d6;
-      line-height: 1.55;
-      opacity: 0;
-      transform: translateY(1.2em);
-      transition: opacity 620ms var(--ease), transform 620ms var(--ease);
-    }
-
-    .thanks li.is-in {
-      opacity: 1;
-      transform: none;
-    }
-
-    .thanks strong {
-      color: #fff;
-      font-weight: 700;
-    }
-
-    .thanks a {
-      color: #fff;
+    .site-footer a {
+      color: var(--text);
       text-decoration: underline;
-      text-decoration-color: rgba(255, 255, 255, 0.35);
+      text-decoration-color: rgba(255, 255, 255, 0.3);
       text-decoration-thickness: 1px;
       text-underline-offset: 0.22em;
       transition: text-decoration-color 200ms;
     }
 
-    .thanks a:hover {
+    .site-footer a:hover {
       text-decoration-color: #fff;
     }
 
-    /* --- The reward --- */
-
-    .reward-cue {
-      font-size: 0.92em;
-      font-weight: 700;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: #8f76b8;
-      margin-bottom: 1.4em;
-    }
-
-    .reward-frame {
-      position: relative;
-      border-radius: 0.75em;
-      overflow: hidden;
-      box-shadow: 0 2em 5em rgba(0, 0, 0, 0.6);
-    }
-
-    .reward-caption {
-      margin-top: 1.6em;
-      color: #8f76b8;
-      font-size: 0.95em;
+    /* The sign-off, set apart from the credits above it without a rule to do
+       the separating -- at this size a border would be the loudest thing in
+       the footer. */
+    .footer-signoff {
+      margin-top: 0.6em;
+      color: var(--text);
     }
 
     .colophon {
-      margin-top: 6em;
-      padding-top: 2.5em;
-      border-top: 1px solid rgba(255, 255, 255, 0.09);
-      color: #7c649f;
-      font-size: 0.9em;
-    }
-
-    .colophon a {
-      color: #a68fcb;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-
-      .footer-inner,
-      .thanks li {
-        transform: none !important;
-        transition: none !important;
-      }
-
-      .thanks li {
-        opacity: 1;
-      }
+      margin-top: 1.6em;
+      color: #6f6f80;
+      font-size: 0.92em;
     }
 
     /* --- Responsive --- */
@@ -3561,6 +4357,22 @@
       .final-cta {
         background-image: linear-gradient(to bottom, var(--bg) 0%, rgba(10, 10, 15, 0.5) 30%, rgba(10, 10, 15, 0.5) 70%, var(--bg) 100%), url('final-cta-3200.webp');
       }
+
+      /* The instructor photograph is fitted to the band's height, not the
+         viewport's width, so what it needs is set by how tall the band is --
+         about 1050 CSS px across on a desktop, which is 2100 real ones here.
+         1780 is the whole crop; past that there is no more picture. */
+      .instructor-band::before {
+        background-image: url('instructor-1780.webp');
+      }
+    }
+
+    /* The phone's portrait crop, at the density a phone actually has. Sits
+       after the layout rule that names the 760, so it replaces it. */
+    @media (max-width: 640px) and (min-resolution: 2dppx) {
+      .instructor-band::before {
+        background-image: url('instructor-tall-1400.webp');
+      }
     }
     /* --- Reduced motion ---
        Last in the stylesheet, and it has to be. A media query adds no
@@ -3575,9 +4387,9 @@
     @media (prefers-reduced-motion: reduce) {
 
       /* Straight to the end state: struck price, new price, tag, no reveal. */
-      .hero-price .price-was,
-      .hero-price .price-now,
-      .hero-price-tag {
+      .price-reveal .price-was,
+      .price-reveal .price-now,
+      .comet {
         animation: none;
       }
 
@@ -3587,34 +4399,34 @@
          stated here: a completed lap with the head cooled. Set on the element,
          which is where the trace would have animated them and where both rings
          inherit from. */
-      .hero-price-tag {
+      .comet {
         --tag-angle: 360deg;
         --tag-head: var(--warm);
       }
 
-      .hero-price-tag::after {
+      .comet::after {
         animation: none;
         opacity: 1;
       }
 
       /* The glow belongs to a moving head. Without the movement there is
          nothing for it to be the glow of. */
-      .hero-price-tag .tag-glow {
+      .comet .tag-glow {
         animation: none;
         opacity: 0;
       }
 
       /* Left-aligned leaves the plain orange end of the gradient over the
          letters -- the shimmer's resting colour, with none of its travel. */
-      .hero-price-tag .tag-label {
+      .price-reveal-tag .tag-label {
         animation: none;
         opacity: 1;
         background-position: 0 0;
       }
 
-      .hero-price .price-was::after {
+      .price-reveal .price-was::after {
         animation: none;
-        transform: translateY(-50%) scaleX(1);
+        transform: scaleX(1);
       }
 
       /* The solid border on the buttons is the whole treatment here: still
@@ -3622,12 +4434,12 @@
       .site-nav .cta-nav a,
       .site-nav .cta-nav a:hover,
       .site-nav .cta-nav.is-visible a,
-      .hero-content .btn-primary,
-      .hero-content .btn-primary:hover {
+      .btn-primary.btn-comet,
+      .btn-primary.btn-comet:hover {
         animation: none;
       }
 
-      .hero-content .btn-primary::before,
+      .btn-primary.btn-comet::before,
       .site-nav .cta-nav.is-visible a::before {
         animation: none;
         opacity: 0;
@@ -3673,18 +4485,19 @@
         <!-- The fourth cell of the row. The tag sits under the figures rather
              than beside them so the cell stays the same width as the other
              three; the row itself wraps on its own at narrow widths. -->
-        <span class="hero-price">
-          <span class="hero-price-figures stat">
-            <svg class="stat-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/></svg><s class="price-was">$1,600</s><span class="price-now">$800</span>
-          </span>
-          <!-- The empty span is the comet's glow. It exists because a blur has
-               to sit on a different element from the mask it softens; see
-               .tag-glow in the stylesheet. -->
-          <span class="hero-price-tag"><span class="tag-glow" aria-hidden="true"></span><span class="tag-label">Launch price</span></span>
+        <!-- The comet traces this pill itself. There was a second, smaller
+             pill under it reading "Launch price" and the two rings stacked
+             badly; the label lives on down in "How it works", where there is
+             room for it and a price to attach it to. What is left here is one
+             pill with a light going round it. The empty span is that light's
+             glow -- a blur has to sit on a different element from the mask it
+             softens; see .tag-glow in the stylesheet. -->
+        <span class="price-reveal">
+          <span class="price-reveal-figures stat comet"><span class="tag-glow" aria-hidden="true"></span><svg class="stat-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/></svg><s class="price-was">$1,600</s><span class="price-now">$800</span></span>
         </span>
       </div>
 
-      <a class="btn-primary" href="#notify">Join a free sample class</a>
+      <a class="btn-primary btn-comet" href="#notify">Join a free sample class</a>
     </div>
   </div>
 
@@ -3704,8 +4517,6 @@
        flow under the title, hold at the top through the weeks, and leave
        with the last one -- no element outside this band should be able to
        see it or push it around. -->
-  <hr class="rule rule-d">
-
   <div class="curr-band">
     <div class="hero-intro" id="hero-intro">
       <div class="hero-intro-inner">
@@ -3892,7 +4703,7 @@
                 <span class="module-week">Week 3</span>
                 <h3>Gear</h3>
                 <p class="module-outcome">
-                Learn how to reason about unfamiliar gear and get the most out of any stack.
+                Learn how to reason about unfamiliar gear and feel at home with any equipment.
                 </p>
               </header>
 
@@ -4059,8 +4870,7 @@
                 <span class="module-week">Week 6</span>
                 <h3>Playing</h3>
                 <p class="module-outcome">
-                Fill the gaps in your self-taught technique&mdash;wider genre range, more dynamic mixes, and energy you
-                can build on demand.
+                Fill in gaps in your knowledge, expand your repertoire, and improve your dynamic range.
                 </p>
               </header>
 
@@ -4215,65 +5025,70 @@
     </div>
   </div><!-- /.curr-band -->
 
-  <hr class="rule">
+  <!-- Instructor.
+       No break above or below this one. The band arrives out of the page's
+       black and returns to it, which is the break -- a waveform drawn across
+       the seam would be marking a transition that is already being made, the
+       way the final CTA has never had one either. -->
+  <section class="instructor-band">
+    <!-- Two crops of one frame, and the shape is the point rather than the
+         size: the band puts the picture beside the copy on a desktop and above
+         it on a phone, and a landscape crop scaled down to a phone would be a
+         wide strip of his shoulders. sizes is the displayed width, which here
+         is set by the band's height rather than the viewport's width -- about
+         1120px on a desktop -- so it is stated flat instead of in vw. -->
+    <picture>
+      <source media="(max-width: 640px)" sizes="100vw"
+        srcset="instructor-tall-760.webp 760w, instructor-tall-1400.webp 1400w" />
+      <img class="instructor-photo" src="instructor-1400.webp"
+        srcset="instructor-1400.webp 1400w, instructor-1780.webp 1780w"
+        sizes="1120px" width="1780" height="1424"
+        loading="lazy" decoding="async"
+        alt="Avand behind the decks, headphones in both hands, a mirror ball lit up above him" />
+    </picture>
 
-  <!-- Instructor -->
-  <section>
-    <h2>Your Instructor</h2>
-    <p class="section-lead">
-      I&rsquo;m Avand&mdash;a DJ and software engineer who has spent over a decade
-      obsessing over how sound systems work so the music sounds exactly right.
-    </p>
-
-    <div class="instructor">
-      <!-- Square sources, because object-fit: cover crops this to a square
-           anyway. sizes tells the browser the display width before layout
-           exists, so it can pick before it has done any: 320px is the
-           mobile cap, 200px the desktop size. width/height hold the space
-           so nothing jumps when it lands. -->
-      <img class="instructor-photo" src="avand-400.webp"
-        srcset="avand-400.webp 400w, avand-640.webp 640w, avand-960.webp 960w"
-        sizes="(max-width: 640px) 320px, 200px"
-        width="400" height="400" loading="lazy" decoding="async"
-        alt="Avand" />
-      <div>
+    <div class="instructor-inner">
+      <div class="instructor-copy">
+        <h2>Your Instructor</h2>
+        <p class="section-lead">
+          I&rsquo;m Avand&mdash;a DJ and software engineer who has spent over a decade
+          obsessing over how sound systems work so the music sounds exactly right.
+        </p>
         <p>
           I&rsquo;ve played everywhere from Burning Man art cars and mobile rigs that I set up
           myself to nightclubs around the world. I&rsquo;ve used CDJs, controllers,
           all-in-ones, Traktor, rekordbox, and laptop-only setups. I don&rsquo;t have one
-          &rdquo;right way&rdquo;&mdash;I just have some well-formed opinions born from real-world
-          experience across the full range of gear and environments.
+          &rdquo;right way&rdquo;&mdash;I just have some well-formed opinions born from years of
+          real-world experience across the full range of gear and environments.
         </p>
-        <p style="margin-top: 1em;">
-          I was an instructor at <a href="https://generalassemb.ly/" target="_blank" style="color: var(--text); text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 0.2em;">General Assembly</a>, where I logged
+        <p>
+          I was an instructor at <a href="https://generalassemb.ly/" target="_blank">General Assembly</a>, where I logged
           700+ hours in front of students and designed my own curriculum from
           scratch. I love to teach and share my experience with others. I&rsquo;ve
           also worked in software for a long time so technical details are my jam.
         </p>
+      </div>
 
-        <div class="credential-grid">
-          <div class="credential">
-            <div class="number">13 years</div>
-            <div class="label">DJ experience</div>
-          </div>
-          <div class="credential">
-            <div class="number">700+ hours</div>
-            <div class="label">in-class teaching &amp; curriculum design</div>
-          </div>
-          <div class="credential">
-            <div class="number">20+ years</div>
-            <div class="label">software engineering</div>
-          </div>
+      <div class="credential-grid">
+        <div class="credential">
+          <div class="number">13 years</div>
+          <div class="label">DJ experience</div>
+        </div>
+        <div class="credential">
+          <div class="number">700+ hours</div>
+          <div class="label">in-class teaching</div>
+        </div>
+        <div class="credential">
+          <div class="number">20+ years</div>
+          <div class="label">software engineering</div>
         </div>
       </div>
     </div>
   </section>
 
-  <hr class="rule rule-b">
-
   <!-- Format -->
   <section>
-    <h2>How it works</h2>
+    <h2>How It Works</h2>
     <p class="section-lead">
       This first cohort will be a small, focused group with room for real questions and hands-on work.
     </p>
@@ -4281,60 +5096,71 @@
     <div class="format-grid">
       <div class="format-item">
         <div class="value">8 weeks</div>
-        <div class="desc">Thursdays 6&ndash;8 PM MT &middot; Oct 1&ndash;Nov 19, 2026</div>
+        <div class="desc">Thursdays 6&ndash;8 PM MT<br />Oct 1&ndash;Nov 19, 2026</div>
       </div>
       <div class="format-item">
         <div class="value">2 hrs / wk</div>
-        <div class="desc">Live online&mdash;lectures, demos, and hands-on work, plus ~30 min of homework each week</div>
+        <div class="desc">Live online video calls with ~30 minutes of homework each week</div>
       </div>
       <div class="format-item">
         <div class="value">12 students</div>
         <div class="desc">Small, focused, plenty of space for answering your specific questions</div>
       </div>
       <div class="format-item">
-        <div class="value"><s class="price-was" style="font-weight: 400;">$1,600</s> $800</div>
-        <div class="desc">Launch price for the first cohort, with a full money-back guarantee</div>
+        <!-- The hero's reveal, run a second time. Same block, same classes,
+             same timings -- the only difference is that this one is held until
+             it is on screen, and starts a beat later once it is. No stat icon
+             here: the other three cells of this grid don't carry one. -->
+        <div class="value price-reveal" data-reveal-on-view>
+          <span class="price-reveal-figures"><s class="price-was">$1,600</s><span class="price-now">$800</span></span>
+          <!-- The empty span is the comet's glow; see .tag-glow. -->
+          <span class="price-reveal-tag comet"><span class="tag-glow" aria-hidden="true"></span><span class="tag-label">Launch price</span></span>
+        </div>
+        <div class="desc">Special pricing for the 1st cohort with a money-back guarantee</div>
       </div>
     </div>
   </section>
 
-  <hr class="rule rule-c">
-
-  <!-- Guarantee -->
+  <!-- Guarantee.
+       No break above it either: the panel is bordered on all four sides, so it
+       already reads as its own thing arriving. A waveform above a box is two
+       separators stacked. -->
   <section>
     <div class="guarantee">
-      <h2>Money-back guarantee</h2>
+      <h2>Money-Back Guarantee</h2>
       <p>
-        This is the first cohort, and while I&rsquo;m confident it will be great,
-        there may also be some rough edges. If the course falls below your
-        expectations for any reason, I&rsquo;ll refund up to 100% of your tuition.
+        I am committed to making this first cohort really great. If the course
+        falls below your expectation for any reason, I&rsquo;ll refund up to 100%
+        of your tuition.
       </p>
     </div>
   </section>
 
   <!-- Final CTA -->
   <div class="final-cta" id="notify">
-    <h2>Start with a free sample class</h2>
+    <h2>Start with a Free Sample Class</h2>
     <p>
-      One free sample hour before the cohort starts. I&rsquo;ll teach you the AI workflow I
-      use to find, buy, and import new music automatically&mdash;yours to keep
-      either way&mdash;then answer anything you want to ask. Join the list for the
-      dates, and first word when the 12 spots open at $800.
+      Sign up for a free 1 hour session to get a feel for the kind of step-function
+      improvements you can expect to get out of Headroom. I&rsquo;ll teach you the
+      AI-powered workflow I use to find, buy, and import new music. Then I&rsquo;ll open
+      it up to your questions.
     </p>
 
     <form class="signup" id="signup" novalidate>
       <div class="signup-fields">
         <label class="sr-only" for="su-name">First name</label>
-        <input id="su-name" name="firstName" type="text" placeholder="First name" autocomplete="given-name" required />
+        <!-- data-1p-ignore keeps 1Password's inline menu off these two. It is
+             a two-field mailing list, not a login, and the menu covers the
+             button. autocomplete stays: the browser's own fill is wanted. -->
+        <input id="su-name" name="firstName" type="text" placeholder="First name" autocomplete="given-name" data-1p-ignore required />
         <label class="sr-only" for="su-email">Email address</label>
-        <input id="su-email" name="email" type="email" placeholder="you@example.com" autocomplete="email" required />
-        <button class="btn-primary" type="submit">Send me the dates</button>
+        <input id="su-email" name="email" type="email" placeholder="you@example.com" autocomplete="email" data-1p-ignore required />
+        <button class="btn-primary btn-comet" type="submit">Send me the dates</button>
       </div>
       <!-- Bots fill this in; people never see it. -->
       <div class="hp" aria-hidden="true">
         <label>Company <input type="text" name="company" tabindex="-1" autocomplete="off" /></label>
       </div>
-      <p class="signup-note">Free class dates and first word on the 12 spots. No spam, unsubscribe any time.</p>
       <p class="signup-status" role="status" aria-live="polite"></p>
     </form>
   </div>
@@ -4343,32 +5169,9 @@
 
   <footer class="site-footer" id="site-footer">
     <div class="footer-inner">
-      <h2>Thank you</h2>
-      <p class="footer-lede">
-        None of this happened alone. I want to thank a few of the people that
-        helped me get here.
-      </p>
-
-      <ul class="thanks">
-        <li><strong><a href="https://www.tashablank.com/" target="_blank" rel="noopener">Tasha Blank</a></strong> and <strong><a href="https://phdj.dance" target="_blank" rel="noopener">PhDJ</a></strong> &mdash; for blazing a trail for me to follow and giving me the knowledge, courage, and inspiration to bring this course to life.</li>
-        <li><strong><a href="https://www.ericheiland.com/" target="_blank" rel="noopener">Eric Heiland</a></strong> &mdash; for supporting me in the creative journey, holding me accountable, and for every frame of video on this site.</li>
-        <li><strong><a href="https://soundcloud.com/ziadmtl" target="_blank" rel="noopener">Ziad</a></strong>, <strong>Garrett</strong>, <strong>Jamie</strong>, <strong>Olive</strong>, <strong>Adam</strong>, <strong>Nick</strong>, <strong>Levi</strong>, <strong>Jonny</strong>, and <strong>Gili</strong> &mdash; for inspiration, feedback, connections, and constructive criticism.</li>
-        <li><strong>Anthropic</strong> and <strong>Claude Code</strong> &mdash; for making it easy to build this site and keep editing it without writing a single line of code. I still could. I just didn&rsquo;t have to.</li>
-        <li><strong><a href="https://jessedodds.com/" target="_blank" rel="noopener">Jesse Dodds</a></strong> &mdash; for handing me a two-channel mixer back in 2013 and starting this whole thing.</li>
-        <li><strong><a href="https://www.generalassemb.ly/" target="_blank" rel="noopener">General Assembly</a></strong> &mdash; for creating an opportunity for me to learn that I love to teach!</li>
-        <li><strong><a href="https://burningman.org/" target="_blank" rel="noopener">Burning Man Project</a></strong> and <strong><a href="https://goldenvoice.com/" target="_blank" rel="noopener">Goldenvoice</a></strong> &mdash; for building the kind of spaces where a person can get <em>really</em> inspired.</li>
-      </ul>
-
-      <p class="reward-cue">Still here?</p>
-
-      <div class="reward-frame">
-        <div class="player" data-video="bloopers" data-duration="137.512" data-autoplay data-captions
-          data-label="Blooper reel"></div>
-      </div>
-      <p class="reward-caption">
-        The blooper reel. Recovering from mistakes is half the job anyway.
-      </p>
-
+      <p>Video by <a href="https://www.ericheiland.com/" target="_blank" rel="noopener">Eric Heiland</a></p>
+      <p>Special thanks to Ziad, Garrett, Jamie, Olive, Adam, Nick, Levi</p>
+      <p class="footer-signoff">Built with passion and purpose.</p>
       <div class="colophon">
         <a href="../">avand.fm</a> &middot; Headroom &middot; 2026
       </div>
@@ -4379,8 +5182,10 @@
   <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
     <button class="modal-backdrop" tabindex="-1" aria-label="Close"></button>
     <div class="modal-panel" tabindex="-1">
-      <button class="modal-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6 18 18M18 6 6 18"/></svg></button>
-      <span class="modal-week" id="modal-week"></span>
+      <div class="modal-head">
+        <span class="modal-week" id="modal-week"></span>
+        <button class="modal-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6 18 18M18 6 6 18"/></svg></button>
+      </div>
       <h3 id="modal-title"></h3>
       <div class="modal-body" id="modal-body"></div>
     </div>
@@ -4391,11 +5196,11 @@
        in Cloudflare's edge cache (or Safari's) surviving a hard-reload of the
        page. Bump the number whenever a JS change needs to actually reach a
        phone under test. -->
-  <script src="player.js?v=63" defer></script>
-  <script src="hero.js?v=63" defer></script>
-  <script src="curriculum.js?v=63" defer></script>
-  <script src="timeline.js?v=63" defer></script>
-  <script src="footer.js?v=63" defer></script>
+  <script src="player.js?v=66" defer></script>
+  <script src="hero.js?v=66" defer></script>
+  <script src="curriculum.js?v=66" defer></script>
+  <script src="timeline.js?v=66" defer></script>
+  <script src="price.js?v=66" defer></script>
   <script>
     /* ---------- Module "read more" modal ---------- */
     (function () {
@@ -4539,17 +5344,19 @@
     /* ---------- Newsletter signup ---------- */
     (function () {
       /*
-       * Paste the High Level inbound-webhook URL here. In High Level:
-       * Automation > Workflows > new workflow > add the "Inbound Webhook"
-       * trigger, then copy the URL it generates. It looks like:
+       * The Apps Script Web App that writes each signup into a Google Sheet.
+       * See signup.gs in this directory for the script itself and for how to
+       * deploy it; paste the /exec URL it gives you here. It looks like:
        *
-       *   https://services.leadconnectorhq.com/hooks/<location>/webhook-trigger/<id>
+       *   https://script.google.com/macros/s/<id>/exec
        *
-       * A webhook URL is meant to be public, so unlike an API key it is safe to
-       * ship in a page anyone can view the source of. Until this is filled in,
-       * the form falls back to email so no signup is quietly dropped.
+       * Safe to ship in a page anyone can read the source of: the deployment
+       * can only append rows to one Sheet, which is exactly what this form
+       * does. It cannot read them back. Until it is filled in, the form falls
+       * back to email so no signup is quietly dropped.
        */
-      var CRM_WEBHOOK_URL = "";
+      var SIGNUP_ENDPOINT =
+        "https://script.google.com/macros/s/AKfycbyiqhCLfyrsszqOGrbHxvIwqsAJvCPwzpW6o1FrN4pB2mwZslfeN2F57bcovuRDX-es/exec";
 
       var FALLBACK_EMAIL = "wave@avand.fm";
 
@@ -4585,7 +5392,7 @@
           return;
         }
 
-        if (!CRM_WEBHOOK_URL) {
+        if (!SIGNUP_ENDPOINT) {
           say("Signups aren't wired up yet — email me at " + FALLBACK_EMAIL + " and I'll add you.", "err");
           return;
         }
@@ -4593,19 +5400,38 @@
         button.disabled = true;
         say("Adding you…");
 
-        fetch(CRM_WEBHOOK_URL, {
+        /* No Content-Type header, deliberately, and this is the one thing
+           that reliably breaks this integration.
+
+           A cross-origin POST labelled application/json is not a "simple"
+           request, so the browser sends an OPTIONS preflight first -- and Apps
+           Script Web Apps do not answer OPTIONS. The preflight fails, the real
+           request is never sent, and the script is never reached, so there is
+           nothing in its execution log to find either. It presents as a CORS
+           error against a URL that works perfectly when opened directly.
+
+           A string body with no Content-Type set is sent as text/plain, which
+           is on the CORS safelist, so no preflight happens. The body is still
+           JSON; it is just labelled as text, and signup.gs parses it by hand.
+           Do not add a Content-Type header here. */
+        fetch(SIGNUP_ENDPOINT, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             firstName: name,
             email: email,
             source: "headroom-website",
-            tag: "headroom-waitlist",
             page: window.location.href,
           }),
         })
           .then(function (res) {
             if (!res.ok) throw new Error("bad status " + res.status);
+            return res.json();
+          })
+          .then(function (data) {
+            // Apps Script answers 200 whatever happens; the verdict is in the
+            // body. Treating the status line as the answer would report a
+            // rejected signup as a successful one.
+            if (!data || !data.ok) throw new Error(data && data.error);
             say("You're in. I'll send the class dates shortly.", "ok");
             form.reset();
             if (window.fathom) window.fathom.trackEvent("headroom waitlist signup");

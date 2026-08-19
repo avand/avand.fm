@@ -699,10 +699,16 @@
     }
 
     /* Greys out whichever end has been reached. Volume is the one control here
-       with a limit the viewer can hit and keep pressing. */
+       with a limit the viewer can hit and keep pressing.
+
+       Both ends are dead before the first play. A video sitting on its poster
+       is at full volume and silent, so the pair read as "you can turn this
+       down" -- an offer to adjust a level that is not producing any sound yet.
+       There is nothing to turn down until something is playing. */
     if (this.volDownBtn) {
-      this.volDownBtn.disabled = level <= 0;
-      this.volUpBtn.disabled = level >= 1;
+      var idle = !this.root.classList.contains("has-started");
+      this.volDownBtn.disabled = idle || level <= 0;
+      this.volUpBtn.disabled = idle || level >= 1;
     }
   };
 
@@ -924,6 +930,10 @@
     v.addEventListener("play", function () {
       self.root.classList.add("is-playing", "has-started");
       self.playBtn.setAttribute("aria-label", "Pause");
+      // has-started is half of what disables the volume pair, and it changes
+      // here rather than on a volumechange, so this is the only thing that
+      // brings them back.
+      self.renderVolume();
       self.nudgeControls();
       self.startLyrics();
     });

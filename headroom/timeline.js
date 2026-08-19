@@ -333,6 +333,15 @@
         jumpTarget = -1;
       }, 2400);
 
+      /* Let go of the week being left at the moment the build starts, not when
+         the scroll finally arrives. aria-current is set from the scroll
+         position, so the mark tapped away from kept its glow for the whole
+         journey and only handed it over once the comet had landed -- which
+         read as the old week still being the one on screen while the page was
+         visibly on its way somewhere else. Nothing is current mid-flight;
+         update() names the new one as it arrives. */
+      if (i !== activeIndex) setActive(-1);
+
       curr.jumpTo(i);
     });
   });

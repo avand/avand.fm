@@ -80,7 +80,44 @@
     setPast(true);
   }
 
+  /* Where the reader actually is, asked rather than remembered.
+   *
+   * The observer below is the thing that notices in the ordinary case, but it
+   * reports crossings and not state, and there is a real case it cannot see.
+   * On a phone the hero's button starts below the fold, so it begins life not
+   * intersecting. Reload the page while scrolled down the curriculum and the
+   * browser restores that scroll position in one jump -- the button goes from
+   * off the bottom to off the top without ever being on screen, the ratio is 0
+   * before and 0 after, and no callback is ever delivered. The nav stayed away
+   * and the canvas stayed on its hero purple behind the status bar, which is
+   * exactly what a reload looked like.
+   *
+   * Same shape as the deep-link bug this file already carries a note about,
+   * and the same answer: derive it from the element's position instead of
+   * waiting to be told.
+   */
+  function syncPast() {
+    if (heroCta) setPast(heroCta.getBoundingClientRect().bottom <= 0);
+  }
+
   if (heroCta && navCta && "IntersectionObserver" in window) {
+    /* Once, and then never again.
+     *
+     * The only thing this is here to catch is the restore itself -- a single
+     * event, at load, delivering a scroll position the observer cannot see the
+     * page arrive at. After that the observer is correct about everything,
+     * because from then on the button is crossed rather than jumped over.
+     *
+     * It was a live listener for about an hour and that was a mistake worth
+     * recording. getBoundingClientRect on every scroll frame is a forced
+     * layout on every scroll frame, and it showed up as exactly what this
+     * page spent its whole history removing: the pinned curriculum picked up
+     * a vertical shake. One shot costs one rect read, for good.
+     */
+    window.addEventListener("scroll", syncPast, { passive: true, once: true });
+    // Restoring from the back/forward cache does not re-run load.
+    window.addEventListener("pageshow", syncPast);
+
     var ctaObserver = new IntersectionObserver(
       function (entries) {
         entries.forEach(function (entry) {
@@ -105,7 +142,21 @@
        its hero colour behind the status bar. Settle it once the page has
        finished loading, from the element's actual position. */
     window.addEventListener("load", function () {
-      setPast(heroCta.getBoundingClientRect().bottom <= 0);
+      syncPast();
+
+      /* Again, after every other load handler has run. A deep link to a module
+         is resolved in one of those: it jumps the page to the week and opens
+         the dialog, which sets overflow:hidden on the body. Both happen after
+         this file's handler, so the check above still sees the top of the page
+         -- and once the body cannot scroll, no scroll event ever arrives to
+         correct it through the observer. The canvas stayed on its hero purple
+         behind the status bar for as long as the dialog was open, then snapped
+         to the page colour the moment it closed and scrolling resumed.
+
+         A timeout of 0 is not a guess at how long that takes: load handlers
+         all run in the same task, and this runs in the next one, so it is
+         ordered after them however many there are. */
+      setTimeout(syncPast, 0);
     });
   }
 
