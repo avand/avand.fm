@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   The shell every page under /headroom/ is served in: the landing page and the
-  forty-five glossary entries alike.
+  forty-three glossary entries alike.
 
   One front-matter flag decides which of the two a page is. `landing: true`
   means the Headroom landing page, and it is the only thing that turns on the
@@ -16,6 +16,12 @@
   the breadcrumb in the footer and pull in concepts.css. That contract predates
   this rewrite and the entries still rely on it unchanged.
 -->
+{% comment %}
+  The event-name prefix for every event on this page: the page's own path, so
+  a name in the Fathom dashboard says where it happened without being told.
+  The landing page is /headroom/; everything else here is a concept page. See
+  the naming note at the top of events.js.
+{% endcomment %}{% if page.landing %}{% assign area = "headroom" %}{% else %}{% assign area = "headroom / concepts" %}{% endif %}
 <html lang="en" dir="ltr"{% if page.landing %} class="has-hero"{% endif %}>
 
 <head>
@@ -128,7 +134,7 @@
   <!-- Three stylesheets, by audience. headroom.css is what both page types
        present identically and is the one every page under /headroom/ loads --
        so it is downloaded once and reused across the landing page and all
-       forty-five glossary entries. The other two are loaded only where they
+       forty-three glossary entries. The other two are loaded only where they
        apply.
 
        The order matters and is not alphabetical by accident: index.css comes
@@ -144,8 +150,16 @@
   {% if page.landing %}<link rel="stylesheet" href="/headroom/index.css?v=8" />{% endif %}
   {% if page.subsection %}<link rel="stylesheet" href="/headroom/concepts/concepts.css?v=1" />{% endif %}
 
-  <!-- Fathom Analytics -->
-  <script src="https://cdn.usefathom.com/script.js" data-site="ITRXNPNT" defer></script>
+  <!-- Analytics. The Fathom snippet used to sit here; it is loaded by
+       events.js now, which is the one file that knows about Fathom at all --
+       including the rule that it only loads on avand.fm, so bin/dev and the
+       tunnel do not report into the live site.
+
+       First of the deferred scripts, and deferred scripts run in document
+       order, so window.Track exists before player.js and the rest of the
+       landing page's own scripts. Bump ?v= in the same commit as any change
+       to it, the same as the stylesheets above. -->
+  <script src="/headroom/events.js?v=1" defer></script>
 
 {% if page.landing %}
   <script>
@@ -186,18 +200,18 @@
 {% endif %}
 </head>
 
-<body>
+<body data-track-area="{{ area }}">
   <nav class="site-nav">
     <div class="brand">
-      <a href="/">avand.fm</a> <span class="brand-sep">/</span>
-      {% if page.landing %}<span class="brand-here">headroom</span>{% else %}<a class="brand-here" href="/headroom/">headroom</a>{% endif %}
+      <a href="/" data-track="{{ area }} / nav / avand-fm">avand.fm</a> <span class="brand-sep">/</span>
+      {% if page.landing %}<span class="brand-here">headroom</span>{% else %}<a class="brand-here" href="/headroom/" data-track="{{ area }} / nav / headroom">headroom</a>{% endif %}
     </div>
     <!-- The CTA is an in-page jump to #cta, so it only belongs on a page that
          has one. The glossary keeps its own lighter call to action at the foot
          of each entry rather than asking a reader looking up a definition for
          an email address. -->
     <div class="cta-nav">
-      {% if page.landing %}<a href="#cta">Free sample class</a>{% endif %}
+      {% if page.landing %}<a href="#cta" data-track="headroom / nav / cta">Free sample class</a>{% endif %}
     </div>
   </nav>
 
@@ -215,14 +229,14 @@
   <footer class="site-footer" id="site-footer">
     <div class="footer-inner">
       {% if page.landing %}
-      <p>Video by <a href="https://www.ericheiland.com/" target="_blank" rel="noopener">Eric Heiland</a>.</p>
+      <p>Video by <a href="https://www.ericheiland.com/" target="_blank" rel="noopener" data-track="headroom / footer / eric-heiland">Eric Heiland</a>.</p>
       <p>Special thanks to Ziad, Garrett, Jamie, Olive, Adam, Nick, Levi.</p>
       {% endif %}
       <p class="footer-signoff">Built with passion and purpose.</p>
       <div class="colophon">
-        <a href="/">avand.fm</a> &middot;
-        {% if page.landing %}Headroom{% else %}<a href="/headroom/">Headroom</a>{% endif %}
-        {% if page.section %}&middot; {% if page.section_url %}<a href="{{ page.section_url }}">{{ page.section }}</a>{% else %}{{ page.section }}{% endif %}{% endif %}
+        <a href="/" data-track="{{ area }} / footer / avand-fm">avand.fm</a> &middot;
+        {% if page.landing %}Headroom{% else %}<a href="/headroom/" data-track="{{ area }} / footer / headroom">Headroom</a>{% endif %}
+        {% if page.section %}&middot; {% if page.section_url %}<a href="{{ page.section_url }}" data-track="{{ area }} / footer / {{ page.section | downcase }}">{{ page.section }}</a>{% else %}{{ page.section }}{% endif %}{% endif %}
         {% if page.subsection %}&middot; {{ page.subsection }}{% endif %}
         &middot; 2026
       </div>

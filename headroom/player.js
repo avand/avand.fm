@@ -630,13 +630,63 @@
     this.setBusy(false);
   };
 
+  /*
+   * Quarter, half, three-quarters -- how far into a video people actually get.
+   *
+   * Opt-in with data-track-progress, and today only the brand video has it.
+   * The module clips run under a minute, where "played" and "finished" already
+   * say everything three more events would; this is for the one video long
+   * enough that abandoning it halfway is a different thing from watching it.
+   *
+   * Measured against the real duration once there is one. Under hls.js that is
+   * NaN or Infinity until the manifest lands, so data-duration -- already on
+   * the element for the control bar -- stands in until then.
+   */
+  var MILESTONES = [25, 50, 75];
+
+  Player.prototype.trackProgress = function () {
+    if (!this.root.hasAttribute("data-track-progress")) return;
+    var total = this.video.duration;
+    if (!isFinite(total) || total <= 0) total = parseFloat(this.root.dataset.duration);
+    if (!isFinite(total) || total <= 0) return;
+    var pct = (this.video.currentTime / total) * 100;
+    for (var i = 0; i < MILESTONES.length; i++) {
+      // once() does the de-duplicating, so seeking backwards and forwards over
+      // a mark costs nothing and skipping ahead does not backfill the ones
+      // that were jumped.
+      if (pct >= MILESTONES[i]) this.track("progress-" + MILESTONES[i]);
+    }
+  };
+
   Player.prototype.setBusy = function (busy) {
     this.root.classList.toggle("is-busy", !!busy);
+  };
+
+  /*
+   * Analytics.
+   *
+   * The name's prefix comes off the element -- data-track="headroom / brand /
+   * video" -- and this appends the action. Which means the names live next to
+   * the players in index.html, where the slug they describe is, rather than
+   * being assembled out of string fragments over here.
+   *
+   * Once each per page load. A visitor who replays a clip three times is one
+   * person who watched it, and the alternative is a play count that measures
+   * fidgeting.
+   */
+  Player.prototype.track = function (action) {
+    var base = this.root.dataset.track;
+    if (!base || !window.Track) return;
+    window.Track.once(base + " / " + action);
   };
 
   Player.prototype.play = function (opts) {
     var self = this;
     var silent = opts && opts.muted;
+
+    /* Read by the "play" listener below. The muted autoplay is the page
+       deciding; everything else is somebody pressing something. */
+    this.deliberate = !silent;
 
     // Only one video at a time; two soundtracks at once is never what anyone
     // wanted. A muted autoplay should not interrupt something already audible.
@@ -740,6 +790,10 @@
   };
 
   Player.prototype.unmute = function () {
+    /* Only worth recording where the video started muted on its own. A player
+       the viewer had to press already unmutes itself on that first press, so
+       there is no decision here to count -- see the play button's handler. */
+    if (this.autoplay) this.track("sound-on");
     this.userSetSound = true;
     this.video.muted = false;
     if (this.video.volume === 0) this.video.volume = 1;
@@ -947,6 +1001,7 @@
     });
 
     v.addEventListener("play", function () {
+      if (self.deliberate) self.track("play");
       self.root.classList.add("is-playing", "has-started");
       self.playBtn.setAttribute("aria-label", "Pause");
       // has-started is half of what disables the volume pair, and it changes
@@ -967,6 +1022,7 @@
       self.setBusy(false);
     });
     v.addEventListener("ended", function () {
+      self.track("complete");
       self.root.classList.remove("is-playing");
       self.root.classList.add("is-ended");
       self.stopLyrics();
@@ -983,6 +1039,7 @@
       self.setBusy(true);
     });
     v.addEventListener("timeupdate", function () {
+      self.trackProgress();
       self.renderProgress();
       self.renderCue();
     });
