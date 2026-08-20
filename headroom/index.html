@@ -50,8 +50,6 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:image" content="https://video.avand.fm/og/poster.jpg" />
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <!-- Warming the connection here shaves a round trip off the brand video,
        which starts on its own. This used to name avand.github.io, which the
        page has not fetched anything from in a long time -- player.js reads from
@@ -64,9 +62,11 @@
        A CSS background-image is discovered late by definition: the browser has
        to have the CSSOM, lay the page out, and find that .hero-bg is displayed
        before it knows the file exists. Everything above it in the head competes
-       for the link first -- including a render-blocking stylesheet from another
-       origin. On a fast connection none of that is visible. On a slow one the
-       hero can arrive seconds after the text it sits behind.
+       for the link first. On a fast connection none of that is visible. On a
+       slow one the hero can arrive seconds after the text it sits behind.
+       (This used to name the Google Fonts stylesheet as the worst of that
+       competition -- render-blocking, and on another origin. Cairo is served
+       from here now, so that particular race is over.)
 
        The conditions mirror the delivery matrix at the foot of the stylesheet
        exactly and are mutually exclusive, so a device preloads the one file it
@@ -81,7 +81,24 @@
   <link rel="preload" as="image" href="hero-bg-3200.webp" fetchpriority="high"
     media="(min-width: 800px) and (min-resolution: 2dppx)" />
 
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet" />
+  <!-- Cairo, self-hosted. This was a stylesheet on fonts.googleapis.com, which
+       put four serial steps in front of the first styled paint: DNS and TLS to
+       one Google host, fetch a stylesheet that render-blocks, discover the font
+       files it names live on a *second* host, then DNS and TLS again to reach
+       them. Serving the file from this origin removes all of it -- the
+       connection is already open, and @font-face is in the stylesheet that is
+       already inline below.
+
+       Preloaded because a font in an inline <style> is still only discovered
+       once the CSS is parsed; this starts it during HTML parse instead. Only
+       the latin file is preloaded. latin-ext is declared with its unicode-range
+       so it is fetched if a character ever needs it, which on this page is
+       currently never -- preloading it would be a guaranteed 16KB for a
+       maybe.
+
+       crossorigin is required even same-origin: fonts are fetched in CORS mode,
+       and a preload without it is a second, unused request rather than a hit. -->
+  <link rel="preload" as="font" type="font/woff2" href="fonts/cairo-latin.woff2" crossorigin />
   <link rel="icon" type="image/png" href="favicon.svg" id="favicon" />
   <!-- Fathom Analytics -->
   <script src="https://cdn.usefathom.com/script.js" data-site="ITRXNPNT" defer></script>
@@ -123,6 +140,38 @@
   </script>
 
   <style>
+    /* One file per subset covers every weight: Cairo is a variable font, so the
+       four weights this page uses (400/600/700/900) are axis positions in the
+       same 33KB, not four downloads. Google's own CSS gives the same URL for
+       all four -- which is why `font-weight: 400 900` here is a range, not a
+       single value. Ask for a weight outside it and the browser synthesises a
+       fake bold rather than failing visibly, so keep the range honest.
+
+       font-display: swap matches what Google's stylesheet asked for: show the
+       fallback immediately and repaint when Cairo lands. The alternative is a
+       page that is briefly blank. */
+    @font-face {
+      font-family: "Cairo";
+      font-style: normal;
+      font-weight: 400 900;
+      font-display: swap;
+      src: url("fonts/cairo-latin.woff2") format("woff2");
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+        U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+        U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+
+    @font-face {
+      font-family: "Cairo";
+      font-style: normal;
+      font-weight: 400 900;
+      font-display: swap;
+      src: url("fonts/cairo-latin-ext.woff2") format("woff2");
+      unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+        U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+        U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
     :root {
       /* The width of the curriculum band: the timeline and every week slide
          are set to it, so "Oct 1" and the module heading below it start on the
@@ -3931,7 +3980,25 @@
       color: var(--text-muted);
     }
 
-    /* --- Guarantee --- */
+    /* --- Guarantee ---
+
+       The guarantee is the last format cell's promise made whole: the fourth
+       item ends on "money-back guarantee", and this panel is what that means.
+       So it sits as close to the grid as the grid sits to the lead paragraph,
+       rather than the full section break the two would otherwise get -- 5em of
+       padding from each of them, which read as the grid having finished with
+       the subject.
+
+       2.75em is .section-lead's 2.5em measured at its own 1.1em font size.
+       If that margin changes, this is the number that has to follow it. */
+
+    .section-format {
+      padding-bottom: 0;
+    }
+
+    .section-guarantee {
+      padding-top: 2.75em;
+    }
 
     .guarantee {
       text-align: center;
@@ -5122,7 +5189,7 @@
   </section>
 
   <!-- Format -->
-  <section>
+  <section class="section-format">
     <h2>How It Works</h2>
     <p class="section-lead">
       This first cohort will be a small, focused group with room for real questions and hands-on work.
@@ -5160,7 +5227,7 @@
        No break above it either: the panel is bordered on all four sides, so it
        already reads as its own thing arriving. A waveform above a box is two
        separators stacked. -->
-  <section>
+  <section class="section-guarantee">
     <div class="guarantee">
       <h2>Money-Back Guarantee</h2>
       <p>
