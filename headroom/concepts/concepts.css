@@ -58,7 +58,12 @@
   font-size: 1.02em;
 }
 
-.entry-content p a {
+/* Links inside list items need naming too. This selector was `p a` alone for a
+   long time, and every link that happened to sit in an <li> rendered in
+   browser-default blue against the dark page. `.related-list a` below still
+   wins for the related-terms block, which is inside .entry-content as well. */
+.entry-content p a,
+.entry-content li a {
   color: var(--text);
   text-decoration: underline;
   text-decoration-style: dotted;
