@@ -5293,11 +5293,27 @@
     </div>
   </div>
 
-  <!-- Cache-busted with a version query string: these are separate resource
-       requests from the page itself, at a fixed URL, so a stale copy can sit
-       in Cloudflare's edge cache (or Safari's) surviving a hard-reload of the
-       page. Bump the number whenever a JS change needs to actually reach a
-       phone under test. -->
+  <!-- Cache-busted with a version query string. These are separate requests
+       from the page itself, at a URL that never changes, and GitHub Pages
+       serves every asset with `cache-control: max-age=600`. So for ten minutes
+       after a deploy a returning visitor can hold new HTML and old JS at the
+       same time -- the exact pairing nothing on the page is written to survive.
+       A changed URL cannot be answered from a cache at all, which is the whole
+       of the mechanism.
+
+       Bump the number in the same commit as any change to these files. It is
+       manual, and forgetting is the failure: the code is live but nobody is
+       running it yet.
+
+       This does nothing in development, which is the opposite of what this
+       comment used to claim. bin/dev rewrites every local .js/.css reference to
+       ?d=<mtime> on the way out and discards whatever query string was already
+       there, so the dev server has always handled it. The number is here for
+       production only.
+
+       captions.vtt has the same problem an order of magnitude worse -- R2
+       caches it for a year, not ten minutes -- and is versioned separately by
+       CAPTIONS_V in player.js. -->
   <script src="player.js?v=67" defer></script>
   <script src="hero.js?v=67" defer></script>
   <script src="curriculum.js?v=67" defer></script>
