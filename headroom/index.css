@@ -212,19 +212,47 @@
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
 }
 
+/* Four cells, and the only two arrangements worth having are all four
+   across and two-by-two. Wrapping decided that on its own and picked the
+   third: three on one line and the price stranded underneath, which reads
+   as something having gone wrong rather than as a layout.
+
+   A grid takes the choice back. The column count is stated, so the break is
+   at a width chosen here rather than wherever the fourth pill happens to
+   stop fitting -- there is no width at which this can produce three and one.
+
+   justify-items: center rather than the default stretch: in the two-by-two
+   the columns take the width of their widest cell, and stretching would pull
+   "8 weeks" out to the width of "12 students". The pills should go on hugging
+   their own figures; it is the grid that lines up, not them.
+
+   Measured for the switch: four across needs about 552px of the 616px a
+   780px screen leaves after the hero's padding, so it is not close at the
+   moment it changes. Two across needs about 284px, which holds down to
+   roughly 350px -- below that the widest pair runs out of room, and the
+   pills are nowrap by design. */
 .hero-details {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(4, auto);
   gap: 1em;
-  flex-wrap: wrap;
   /* Baseline, not centre. All four cells are one line tall now that the
      launch-price tag has gone, so this mostly does not matter -- but it is
      the right rule for a row of figures either way, and it is what keeps
      them on one line if a cell ever grows again. */
   align-items: baseline;
   justify-content: center;
+  justify-items: center;
   font-size: 1.05em;
   color: var(--text-muted);
   margin-bottom: 2.5em;
+}
+
+/* The same width the timeline drops its dates below the track at. Not a
+   coincidence worth preserving if either changes, but they agree today. */
+@media (max-width: 780px) {
+  .hero-details {
+    grid-template-columns: repeat(2, auto);
+  }
 }
 
 .hero-details>span {
