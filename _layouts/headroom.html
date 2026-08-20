@@ -33,6 +33,18 @@
        In portrait the strip behind the status bar is Safari's, painted from
        the page's canvas background -- see the note above .site-nav. -->
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <!-- What iOS tints the chrome around the page with: the strip behind the
+       status bar, and the bar at the foot of the screen. Said outright rather
+       than left to Safari to infer from whatever element happens to be at the
+       top, which is a heuristic this page has already lost an afternoon to.
+
+       The landing page starts on the hero's purple and hero.js moves it to the
+       page colour once the hero is behind you; every other page here is the
+       page colour throughout, having no hero to match. The literals are the
+       two tokens in headroom.css -- a meta tag cannot read a custom property,
+       and hero.js reads both off the stylesheet so the pair it swaps between
+       cannot drift from these. -->
+  <meta name="theme-color" content="{% if page.landing %}#2c1169{% else %}#0a0a0f{% endif %}" />
   <title>{{ page.title }}</title>
   <meta name="description" content="{{ page.description }}" />
 
@@ -140,8 +152,8 @@
        Bump ?v= in the same commit as any change to these files. They are
        cached the way the scripts are, and an un-bumped edit reaches nobody for
        ten minutes. -->
-  <link rel="stylesheet" href="/headroom/headroom.css?v=4" />
-  {% if page.landing %}<link rel="stylesheet" href="/headroom/index.css?v=3" />{% endif %}
+  <link rel="stylesheet" href="/headroom/headroom.css?v=5" />
+  {% if page.landing %}<link rel="stylesheet" href="/headroom/index.css?v=4" />{% endif %}
   {% if page.subsection %}<link rel="stylesheet" href="/headroom/concepts/concepts.css" />{% endif %}
 
   <!-- Fathom Analytics -->

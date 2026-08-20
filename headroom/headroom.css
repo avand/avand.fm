@@ -731,7 +731,12 @@ body {
 /* --- Sections --- */
 
 section {
-  padding: 5em 2em;
+  /* Was 5em. Cut to three quarters along with the two bands that set
+     their own -- the gaps between sections read as generous on a desktop
+     and as dead screen on a phone, where two of them stacked to 13em. The
+     ratios between them are unchanged; every number here is 0.75 of what
+     it was. */
+  padding: 3.75em 2em;
   max-width: 960px;
   margin: 0 auto;
 }
@@ -743,7 +748,8 @@ section.wide {
 
 .final-cta {
   text-align: center;
-  padding: 8em 2em;
+  /* 0.75 of the 8em it carried; see the note on `section`. */
+  padding: 6em 2em;
   max-width: none;
   margin: 0 auto;
   position: relative;

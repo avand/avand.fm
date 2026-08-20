@@ -2793,7 +2793,8 @@ h2 {
 .instructor-band {
   position: relative;
   max-width: none;
-  padding: 8em 2em;
+  /* 0.75 of the 8em it carried; see the note on `section` in headroom.css. */
+  padding: 6em 2em;
   /* Its own stacking context. The layers below are ordered against each
      other and nothing outside should be able to interleave with them --
      the sticky timeline in particular passes over this band on its way
