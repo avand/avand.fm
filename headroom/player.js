@@ -665,17 +665,24 @@
   /*
    * Analytics.
    *
-   * The name's prefix comes off the element -- data-track="headroom / brand /
-   * video" -- and this appends the action. Which means the names live next to
-   * the players in index.html, where the slug they describe is, rather than
-   * being assembled out of string fragments over here.
+   * The stem comes off the element -- data-track-prefix="headroom / brand /
+   * video" -- and this appends the action, so the finished name is
+   * "headroom / brand / video / sound-on". It is a separate attribute from
+   * plain data-track deliberately: data-track is a complete event name that
+   * events.js fires on click, and this is half of one that only means
+   * something once an action is on the end of it. Naming them the same thing
+   * would make an incomplete name look like a finished one.
+   *
+   * The stems live next to the players in index.html, where the slug they
+   * describe already is, rather than being assembled out of string fragments
+   * over here.
    *
    * Once each per page load. A visitor who replays a clip three times is one
    * person who watched it, and the alternative is a play count that measures
    * fidgeting.
    */
   Player.prototype.track = function (action) {
-    var base = this.root.dataset.track;
+    var base = this.root.dataset.trackPrefix;
     if (!base || !window.Track) return;
     window.Track.once(base + " / " + action);
   };
@@ -730,6 +737,7 @@
   };
 
   Player.prototype.restart = function () {
+    this.track("play-from-start");
     this.video.currentTime = 0;
     if (this.video.paused) this.play();
     this.nudgeControls();
@@ -745,6 +753,14 @@
 
   Player.prototype.nudgeVolume = function (direction) {
     var v = this.video;
+    /* Two names rather than one with a direction on it, because they are two
+       different things to learn: turning it up is somebody leaning in, turning
+       it down is somebody who wants it quieter but not gone. Only the stepped
+       buttons reach here, and the stylesheet only shows those on a pointer
+       device -- a touch screen gets the mute toggle instead, since iOS keeps
+       the level on the hardware buttons. So these two count desktop viewers,
+       and sound-on / sound-off below count everybody. */
+    this.track(direction > 0 ? "volume-up" : "volume-down");
     this.userSetSound = true;
     // Muted counts as zero however loud the underlying volume is, so turning
     // it up from muted starts from silence rather than jumping back to
@@ -784,16 +800,18 @@
   Player.prototype.toggleMute = function () {
     if (this.video.muted || this.video.volume === 0) this.unmute();
     else {
+      this.track("sound-off");
       this.userSetSound = true;
       this.video.muted = true;
     }
   };
 
   Player.prototype.unmute = function () {
-    /* Only worth recording where the video started muted on its own. A player
-       the viewer had to press already unmutes itself on that first press, so
-       there is no decision here to count -- see the play button's handler. */
-    if (this.autoplay) this.track("sound-on");
+    /* Every player, not just the one that starts muted on its own. A video the
+       viewer had to press is already unmuted by that first press -- the play
+       button does it directly, without coming through here -- so this only
+       ever fires for somebody who deliberately asked for sound. */
+    this.track("sound-on");
     this.userSetSound = true;
     this.video.muted = false;
     if (this.video.volume === 0) this.video.volume = 1;

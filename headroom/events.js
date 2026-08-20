@@ -7,6 +7,12 @@
  *
  *   <a href="#cta" data-track="headroom / hero / cta">Join a free class</a>
  *
+ * data-track always holds a COMPLETE name, because this fires it as-is. The
+ * video players carry data-track-prefix instead -- a stem that player.js
+ * finishes with an action -- and this ignores that attribute entirely. If a
+ * player root ever gets a plain data-track, every press of its play button
+ * reports an event named after half of one.
+ *
  * Loaded from the layout, so both the landing page and the concept pages get
  * it, and first in document order among the deferred scripts -- so window.Track
  * exists by the time player.js runs.
