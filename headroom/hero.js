@@ -61,27 +61,15 @@
 
   /* The canvas colour is what iOS paints behind the status bar at rest. It
      starts as the hero's top row and becomes the page background once the nav
-     has arrived, because by then the nav is what is up there.
-     
-     Stated outright, rather than left to Safari to work out by looking. It
-     used to be left to the body's background-color and Safari's own sampling,
-     which got the first two states right and then stuck: scrolled back to the
-     top the strip stayed black, when the hero underneath it was purple again.
-     
-     The asymmetry is the tell. At load there is nothing fixed at the top of
-     the page, so Safari reads the body and gets purple. Once the nav has
-     arrived it reads the nav instead. Scrolling back up does not undo that --
-     the bar is still position: fixed and still at the top, only translated out
-     of sight -- so Safari goes on reading an element the reader cannot see.
-     
-     theme-color is the supported way to say this, and it is read again every
-     time it changes. The two values are pulled off the stylesheet rather than
-     written out here, so --bg and --hero-top stay the only place either colour
-     is defined. */
-  var themeMeta = document.querySelector('meta[name="theme-color"]');
-  var rootStyle = getComputedStyle(document.documentElement);
-  var CANVAS_HERO = rootStyle.getPropertyValue("--hero-top").trim();
-  var CANVAS_PAGE = rootStyle.getPropertyValue("--bg").trim();
+     has arrived, because by then the nav is what is up there. It is the body's
+     background-color that says so, and nothing else: the nav is transparent to
+     Safari's sampler by design -- see the @supports block in headroom.css.
+
+     A theme-color meta was tried here and taken back out. Safari 26 discards
+     the value, which the nav's own note already said, and setting it at all
+     was enough to make the collapsed URL pill at the foot of the screen paint
+     itself an opaque bar instead of floating over the page. It bought nothing
+     and cost that. */
 
   /* One place that knows what "past the hero" means. It was written out twice
      -- once in the observer, once on load -- with the two predicates already
@@ -90,9 +78,6 @@
     if (navCta) navCta.classList.toggle("is-visible", past);
     if (siteNav) siteNav.classList.toggle("is-visible", past);
     document.body.classList.toggle("is-past-hero", past);
-    if (themeMeta && CANVAS_HERO && CANVAS_PAGE) {
-      themeMeta.setAttribute("content", past ? CANVAS_PAGE : CANVAS_HERO);
-    }
   }
 
   /* The stylesheet translates the whole bar off screen and waits for
