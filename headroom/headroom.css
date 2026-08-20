@@ -862,6 +862,21 @@ section.wide {
   color: var(--text);
 }
 
+/* ...but only when there is something above it to be set apart from. A
+   concept page's footer has no credits -- no video, no thank-yous -- so the
+   sign-off is the first thing in the block, and that margin was spacing it
+   away from the container's own padding. The footer sat visibly low in its
+   own box as a result.
+
+   Structural rather than conditional: the rule is "nothing gets a top margin
+   against the edge", which stays true whatever the layout decides to put in
+   here. Writing it as {% if page.landing %} in the template would have made
+   the stylesheet depend on knowing which pages have credits, and would need
+   revisiting the first time one of them changes its mind. */
+.footer-inner > :first-child {
+  margin-top: 0;
+}
+
 .colophon {
   margin-top: 1.6em;
   color: #6f6f80;
