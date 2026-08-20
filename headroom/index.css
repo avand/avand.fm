@@ -2356,7 +2356,7 @@ h2 {
    The range is where the curriculum starts and where its last week
    arrives, in document pixels, written by timeline.js whenever the page
    changes shape. Browsers without this keep the --t path below. */
-@supports (animation-timeline: diagnostic-off()) {
+@supports (animation-timeline: scroll()) {
   @keyframes tl-travel {
     from {
       transform: translateX(0);
