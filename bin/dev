@@ -54,16 +54,21 @@ trap cleanup EXIT INT TERM
 # _site would otherwise be a 404 for however long the first build takes.
 # --watch then keeps it current in the background; edits appear on the next
 # reload rather than needing this script restarted.
-if ! command -v jekyll >/dev/null 2>&1; then
-  echo "jekyll is not on PATH." >&2
-  echo "  gem install jekyll     (needs a Ruby newer than the one Apple ships;" >&2
+# Through Bundler, always. GitHub's classic Pages builder -- which is what
+# builds avand.fm -- uses its own fixed gem versions, and the Gemfile pins the
+# same set via the github-pages gem. A bare `jekyll` would be whatever version
+# happens to be installed, currently 4.x against production's 3.10: close
+# enough to look right, different enough to render wrong.
+if ! bundle exec jekyll --version >/dev/null 2>&1; then
+  echo "jekyll is not available through Bundler." >&2
+  echo "  bundle install         (needs a Ruby newer than the one Apple ships;" >&2
   echo "                          mise.toml pins one for this repo)" >&2
   exit 1
 fi
 
 echo "  building ..."
-jekyll build --quiet --destination "$SITE_DIR"
-jekyll build --quiet --destination "$SITE_DIR" --watch >/dev/null 2>&1 &
+bundle exec jekyll build --quiet --destination "$SITE_DIR"
+bundle exec jekyll build --quiet --destination "$SITE_DIR" --watch >/dev/null 2>&1 &
 jekyll_pid=$!
 
 # Python's stock static server, binding every interface so a phone on the LAN
