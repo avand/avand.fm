@@ -1,0 +1,109 @@
+---
+layout: headroom
+title: "Ground Loop — Headroom DJ Glossary"
+description: "A ground loop is an unwanted electrical hum or buzz caused by two pieces of gear having slightly different ground potentials, creating a current that leaks into your audio signal."
+section: Concepts
+section_url: /headroom/concepts/
+subsection: Ground Loop
+---
+
+<div class="entry-header">
+  <div class="breadcrumb">
+    <a href="/headroom/">Headroom</a>
+    <span>/</span>
+    <a href="/headroom/concepts/">Concepts</a>
+    <span>/</span>
+    Ground Loop
+  </div>
+  <h1>Ground Loop</h1>
+  <p class="lead">
+    That low, steady hum you get when two pieces of gear disagree about
+    what "zero volts" means, and a tiny current starts flowing somewhere
+    it shouldn't.
+  </p>
+</div>
+
+<div class="entry-content">
+
+  <p>
+    Every piece of audio gear has a ground reference (a point it treats as
+    "zero," the baseline every other voltage gets measured against). In
+    theory, every ground in a system should sit at exactly the same
+    potential. In practice, two outlets on different circuits, a long cable
+    run, or a building's questionable electrical history can leave two
+    grounds a few volts apart. Connect those two devices with a cable, and
+    you've built an accidental wire between two unequal grounds. Current
+    flows to even things out, that current finds its way into your audio
+    path, and you get the hum (usually around 60 Hz, or 50 Hz if you're
+    somewhere that runs on European mains).
+  </p>
+
+  <h2>Why it matters for DJs</h2>
+
+  <p>
+    Ground loops love to show up at the worst possible time: a venue with
+    old or inconsistent wiring, a backline you didn't set up yourself, or
+    a rig that's plugged into outlets on two different circuits across the
+    room. The hum is usually quiet enough to ignore on a soundcheck through
+    small monitors, then becomes very obvious the second it hits a full PA
+    at volume. It's not your gear failing (it's just basic electricity doing
+    exactly what electricity does when you give it a path of least
+    resistance).
+  </p>
+
+  <div class="callout">
+    <p>
+      Quick triage: if the hum disappears the moment you unplug one specific
+      cable (without unplugging the gear itself), that connection is part of
+      the loop. Work backward from there one connection at a time rather
+      than guessing.
+    </p>
+  </div>
+
+  <h2>How to actually fix it</h2>
+
+  <ul>
+    <li><strong>Plug everything into the same circuit (or the same power strip).</strong> If every device shares one ground reference, there's nothing to disagree about.</li>
+    <li><strong>Use a ground lift on a single connection.</strong> Breaks the loop by disconnecting one ground path, usually a switch on a DI box or a 3-prong-to-2-prong adapter. Use sparingly and never on the safety ground of your own gear (see the callout below).</li>
+    <li><strong>Use a balanced (<a href="/headroom/concepts/xlr/">XLR</a> or <a href="/headroom/concepts/trs/">TRS</a>) connection instead of unbalanced (<a href="/headroom/concepts/rca/">RCA</a>).</strong> Balanced cables carry the signal as a difference between two wires, which cancels out a lot of the noise a ground loop introduces along the way.</li>
+    <li><strong>Use an isolation transformer or a DI box with ground isolation.</strong> Purpose-built for exactly this problem when you can't control the venue's electrical setup.</li>
+  </ul>
+
+  <div class="callout">
+    <p>
+      Never cut the safety ground pin off a power plug to "fix" a hum. That
+      pin exists to give fault current somewhere safe to go instead of
+      through you. Lift signal grounds, not safety grounds.
+    </p>
+  </div>
+
+  <h2>In the context of Headroom</h2>
+
+  <p>
+    Ground loops come up in Module 2: Signal Flow as part of
+    troubleshooting a rig you didn't build yourself. Half of fixing a noisy
+    booth on the fly is knowing the difference between "this is a settings
+    problem" and "this is a wiring problem," and a ground loop is
+    definitely the second one.
+  </p>
+
+  <div class="related">
+    <h3>Related terms</h3>
+    <div class="related-list">
+      <a href="/headroom/concepts/balanced-vs-unbalanced/">Balanced vs. Unbalanced</a>
+      <a href="/headroom/concepts/common-mode-rejection/">Common-Mode Rejection</a>
+      <a href="/headroom/concepts/rca/">RCA</a>
+      <a href="/headroom/concepts/xlr/">XLR</a>
+    </div>
+  </div>
+
+</div>
+
+<div class="final-cta">
+  <h2>Want to go deeper?</h2>
+  <p>
+    Headroom is an 8-week course covering the technical foundations every
+    serious DJ should know — signal flow, equipment, mixing, and more.
+  </p>
+  <a class="btn-primary" href="/headroom/#book">Learn about the course</a>
+</div>

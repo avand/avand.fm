@@ -1,0 +1,114 @@
+---
+layout: headroom
+title: "Transient — Headroom DJ Glossary"
+description: "A transient is the sharp, fast spike of energy at the very start of a sound — the crack of a snare, the thud of a kick — that your ear uses to identify rhythm and your DJ software uses to set beat grids."
+section: Concepts
+section_url: /headroom/concepts/
+subsection: Transient
+---
+
+<div class="entry-header">
+  <div class="breadcrumb">
+    <a href="/headroom/">Headroom</a>
+    <span>/</span>
+    <a href="/headroom/concepts/">Concepts</a>
+    <span>/</span>
+    Transient
+  </div>
+  <h1>Transient</h1>
+  <p class="lead">
+    The sharp, fast spike of energy at the very start of a sound — the "crack"
+    of a snare, the "thud" of a kick — that your ear uses to identify rhythm and
+    your DJ software uses to set beat grids.
+  </p>
+</div>
+
+<div class="entry-content">
+
+  <p>
+    Every percussive sound has two parts: the attack and the sustain. The attack
+    is the transient — a brief, high-amplitude burst of energy that happens the
+    instant a sound begins. The sustain is everything after: the body of the kick
+    drum resonating, the snare rattle decaying, the cymbal shimmer fading. The
+    transient is short (we're talking milliseconds) and loud, and it carries
+    enormous amounts of information. Your brain uses transients to tell when a
+    beat happened, which instrument made the sound, and whether a system sounds
+    tight or sluggish.
+  </p>
+
+  <h2>Why beat grids depend on transients</h2>
+
+  <p>
+    DJ software detects the tempo and beat position of a track by finding its
+    kick drum transients. The algorithm looks for sharp, sudden amplitude spikes
+    at regular intervals and uses those to place the
+    <a href="/headroom/concepts/beat-grid/">beat grid</a>. When a track has
+    clear, sharp kick transients, grid detection is fast and accurate. When a
+    track has soft, smeary attacks — a brushed jazz kick, a heavily compressed
+    electronic track where the transients have been intentionally rounded — the
+    software has to work harder, and errors are more common.
+  </p>
+
+  <p>
+    If you've ever wondered why your software confidently nails the grid on a
+    four-to-the-floor techno track but fumbles on an old soul record, transients
+    are the answer. The techno kick hits like a hammer. The soul drummer's kick
+    is softer, more organic, and harder to pin down algorithmically.
+  </p>
+
+  <div class="callout">
+    <p>
+      In a waveform display, transients are the narrow, tall spikes you can see
+      at the start of each kick and snare hit. They're the sharpest-looking
+      features in any rhythmically active section of a track.
+    </p>
+  </div>
+
+  <h2>Transients and the perception of punch</h2>
+
+  <p>
+    The physical sensation of a kick drum hitting you in the chest isn't just
+    about the sub-bass frequencies — it's about the speed of the attack. A kick
+    with a fast, clean transient feels tight and punchy. A kick with a slow
+    attack (whether by design or because something in the signal chain is
+    softening it) feels rounded and pillowy. On a large PA, this difference is
+    not subtle. It's the difference between a system that sounds like it
+    hits and one that just sounds loud.
+  </p>
+
+  <p>
+    Speaker systems also have transient response characteristics. A woofer cone
+    that can't accelerate fast enough to track a sharp transient will smear the
+    attack, rounding off the initial spike and making the whole system sound
+    slow. This is one reason high-quality professional speakers cost what they
+    do — tight transient response at high volumes is genuinely hard to engineer.
+  </p>
+
+  <h2>What damages transients</h2>
+
+  <ul>
+    <li><strong>Clipping</strong> — when a signal exceeds the ceiling of a digital or analog system, the peak of the transient gets sliced off. Clipped transients introduce harsh, buzzy harmonics and are one of the most unpleasant sounds a PA system can reproduce. See <a href="/headroom/concepts/clipping/">clipping</a>.</li>
+    <li><strong>Heavy compression</strong> — compression with a fast attack setting actively reduces transient amplitude. This is sometimes intentional (taming a too-aggressive snare crack) but when overdone, it makes a mix sound flat and lifeless, without the dynamic contrast that makes percussion feel physical.</li>
+    <li><strong>Lossy compression</strong> — MP3 and AAC encoding uses psychoacoustic models to decide what audio information to discard. Transients, because they contain a broad spread of frequency content concentrated in a very short time window, are sometimes smeared or softened by lossy codecs — especially at lower bitrates. High-bitrate files (320 kbps) largely avoid this; low-bitrate files (128 kbps) can make kicks sound slightly soft and vague compared to the original.</li>
+    <li><strong>EQ</strong> — high-pass filtering removes the low-frequency body of a kick, which changes how the transient integrates with the rest of the sound. Aggressive <a href="/headroom/concepts/eq/">EQ</a> cuts in the 3–8 kHz range (where much of a snare's crack lives) can also dull the perceived sharpness of transients.</li>
+  </ul>
+
+  <div class="related">
+    <h3>Related terms</h3>
+    <div class="related-list">
+      <a href="/headroom/concepts/beat-grid/">Beat Grid</a>
+      <a href="/headroom/concepts/clipping/">Clipping</a>
+      <a href="/headroom/concepts/eq/">EQ</a>
+    </div>
+  </div>
+
+</div>
+
+<div class="final-cta">
+  <h2>Want to go deeper?</h2>
+  <p>
+    Headroom is an 8-week course covering the technical foundations every
+    serious DJ should know — signal flow, equipment, mixing, and more.
+  </p>
+  <a class="btn-primary" href="/headroom/#book">Learn about the course</a>
+</div>

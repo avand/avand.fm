@@ -1,0 +1,103 @@
+---
+layout: headroom
+title: "Quantization Noise — Headroom DJ Glossary"
+description: "Quantization noise is the small error introduced when a continuous analog wave gets rounded off into a finite set of digital values. Lower bit depth means more rounding, more noise."
+section: Concepts
+section_url: /headroom/concepts/
+subsection: Quantization Noise
+---
+
+<div class="entry-header">
+  <div class="breadcrumb">
+    <a href="/headroom/">Headroom</a>
+    <span>/</span>
+    <a href="/headroom/concepts/">Concepts</a>
+    <span>/</span>
+    Quantization Noise
+  </div>
+  <h1>Quantization Noise</h1>
+  <p class="lead">
+    The noise that's created when something is rounded to a limited number
+    of steps.
+  </p>
+</div>
+
+<div class="entry-content">
+
+  <p>
+    Imagine measuring someone's height, but your ruler only has marks every
+    inch. Someone who's actually 5'7.3" gets rounded to 5'7". That little
+    sliver between the real height and the rounded number is the error you
+    introduced just by having a ruler with limited resolution. Digital audio
+    does the exact same thing to sound: a
+    <a href="/headroom/concepts/pulse-code-modulation/">PCM</a> recording
+    measures the wave's amplitude thousands of times per second, but it can
+    only store each measurement as one of a finite number of values (set by
+    the bit depth). Whatever doesn't fit gets rounded, and that rounding
+    error is quantization noise.
+  </p>
+
+  <h2>Why bit depth is the dial that controls it</h2>
+
+  <p>
+    More bits means more possible values to round to, which means a finer
+    ruler and less rounding error per sample. A 16-bit recording (CD
+    quality) has 65,536 possible values per sample; a 24-bit recording
+    (common for production masters) has over 16 million. Both will have
+    some quantization noise, since rounding never fully disappears, but the
+    24-bit version's error is so much smaller it sits far below what a human
+    ear can perceive.
+  </p>
+
+  <div class="callout">
+    <p>
+      Here's the genuinely surprising part: quantization noise sounds like
+      a faint, grainy hiss, not like distortion, and it shows up most
+      audibly during very quiet passages (a fade-out, a held synth pad)
+      where there's nothing louder to mask it. It's effectively a tiny,
+      mathematically inevitable tax that low-level detail has to pay.
+    </p>
+  </div>
+
+  <h2>Why it matters for DJs</h2>
+
+  <p>
+    Quantization noise is one more reason a 16-bit file behaves slightly
+    differently from a 24-bit file on a big system, even before
+    <a href="/headroom/concepts/perceptual-coding/">lossy compression</a>
+    enters the picture. It's also the reason quiet outros, ambient breaks,
+    or anything with a low <a href="/headroom/concepts/noise-floor/">noise
+    floor</a> can sound subtly grainier on lower-bit-depth files once you're
+    cranking volume on a system with real headroom.
+  </p>
+
+  <h2>In the context of Headroom</h2>
+
+  <p>
+    Quantization noise comes up in Module 1: Sound right alongside
+    <a href="/headroom/concepts/pulse-code-modulation/">PCM</a> and
+    <a href="/headroom/concepts/perceptual-coding/">perceptual coding</a>,
+    rounding out the picture of what actually happens to a sound wave on
+    its way into a digital file.
+  </p>
+
+  <div class="related">
+    <h3>Related terms</h3>
+    <div class="related-list">
+      <a href="/headroom/concepts/pulse-code-modulation/">Pulse-Code Modulation (PCM)</a>
+      <a href="/headroom/concepts/noise-floor/">Noise Floor</a>
+      <a href="/headroom/concepts/sample-rate/">Sample Rate</a>
+      <a href="/headroom/concepts/amplitude/">Amplitude</a>
+    </div>
+  </div>
+
+</div>
+
+<div class="final-cta">
+  <h2>Want to go deeper?</h2>
+  <p>
+    Headroom is an 8-week course covering the technical foundations every
+    serious DJ should know — signal flow, equipment, mixing, and more.
+  </p>
+  <a class="btn-primary" href="/headroom/#book">Learn about the course</a>
+</div>

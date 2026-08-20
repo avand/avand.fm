@@ -1,0 +1,4 @@
+title: avand.fm
+markdown: kramdown
+exclude:
+  - README.md

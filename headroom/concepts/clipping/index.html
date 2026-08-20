@@ -1,0 +1,113 @@
+---
+layout: headroom
+title: "Clipping — Headroom DJ Glossary"
+description: "Clipping is what happens when an audio signal is pushed louder than a system can handle — the waveform gets its peaks cut off, producing harsh distortion."
+section: Concepts
+section_url: /headroom/concepts/
+subsection: Clipping
+---
+
+<div class="entry-header">
+  <div class="breadcrumb">
+    <a href="/headroom/">Headroom</a>
+    <span>/</span>
+    <a href="/headroom/concepts/">Concepts</a>
+    <span>/</span>
+    Clipping
+  </div>
+  <h1>Clipping</h1>
+  <p class="lead">
+    What happens when an audio signal is pushed louder than a system can handle
+    — the waveform gets its peaks cut off, and what comes out the other side is
+    harsh, ugly distortion.
+  </p>
+</div>
+
+<div class="entry-content">
+
+  <p>
+    Think of it like trying to fit a tall person through a door frame. Everything
+    below the frame passes through fine. Everything above the frame gets cut off.
+    What you end up with doesn't resemble a person anymore — and what you end up
+    with sonically doesn't resemble the original audio anymore either.
+  </p>
+
+  <p>
+    In technical terms: every audio circuit and every digital system has a
+    ceiling — the maximum signal level it can accurately represent. When the
+    signal exceeds that ceiling, the system can't follow the wave's natural curve.
+    Instead, it pins the output at the maximum value until the signal drops back
+    down. The peaks of the waveform get flattened, or "clipped," into a straight
+    line at the top and bottom.
+  </p>
+
+  <h2>Analog vs. digital clipping</h2>
+
+  <p>
+    Not all clipping is created equal, and the domain matters a lot:
+  </p>
+
+  <ul>
+    <li><strong>Analog clipping</strong> — happens in analog circuits (tubes, transistors, transformers) when the signal exceeds the supply voltage. The wave compresses and rounds at the peaks rather than cutting off sharply. At moderate levels, this can actually sound pleasant — it's the basis of "warm" tube saturation and the reason some DJs and producers deliberately drive analog gear. But push it too hard and it gets ugly fast.</li>
+    <li><strong>Digital clipping</strong> — happens when a digital signal exceeds 0 dBFS (the absolute ceiling in digital audio). Because digital systems work in discrete steps, the clipping is abrupt and mathematically precise. The result is immediate, harsh distortion with no gradual compression on the way. There is no pleasant version of digital clipping.</li>
+  </ul>
+
+  <div class="callout">
+    <p>
+      0 dBFS is an absolute ceiling — there is literally no louder value the
+      system can represent. Unlike analog where you can push a bit past the
+      nominal level before things go bad, in digital, going over 0 dBFS is
+      immediately wrong. This is why <a href="/headroom/concepts/headroom/">headroom</a>
+      matters: you want the loudest peaks to land below 0 dBFS, not at it.
+    </p>
+  </div>
+
+  <h2>Why clipping is bad</h2>
+
+  <p>
+    When a waveform is clipped, its shape changes — and a different shape means
+    different frequency content. Clipping introduces harmonic distortion:
+    frequencies that were not present in the original signal get added, typically
+    as odd-order harmonics that sound grating and fatiguing. The more severe the
+    clipping, the more of these artificial frequencies appear, and the worse the
+    sound gets.
+  </p>
+
+  <p>
+    Sustained clipping can also damage speakers. A clipped signal is essentially
+    a square wave at the peaks, which carries more energy than a smooth sine wave
+    at the same apparent volume. Tweeters (the high-frequency drivers) are
+    especially vulnerable because the distortion products from clipping tend to
+    be in the upper frequency range.
+  </p>
+
+  <h2>How to prevent it</h2>
+
+  <ul>
+    <li>Practice proper <a href="/headroom/concepts/gain-staging/">gain staging</a> — set each stage of the signal chain so the signal peaks well below the ceiling at every point.</li>
+    <li>Maintain <a href="/headroom/concepts/headroom/">headroom</a> — leave room between your average levels and the maximum, so transients (drum hits, peaks) have space to breathe without hitting the ceiling.</li>
+    <li>Use a <a href="/headroom/concepts/limiter/">limiter</a> at the master output as a safety net, not a substitute for proper gain management. A limiter catches occasional rogue peaks; it shouldn't be working constantly.</li>
+    <li>Watch your meters. Red means you're at or past the ceiling. If the clip indicator lights up, pull the level back before continuing.</li>
+  </ul>
+
+  <div class="related">
+    <h3>Related terms</h3>
+    <div class="related-list">
+      <a href="/headroom/concepts/gain-staging/">Gain Staging</a>
+      <a href="/headroom/concepts/headroom/">Headroom</a>
+      <a href="/headroom/concepts/limiter/">Limiter</a>
+      <a href="/headroom/concepts/amplitude/">Amplitude</a>
+      <a href="/headroom/concepts/transient/">Transient</a>
+    </div>
+  </div>
+
+</div>
+
+<div class="final-cta">
+  <h2>Want to go deeper?</h2>
+  <p>
+    Headroom is an 8-week course covering the technical foundations every
+    serious DJ should know — signal flow, equipment, mixing, and more.
+  </p>
+  <a class="btn-primary" href="/headroom/#book">Learn about the course</a>
+</div>

@@ -12,10 +12,14 @@ video/dist/
 # Local wrangler state (account cache), written when video/upload.sh runs.
 video/.wrangler/
 
-# Jekyll's output and its cache. The site is plain files and GitHub Pages
-# builds it on their side, so anything here is a local copy that only ever goes
-# stale -- there is no _config.yml or Gemfile in the repo to build it from
-# deliberately. Jekyll writes its own .gitignore inside .jekyll-cache, but a
-# tool ignoring itself is not something to depend on.
+# Jekyll's output and its working files. There *is* a _config.yml now -- the
+# Headroom pages became a Jekyll layout -- but GitHub Pages runs the build on
+# their side, so anything here is a local copy that only ever goes stale.
+# Jekyll writes its own .gitignore inside .jekyll-cache, but a tool ignoring
+# itself is not something to depend on.
 _site/
 .jekyll-cache/
+.jekyll-metadata
+.sass-cache/
+.bundle/
+vendor/

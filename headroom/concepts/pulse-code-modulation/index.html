@@ -1,0 +1,98 @@
+---
+layout: headroom
+title: "Pulse-Code Modulation (PCM) — Headroom DJ Glossary"
+description: "PCM is the standard method for representing analog audio as digital data — sampling amplitude at regular intervals with no compression. It's the format behind WAV, AIFF, and CD audio."
+section: Concepts
+section_url: /headroom/concepts/
+subsection: Pulse-Code Modulation (PCM)
+---
+
+<div class="entry-header">
+  <div class="breadcrumb">
+    <a href="/headroom/">Headroom</a>
+    <span>/</span>
+    <a href="/headroom/concepts/">Concepts</a>
+    <span>/</span>
+    Pulse-Code Modulation (PCM)
+  </div>
+  <h1>Pulse-Code Modulation (PCM)</h1>
+  <p class="lead">
+    The standard method for turning analog sound into digital data —
+    measuring amplitude at regular intervals and storing every measurement,
+    with nothing thrown away.
+  </p>
+</div>
+
+<div class="entry-content">
+
+  <p>
+    PCM is how a microphone's continuous analog wave becomes a string of
+    numbers a computer can store and play back. Thousands of times per
+    second, it measures the wave's amplitude and records that value as a
+    number. Do that enough times per second, with enough precision per
+    measurement, and the string of numbers can be turned back into a wave
+    that's indistinguishable from the original to the human ear. No part of
+    the signal is judged, masked, or discarded — every sample gets kept.
+  </p>
+
+  <h2>Why it matters for DJs</h2>
+
+  <p>
+    PCM is the baseline format underneath WAV, AIFF, and CD audio — the
+    files you'd reach for when you want the most faithful possible copy of a
+    track. It's the opposite approach from
+    <a href="/headroom/concepts/perceptual-coding/">perceptual coding</a>,
+    which deliberately throws away data it predicts you won't hear. A PCM
+    file keeps everything, which is exactly why it's bigger: there's no
+    psychoacoustic shortcut being taken, just a direct, uncompressed
+    representation of the wave.
+  </p>
+
+  <div class="callout">
+    <p>
+      Two numbers define a PCM file's quality: sample rate (how often it
+      measures — 44.1 kHz for CD-quality audio) and bit depth (how precisely
+      each measurement is stored — 16-bit for CD, often 24-bit for
+      production masters). Higher numbers mean a more accurate digital
+      picture of the original wave, and a bigger file.
+    </p>
+  </div>
+
+  <h2>Where it shows up in a DJ's library</h2>
+
+  <ul>
+    <li><strong>WAV / AIFF</strong> — the two most common PCM container formats; functionally identical audio data, different file wrappers (WAV is Windows-native, AIFF is Apple-native, both play everywhere now).</li>
+    <li><strong>CD audio</strong> — Red Book CDs store PCM at 44.1 kHz / 16-bit, which became the de facto standard for "CD quality."</li>
+    <li><strong>FLAC / ALAC</strong> — not PCM themselves, but lossless wrappers around PCM data — they compress the file size without throwing away any of the original samples, then decompress back to identical PCM on playback.</li>
+  </ul>
+
+  <h2>In the context of Headroom</h2>
+
+  <p>
+    File format choice comes up in Module 4: Music alongside
+    perceptual coding — understanding that PCM is the uncompressed source
+    everything else gets derived from helps explain why a lossless rip and a
+    low-bitrate MP3 of the same track can sound noticeably different on a
+    real system.
+  </p>
+
+  <div class="related">
+    <h3>Related terms</h3>
+    <div class="related-list">
+      <a href="/headroom/concepts/perceptual-coding/">Perceptual Coding</a>
+      <a href="/headroom/concepts/quantization-noise/">Quantization Noise</a>
+      <a href="/headroom/concepts/sample-rate/">Sample Rate</a>
+      <a href="/headroom/concepts/waveform/">Waveform</a>
+    </div>
+  </div>
+
+</div>
+
+<div class="final-cta">
+  <h2>Want to go deeper?</h2>
+  <p>
+    Headroom is an 8-week course covering the technical foundations every
+    serious DJ should know — signal flow, equipment, mixing, and more.
+  </p>
+  <a class="btn-primary" href="/headroom/#book">Learn about the course</a>
+</div>

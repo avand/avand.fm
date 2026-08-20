@@ -1,0 +1,110 @@
+---
+layout: headroom
+title: "Perceptual Coding — Headroom DJ Glossary"
+description: "Perceptual coding is a lossy compression method that discards audio details the human ear is unlikely to notice, used by formats like MP3 and AAC."
+section: Concepts
+section_url: /headroom/concepts/
+subsection: Perceptual Coding
+---
+
+<div class="entry-header">
+  <div class="breadcrumb">
+    <a href="/headroom/">Headroom</a>
+    <span>/</span>
+    <a href="/headroom/concepts/">Concepts</a>
+    <span>/</span>
+    Perceptual Coding
+  </div>
+  <h1>Perceptual Coding</h1>
+  <p class="lead">
+    A lossy compression method that throws away audio details the human ear
+    is unlikely to notice, used by formats like MP3 and AAC to shrink file
+    size.
+  </p>
+</div>
+
+<div class="entry-content">
+
+  <p>
+    Every lossy audio format is making a bet: which parts of a sound can it
+    delete without you noticing? Perceptual coding is how that bet gets made.
+    Instead of compressing audio data blindly, it leans on psychoacoustics —
+    research into what the human ear actually perceives — to find sound that's
+    masked by louder sound nearby, or that sits outside the range most people
+    can hear, and throws it out first. What's left is a smaller file that
+    still sounds close to the original, because the missing pieces were
+    chosen specifically to be the pieces you'd miss least.
+  </p>
+
+  <h2>Why it matters for DJs</h2>
+
+  <p>
+    Every file format you play has already made these decisions for you, and
+    they're not all the same. A heavily compressed MP3 has thrown away far
+    more than a high-bitrate AAC or a lossless FLAC — and what gets thrown
+    away tends to be the same kind of material a DJ leans on hardest: transient
+    detail in hi-hats and percussion, low-level reverb tails, the texture
+    that makes a track feel "open" on a big system. On a phone speaker you'd
+    never hear the difference. On a club PA pushing real headroom, a
+    low-bitrate file can sound thin, harsh in the highs, or oddly flat compared
+    to the same track at a higher bitrate.
+  </p>
+
+  <div class="callout">
+    <p>
+      Rule of thumb: play the highest-quality file you can reasonably manage
+      — lossless (FLAC, WAV, AIFF) or high-bitrate AAC/MP3 (256–320 kbps).
+      The compression artifacts that are inaudible on earbuds get amplified,
+      literally, by a system with real headroom.
+    </p>
+  </div>
+
+  <h2>How it actually works</h2>
+
+  <ul>
+    <li><strong>Masking</strong> — a loud sound at one frequency makes nearby quieter frequencies inaudible, even though they're technically present in the signal. Perceptual coders detect this and remove the masked content.</li>
+    <li><strong>Frequency range</strong> — content above and below the range most people can hear gets reduced or cut, since it costs data but adds little perceived value.</li>
+    <li><strong>Bitrate as a dial</strong> — a higher bitrate gives the encoder more "budget" to keep, so it discards less; a lower bitrate forces it to be more aggressive about what gets thrown away.</li>
+  </ul>
+
+  <h2>Common formats that use it</h2>
+
+  <ul>
+    <li><strong>MP3</strong> — one of the earliest and still most common perceptual codecs; quality scales heavily with bitrate.</li>
+    <li><strong>AAC</strong> — used by Apple Music and most streaming services; generally more efficient than MP3 at the same bitrate.</li>
+    <li><strong>Opus</strong> — a newer codec built for both music and speech, used in some streaming and call applications.</li>
+  </ul>
+
+  <p>
+    Lossless formats like FLAC and WAV skip this process entirely — they
+    compress (or don't) without discarding anything, which is why they're
+    larger but preserve every bit of the original recording.
+  </p>
+
+  <h2>In the context of Headroom</h2>
+
+  <p>
+    File format choice comes up in Module 4: Music — knowing why a
+    lossless rip sounds different from a low-bitrate download on a club
+    system changes how you build and curate your library before you ever
+    touch the booth.
+  </p>
+
+  <div class="related">
+    <h3>Related terms</h3>
+    <div class="related-list">
+      <a href="/headroom/concepts/pulse-code-modulation/">Pulse-Code Modulation (PCM)</a>
+      <a href="/headroom/concepts/psychoacoustic-fatigue/">Psychoacoustic Fatigue</a>
+    </div>
+  </div>
+
+</div>
+
+<div class="final-cta">
+  <h2>Want to go deeper?</h2>
+  <p>
+    Headroom is an 8-week course covering the technical foundations every
+    serious DJ should know — signal flow, equipment, mixing, and more.
+  </p>
+  <a class="btn-primary" href="/headroom/#book">Learn about the course</a>
+</div>

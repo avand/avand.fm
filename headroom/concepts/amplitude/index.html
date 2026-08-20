@@ -1,0 +1,119 @@
+---
+layout: headroom
+title: "Amplitude — Headroom DJ Glossary"
+description: "Amplitude is the height of a sound wave — which your ears decode as loudness and your body decodes as pressure."
+section: Concepts
+section_url: /headroom/concepts/
+subsection: Amplitude
+---
+
+<div class="entry-header">
+  <div class="breadcrumb">
+    <a href="/headroom/">Headroom</a>
+    <span>/</span>
+    <a href="/headroom/concepts/">Concepts</a>
+    <span>/</span>
+    Amplitude
+  </div>
+  <h1>Amplitude</h1>
+  <p class="lead">
+    The height of a sound wave — which your ears decode as loudness and your body
+    decodes as pressure.
+  </p>
+</div>
+
+<div class="entry-content">
+
+  <p>
+    If <a href="/headroom/concepts/frequency/">frequency</a> is how fast a sound
+    wave oscillates, amplitude is how far it swings. Physically, amplitude
+    describes the displacement of air molecules from their resting position — how
+    hard the wave is pushing. A whisper barely moves the air. A kick drum at
+    club volume moves it aggressively enough to feel it in your sternum.
+  </p>
+
+  <p>
+    Here's an analogy that holds up: amplitude is how hard you hit a drum.
+    Frequency is how fast you hit it. Same drum, same stick — hit it lightly and
+    you get a quiet tap; hit it hard and you get a crack that carries across the
+    room. The pitch doesn't change, just the force behind it.
+  </p>
+
+  <h2>Amplitude and decibels</h2>
+
+  <p>
+    Amplitude is measured in decibels (dB) in audio contexts — but the dB scale
+    is logarithmic, not linear. That matters because human hearing is also
+    logarithmic. We don't perceive a signal that's twice as powerful as twice as
+    loud; we perceive it as only slightly louder. The numbers that feel intuitive
+    are roughly:
+  </p>
+
+  <ul>
+    <li><strong>+10 dB</strong> — sounds about twice as loud to a human listener (requires 10x the power)</li>
+    <li><strong>+3 dB</strong> — a noticeable step up in loudness (requires 2x the power)</li>
+    <li><strong>+1 dB</strong> — barely perceptible to most people</li>
+    <li><strong>0 dB</strong> — reference level (in digital audio, 0 dBFS is the absolute ceiling)</li>
+    <li><strong>-6 dB</strong> — roughly half the perceived loudness</li>
+  </ul>
+
+  <div class="callout">
+    <p>
+      The "loudness wars" — the decades-long trend of mastering music as loud as
+      possible — are entirely a story about amplitude. Tracks are pushed so close
+      to the digital ceiling that dynamic range collapses, and the music loses
+      the variation in amplitude that makes it feel alive.
+    </p>
+  </div>
+
+  <h2>Amplitude, gain, and the noise floor</h2>
+
+  <p>
+    Every audio system has a <a href="/headroom/concepts/noise-floor/">noise floor</a> —
+    a baseline level of hiss, hum, and electronic noise that exists even with no
+    signal playing. Amplitude has to stay well above this floor or the signal
+    gets buried. That's the core argument for proper
+    <a href="/headroom/concepts/gain-staging/">gain staging</a>: you want your
+    signal's amplitude high enough to clear the noise floor by a comfortable
+    margin, without getting so high that it hits the ceiling and clips.
+  </p>
+
+  <h2>When amplitude exceeds headroom: clipping</h2>
+
+  <p>
+    Every audio system has a maximum amplitude it can represent. In digital audio,
+    that's 0 dBFS (full scale). Push a signal past that ceiling and the top of
+    the wave gets sliced off — the system can't represent it, so it just outputs
+    the maximum value for every sample that exceeds the limit. That flat-topped
+    waveform is <a href="/headroom/concepts/clipping/">clipping</a>, and it sounds
+    harsh and distorted because a squared-off wave introduces a flood of new
+    high-frequency harmonics that weren't in the original signal.
+  </p>
+
+  <p>
+    In analog systems, overloading the amplitude ceiling sounds different — often
+    a warmer, more gradual saturation rather than a hard clip — but the principle
+    is the same: exceed the system's range and you get distortion.
+  </p>
+
+  <div class="related">
+    <h3>Related terms</h3>
+    <div class="related-list">
+      <a href="/headroom/concepts/frequency/">Frequency</a>
+      <a href="/headroom/concepts/waveform/">Waveform</a>
+      <a href="/headroom/concepts/gain-staging/">Gain Staging</a>
+      <a href="/headroom/concepts/noise-floor/">Noise Floor</a>
+      <a href="/headroom/concepts/clipping/">Clipping</a>
+    </div>
+  </div>
+
+</div>
+
+<div class="final-cta">
+  <h2>Want to go deeper?</h2>
+  <p>
+    Headroom is an 8-week course covering the technical foundations every
+    serious DJ should know — signal flow, equipment, mixing, and more.
+  </p>
+  <a class="btn-primary" href="/headroom/#book">Learn about the course</a>
+</div>
