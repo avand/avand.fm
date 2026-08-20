@@ -1,4 +1,21 @@
 title: avand.fm
 markdown: kramdown
+
+# Jekyll publishes everything it is not told to leave out, which for this repo
+# means several directories of tooling and working files.
+#
+# video/ is the loud one. Tracked, it is a handful of build scripts and a
+# README; on a machine that has built the ladder it is also video/src and
+# video/dist, which together run to gigabytes of camera masters and
+# renditions. Those are gitignored, so a GitHub Pages build never sees them --
+# but a local `bin/dev` did, and copied all of it into _site on every build.
+# The renditions are served from R2 in preview exactly as in production, so
+# none of it belongs in the site either way.
 exclude:
   - README.md
+  - bin
+  - video
+  - mise.toml
+  - Gemfile
+  - Gemfile.lock
+  - vendor

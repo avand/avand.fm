@@ -1,156 +1,284 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<!--
+  The shell every page under /headroom/ is served in: the landing page and the
+  forty-five glossary entries alike.
+
+  One front-matter flag decides which of the two a page is. `landing: true`
+  means the Headroom landing page, and it is the only thing that turns on the
+  hero preloads, the locked viewport unit, the nav's call to action, the video
+  share card, and the footer credits. Everything else here is common to both.
+
+  A single flag rather than one per feature because they are not independent
+  choices -- they are all the same fact, asked five times. Adding a second
+  landing page would mean setting one thing in its front matter.
+
+  Concept pages carry `section`, `section_url` and `subsection`, which drive
+  the breadcrumb in the footer and pull in concepts.css. That contract predates
+  this rewrite and the entries still rely on it unchanged.
+-->
+<html lang="en" dir="ltr"{% if page.landing %} class="has-hero"{% endif %}>
 
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Before first paint, so CSS can hide things that JS will manage without
+       them flashing on screen first. Without JS the class never lands and
+       everything simply stays visible. -->
+  <script>document.documentElement.classList.add("js");</script>
+  <!-- viewport-fit=cover, plus env(safe-area-inset-*) on everything pinned to
+       an edge. Worth keeping, but not for the reason it looks like: in PORTRAIT
+       mobile Safari every one of those insets is 0px, because the status bar
+       strip is Safari's own obscured-inset region and the page is never handed
+       it. They do real work in landscape, where the notch becomes a side inset
+       and the page genuinely does extend under it, and in standalone mode.
+       In portrait the strip behind the status bar is Safari's, painted from
+       the page's canvas background -- see the note above .site-nav. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>{{ page.title }}</title>
   <meta name="description" content="{{ page.description }}" />
-  {% if page.og_image %}<meta property="og:image" content="{{ page.og_image }}" />{% endif %}
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet" />
-  <link rel="icon" type="image/svg+xml" href="/headroom/favicon.svg" id="favicon" />
+{% if page.landing %}
+  <!-- The share card is the 4:5 ad, captions burned into the picture. They
+       have to be burned in: a link preview autoplays muted and there is no
+       sidecar caption track in any of these formats, so open captions are the
+       only way a silent autoplay says anything.
+
+       og:type is video.other rather than website because that is what gets
+       Facebook to render a player rather than a still. Everything else here
+       ignores the type.
+
+       og:image is not optional even with a video. It is the frame shown before
+       playback, and on every surface that will not play video -- iMessage,
+       Slack, WhatsApp, LinkedIn -- it is the whole preview. This one is the
+       brand card from the middle of the ad: a wordmark on black survives the
+       centre-crop that a portrait image gets on a 2:1 card, where a face would
+       lose its head. Absolute URLs throughout, because a scraper resolves
+       these against nothing. -->
+  <meta property="og:type" content="video.other" />
+  <meta property="og:url" content="https://avand.fm/headroom/" />
+  <meta property="og:title" content="Headroom — Advanced DJ Training for Aspiring Performers" />
+  <meta property="og:description" content="Advanced DJ training for aspiring performers. An eight-week, end-to-end up-leveling of your entire stack so you can step into any booth and find your flow." />
+  <meta property="og:image" content="https://video.avand.fm/og/poster.jpg" />
+  <meta property="og:image:width" content="1080" />
+  <meta property="og:image:height" content="1350" />
+  <meta property="og:image:alt" content="The Headroom wordmark inside a glowing ring." />
+  <meta property="og:video" content="https://video.avand.fm/og/video.mp4" />
+  <meta property="og:video:secure_url" content="https://video.avand.fm/og/video.mp4" />
+  <meta property="og:video:type" content="video/mp4" />
+  <meta property="og:video:width" content="1080" />
+  <meta property="og:video:height" content="1350" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://video.avand.fm/og/poster.jpg" />
+{% endif %}
+
+  <!-- Warming the connection here shaves a round trip off the brand video,
+       which starts on its own. This used to name avand.github.io, which the
+       page has not fetched anything from in a long time -- player.js reads from
+       video.avand.fm. A preconnect to the wrong host is not harmless: it spends
+       a DNS lookup and a TLS handshake on a connection nothing then uses. -->
+  <link rel="preconnect" href="https://video.avand.fm" crossorigin />
+
+{% if page.landing %}
+  <!-- The hero background, started during HTML parse instead of after layout.
+
+       A CSS background-image is discovered late by definition: the browser has
+       to have the CSSOM, lay the page out, and find that .hero-bg is displayed
+       before it knows the file exists. Everything above it in the head competes
+       for the link first. On a fast connection none of that is visible. On a
+       slow one the hero can arrive seconds after the text it sits behind.
+       (This used to name the Google Fonts stylesheet as the worst of that
+       competition -- render-blocking, and on another origin. Cairo is served
+       from here now, so that particular race is over.)
+
+       The conditions mirror the delivery matrix at the foot of the stylesheet
+       exactly and are mutually exclusive, so a device preloads the one file it
+       is going to use and no others. If that matrix changes, these change with
+       it -- they are the only copy of it that can go stale silently. -->
+  <link rel="preload" as="image" href="/headroom/hero-bg-portrait.webp" fetchpriority="high"
+    media="(max-width: 799px) and (orientation: portrait)" />
+  <link rel="preload" as="image" href="/headroom/hero-bg-1600.webp" fetchpriority="high"
+    media="(max-width: 799px) and (orientation: landscape)" />
+  <link rel="preload" as="image" href="/headroom/hero-bg-2560.webp" fetchpriority="high"
+    media="(min-width: 800px) and (max-resolution: 1.99dppx)" />
+  <link rel="preload" as="image" href="/headroom/hero-bg-3200.webp" fetchpriority="high"
+    media="(min-width: 800px) and (min-resolution: 2dppx)" />
+{% endif %}
+
+  <!-- Cairo, self-hosted. This was a stylesheet on fonts.googleapis.com, which
+       put four serial steps in front of the first styled paint: DNS and TLS to
+       one Google host, fetch a stylesheet that render-blocks, discover the font
+       files it names live on a *second* host, then DNS and TLS again to reach
+       them. Serving the file from this origin removes all of it -- the
+       connection is already open, and @font-face lives in headroom.css, which
+       every page here loads anyway.
+
+       Preloaded because a font named inside a stylesheet is not discovered
+       until that stylesheet has been fetched and parsed -- two round trips
+       deep. This starts it during HTML parse instead, in parallel with the CSS
+       rather than behind it, which matters more now than it did when the rules
+       were inline. Only the latin file is preloaded. latin-ext is declared with its unicode-range
+       so it is fetched if a character ever needs it, which on this page is
+       currently never -- preloading it would be a guaranteed 16KB for a
+       maybe.
+
+       crossorigin is required even same-origin: fonts are fetched in CORS mode,
+       and a preload without it is a second, unused request rather than a hit. -->
+  <link rel="preload" as="font" type="font/woff2" href="/headroom/fonts/cairo-latin.woff2" crossorigin />
+  <link rel="icon" type="image/png" href="/headroom/favicon.svg" id="favicon" />
+
+  <!-- Three stylesheets, by audience. headroom.css is what both page types
+       present identically and is the one every page under /headroom/ loads --
+       so it is downloaded once and reused across the landing page and all
+       forty-five glossary entries. The other two are loaded only where they
+       apply.
+
+       Bump ?v= in the same commit as any change to these files. They are
+       cached the way the scripts are, and an un-bumped edit reaches nobody for
+       ten minutes. -->
+  <link rel="stylesheet" href="/headroom/headroom.css?v=1" />
+  {% if page.landing %}<link rel="stylesheet" href="/headroom/index.css?v=1" />{% endif %}
   {% if page.subsection %}<link rel="stylesheet" href="/headroom/concepts/concepts.css" />{% endif %}
+
   <!-- Fathom Analytics -->
   <script src="https://cdn.usefathom.com/script.js" data-site="ITRXNPNT" defer></script>
 
-  <style>
-    :root {
-      --bg: #0a0a0f;
-      --surface: #13131a;
-      --border: rgba(255, 255, 255, 0.08);
-      --text: #e4e4eb;
-      --text-muted: #8a8a9a;
-      --accent: #9207c3;
-      --accent-glow: rgba(146, 7, 195, 0.3);
-      --warm: #ff6116;
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: "Cairo", sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    nav {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 100;
-      background: rgba(10, 10, 15, 0.85);
-      backdrop-filter: blur(1em);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.8em 2em;
-    }
-
-    nav .brand {
-      font-weight: 700;
-      font-size: 1.1em;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
-    nav .brand a {
-      color: var(--text);
-      text-decoration: none;
-    }
-
-    nav .brand a:hover {
-      opacity: 0.75;
-    }
-
-    nav .cta-nav a {
-      color: var(--bg);
-      background: var(--text);
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 0.85em;
-      padding: 0.5em 1.4em;
-      border-radius: 2em;
-      transition: opacity 200ms;
-    }
-
-    nav .cta-nav a:hover {
-      opacity: 0.85;
-    }
-
-    footer {
-      text-align: center;
-      padding: 2em;
-      color: var(--text-muted);
-      font-size: 0.85em;
-      border-top: 1px solid var(--border);
-    }
-
-    footer a {
-      color: var(--text);
-      text-decoration: none;
-    }
-
-    @media (max-width: 640px) {
-      nav {
-        padding: 0.6em 1.2em;
+{% if page.landing %}
+  <script>
+    /*
+     * One viewport unit that CSS and JavaScript agree on.
+     *
+     * On a phone these disagree: CSS vh is the large viewport, measured with
+     * the browser chrome hidden, while window.innerHeight is whatever is on
+     * screen right now. The scroll choreography measures progress in
+     * innerHeight, so anything it moves has to be sized in the same unit --
+     * otherwise the motion is calibrated to one number and the distance to
+     * another, and they slide apart as the toolbar hides.
+     *
+     * It is deliberately locked. Recalculating while the toolbar slides away
+     * would re-time every animation mid-scroll, which is exactly the stutter
+     * this avoids; only a real change of shape, like a rotation, updates it.
+     */
+    (function () {
+      var locked = 0;
+      function setUnit(force) {
+        var h = window.innerHeight;
+        if (!force && Math.abs(h - locked) < 120) return;
+        locked = h;
+        window.__vh = h;
+        document.documentElement.style.setProperty("--vh", h / 100 + "px");
       }
-    }
-  </style>
+      setUnit(true);
+      window.addEventListener("resize", function () {
+        setUnit(false);
+      });
+      window.addEventListener("orientationchange", function () {
+        setTimeout(function () {
+          setUnit(true);
+        }, 250);
+      });
+    })();
+  </script>
+{% endif %}
 </head>
 
 <body>
-  <nav>
+  <nav class="site-nav">
     <div class="brand">
-      <a href="/">avand.fm</a> / <a href="/headroom/">headroom</a>
+      <a href="/">avand.fm</a> <span class="brand-sep">/</span>
+      {% if page.landing %}<span class="brand-here">headroom</span>{% else %}<a href="/headroom/">headroom</a>{% endif %}
     </div>
+    <!-- The CTA is an in-page jump to #cta, so it only belongs on a page that
+         has one. The glossary keeps its own lighter call to action at the foot
+         of each entry rather than asking a reader looking up a definition for
+         an email address. -->
     <div class="cta-nav">
-      <a href="https://calendar.app.google/2dhPnZHUngrQUUoF7" target="_blank">Book a call</a>
+      {% if page.landing %}<a href="#cta">Free sample class</a>{% endif %}
     </div>
   </nav>
 
-  {{ content }}
+  <!-- .sheet is the page proper: it carries the background the content sits
+       on, without which body's own colour -- the top of the hero gradient --
+       would show through. The landing page brings its own, because .sheet is a
+       stacking context and its module modal has to sit outside one to stay
+       above the nav. Everything else is wrapped here and needs no say in it. -->
+  {% if page.landing %}{{ content }}{% else %}
+  <div class="sheet">
+    {{ content }}
+  </div>
+  {% endif %}
 
-  <footer>
-    <a href="/">avand.fm</a>
-    &middot; <a href="/headroom/">Headroom</a>
-    {% if page.section %}&middot; {% if page.section_url %}<a href="{{ page.section_url }}">{{ page.section }}</a>{% else %}{{ page.section }}{% endif %}{% endif %}
-    {% if page.subsection %}&middot; {{ page.subsection }}{% endif %}
-    &middot; 2026
+  <footer class="site-footer" id="site-footer">
+    <div class="footer-inner">
+      {% if page.landing %}
+      <p>Video by <a href="https://www.ericheiland.com/" target="_blank" rel="noopener">Eric Heiland</a>.</p>
+      <p>Special thanks to Ziad, Garrett, Jamie, Olive, Adam, Nick, Levi.</p>
+      {% endif %}
+      <p class="footer-signoff">Built with passion and purpose.</p>
+      <div class="colophon">
+        <a href="/">avand.fm</a> &middot;
+        {% if page.landing %}Headroom{% else %}<a href="/headroom/">Headroom</a>{% endif %}
+        {% if page.section %}&middot; {% if page.section_url %}<a href="{{ page.section_url }}">{{ page.section }}</a>{% else %}{{ page.section }}{% endif %}{% endif %}
+        {% if page.subsection %}&middot; {{ page.subsection }}{% endif %}
+        &middot; 2026
+      </div>
+    </div>
   </footer>
 
   <script>
-    (function() {
-      var size = 32, frames = 36, urls = [], frame = 0;
+    /* ---------- Spinning record favicon ---------- */
+    (function () {
+      var size = 32;
+      var frames = 36;
+      var urls = [];
       var canvas = document.createElement("canvas");
-      canvas.width = size; canvas.height = size;
+      canvas.width = size;
+      canvas.height = size;
       var ctx = canvas.getContext("2d");
-      var cx = size / 2, cy = size / 2;
+      var cx = size / 2;
+      var cy = size / 2;
+
       for (var i = 0; i < frames; i++) {
         ctx.clearRect(0, 0, size, size);
         ctx.save();
         ctx.translate(cx, cy);
         ctx.rotate((i / frames) * Math.PI * 2);
         ctx.translate(-cx, -cy);
-        ctx.beginPath(); ctx.arc(cx, cy, 16, 0, Math.PI * 2); ctx.fillStyle = "#111"; ctx.fill();
-        ctx.beginPath(); ctx.arc(cx, cy, 8, 0, Math.PI * 2); ctx.fillStyle = "#ff6116"; ctx.fill();
-        ctx.beginPath(); ctx.arc(cx, cy, 5.5, -0.8, 0.8); ctx.strokeStyle = "white"; ctx.lineWidth = 2; ctx.lineCap = "round"; ctx.stroke();
-        ctx.beginPath(); ctx.arc(cx, cy, 1.2, 0, Math.PI * 2); ctx.fillStyle = "#ccc"; ctx.fill();
+
+        // Vinyl
+        ctx.beginPath();
+        ctx.arc(cx, cy, 16, 0, Math.PI * 2);
+        ctx.fillStyle = "#111";
+        ctx.fill();
+
+        // Label
+        ctx.beginPath();
+        ctx.arc(cx, cy, 8, 0, Math.PI * 2);
+        ctx.fillStyle = "#ff6116";
+        ctx.fill();
+
+        // Label arc (like text on a record)
+        ctx.beginPath();
+        ctx.arc(cx, cy, 5.5, -0.8, 0.8);
+        ctx.strokeStyle = "white";
+        ctx.lineWidth = 2;
+        ctx.lineCap = "round";
+        ctx.stroke();
+
+        // Spindle hole
+        ctx.beginPath();
+        ctx.arc(cx, cy, 1.2, 0, Math.PI * 2);
+        ctx.fillStyle = "#ccc";
+        ctx.fill();
+
         ctx.restore();
         urls.push(canvas.toDataURL("image/png"));
       }
+
       var link = document.getElementById("favicon");
-      setInterval(function() { frame = (frame + 1) % frames; link.href = urls[frame]; }, 1800 / frames);
+      var frame = 0;
+      setInterval(function () {
+        frame = (frame + 1) % frames;
+        link.href = urls[frame];
+      }, 1800 / frames);
     })();
   </script>
 </body>

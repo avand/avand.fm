@@ -154,59 +154,16 @@
   border-color: var(--accent);
 }
 
-.final-cta {
-  text-align: center;
-  padding: 6em 2em;
-  position: relative;
-  background:
-    linear-gradient(to bottom, var(--bg) 0%, rgba(10, 10, 15, 0.5) 30%, rgba(10, 10, 15, 0.5) 70%, var(--bg) 100%),
-    url('/headroom/djvibe-studiox-dt_UuLU_foM-unsplash.jpg') center bottom / cover no-repeat;
-}
+/* .final-cta and .btn-primary both used to be redefined here. They now come
+   from headroom.css, which the layout loads on every page under /headroom/ --
+   the same rules the landing page's call to action uses, so the two match by
+   construction rather than by two copies being kept in step.
 
-.final-cta::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  box-shadow: inset 0 0 8em 2em var(--bg);
-  pointer-events: none;
-}
-
-.final-cta h2 {
-  font-size: 2em;
-  margin-bottom: 0.4em;
-  position: relative;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
-}
-
-.final-cta p {
-  color: var(--text);
-  margin-bottom: 2em;
-  font-size: 1.2em;
-  position: relative;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
-  max-width: 540px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.btn-primary {
-  display: inline-block;
-  background: var(--accent);
-  color: white;
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 1em;
-  padding: 0.75em 2.5em;
-  border-radius: 2em;
-  transition: box-shadow 200ms, transform 200ms;
-  box-shadow: 0 0 1.5em var(--accent-glow);
-  position: relative;
-}
-
-.btn-primary:hover {
-  box-shadow: 0 0 2.5em var(--accent-glow);
-  transform: translateY(-1px);
-}
+   The copy that lived here had drifted: it still pointed at a photograph the
+   landing page stopped using and which was deleted from the repo, so this
+   block was rendering against a 404. Inheriting means the responsive
+   backgrounds come along too -- three sizes by device class, which this never
+   had. */
 
 @media (max-width: 640px) {
   .entry-header,

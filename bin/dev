@@ -5,6 +5,13 @@
 #   bin/dev              site on :8100, plus the tunnel
 #   NO_TUNNEL=1 bin/dev  local only
 #
+# The Headroom pages are Jekyll now -- front matter and a shared layout -- so
+# this builds the site before serving it, and keeps building as files change.
+# Serving the repo directly, which is what this used to do, would hand the
+# browser raw templates: front matter printed at the top of the page and no
+# nav, footer, or stylesheet, because those live in _layouts/headroom.html and
+# nothing has run to put them there.
+#
 # Video is not served from here. It comes from https://video.avand.fm in
 # preview exactly as in production, so any machine can show the page without
 # first building 400MB of renditions it has no sources for.
@@ -28,17 +35,36 @@ cd "$(dirname "$0")/.."
 SITE_PORT="${SITE_PORT:-8100}"
 HOSTNAME_FM="fm.avand.dev"
 TUNNEL_CONFIG="$HOME/.cloudflared/avand-fm.yml"
+SITE_DIR="_site"
 
 started_tunnel=""
+jekyll_pid=""
 
 cleanup() {
   # Only ever stop what this script started.
   [ -n "${server_pid:-}" ] && kill "$server_pid" 2>/dev/null || true
+  [ -n "${jekyll_pid:-}" ] && kill "$jekyll_pid" 2>/dev/null || true
   if [ -n "$started_tunnel" ]; then
     kill "$started_tunnel" 2>/dev/null || true
   fi
 }
 trap cleanup EXIT INT TERM
+
+# Jekyll first, and it has to finish once before anything is served -- an empty
+# _site would otherwise be a 404 for however long the first build takes.
+# --watch then keeps it current in the background; edits appear on the next
+# reload rather than needing this script restarted.
+if ! command -v jekyll >/dev/null 2>&1; then
+  echo "jekyll is not on PATH." >&2
+  echo "  gem install jekyll     (needs a Ruby newer than the one Apple ships;" >&2
+  echo "                          mise.toml pins one for this repo)" >&2
+  exit 1
+fi
+
+echo "  building ..."
+jekyll build --quiet --destination "$SITE_DIR"
+jekyll build --quiet --destination "$SITE_DIR" --watch >/dev/null 2>&1 &
+jekyll_pid=$!
 
 # Python's stock static server, binding every interface so a phone on the LAN
 # and the tunnel can both reach it. The site is plain files, and the video it
@@ -58,7 +84,7 @@ trap cleanup EXIT INT TERM
 # JavaScript the device was not running. A URL that changes whenever the file
 # changes cannot be answered from cache at all, and needs no hand-maintained
 # version numbers to do it.
-python3 - "$SITE_PORT" >/dev/null 2>&1 <<'PY' &
+python3 - "$SITE_PORT" "$SITE_DIR" >/dev/null 2>&1 <<'PY' &
 import io
 import os
 import re
@@ -115,7 +141,18 @@ class Dev(SimpleHTTPRequestHandler):
         # Someone else's file: not ours to version, and not ours to break.
         if url.startswith((b"http:", b"https:", b"//")):
             return match.group(0)
-        local = os.path.join(base, url.decode("utf-8").lstrip("/"))
+        # A leading slash means the site root, not this page's directory. The
+        # shared stylesheet is referenced that way -- it has to be, since a
+        # concept page sits two directories below the file -- and stripping the
+        # slash and joining it to the page's own directory looked for
+        # _site/headroom/headroom/headroom.css, missed, and silently left the
+        # reference unstamped. Which is the one case this whole mechanism
+        # exists for: an edit to the CSS that does not show up.
+        ref = url.decode("utf-8")
+        if ref.startswith("/"):
+            local = os.path.join(os.getcwd(), ref.lstrip("/"))
+        else:
+            local = os.path.join(base, ref)
         try:
             stamp = int(os.path.getmtime(local))
         except OSError:
@@ -123,6 +160,7 @@ class Dev(SimpleHTTPRequestHandler):
         return attr + b'="' + url + b"?d=" + str(stamp).encode() + b'"'
 
 
+os.chdir(sys.argv[2])
 ThreadingHTTPServer(("", int(sys.argv[1])), Dev).serve_forever()
 PY
 server_pid=$!

@@ -1,0 +1,1018 @@
+/*
+ * headroom.css -- everything the Headroom landing page and the concept pages
+ * present identically.
+ *
+ * The split is by audience, not by tidiness. Three tiers:
+ *
+ *   headroom.css        this file. Tokens, the type and colour of the whole
+ *                       section, the nav, the footer, the buttons, and the
+ *                       final CTA's presentation. Loaded by every page under
+ *                       /headroom/ via _layouts/headroom.html.
+ *   index.html <style>  the landing page's own furniture -- hero, curriculum,
+ *                       player, timeline, comet, instructor, modal, and the
+ *                       signup form. One page uses it, so it stays inline
+ *                       where it costs no request.
+ *   concepts/concepts.css   the glossary's own layout. Loaded only when a page
+ *                       declares `subsection` in its front matter.
+ *
+ * This used to be one 189KB <style> in one page. Extracting it cost the
+ * landing page a request it did not have -- 12KB gzipped, same origin, on a
+ * connection already open -- and bought a single cached download shared across
+ * fifty-odd pages. With one page inlining was right. With fifty it is not.
+ *
+ * Relative url()s resolve against this file, not the page including it. This
+ * file lives in /headroom/, so 'fonts/cairo-latin.woff2' and
+ * 'final-cta-2560.webp' are correct from a concept page two directories down
+ * as well as from the landing page. Nothing here needs an absolute path, and
+ * making one absolute would be a claim about the deploy path that is not
+ * otherwise made anywhere.
+ *
+ * Cached like the scripts are, so it carries the same ?v= discipline: bump the
+ * number in _layouts/headroom.html in the same commit as any change here.
+ */
+
+/* One file per subset covers every weight: Cairo is a variable font, so the
+   four weights this page uses (400/600/700/900) are axis positions in the
+   same 33KB, not four downloads. Google's own CSS gives the same URL for
+   all four -- which is why `font-weight: 400 900` here is a range, not a
+   single value. Ask for a weight outside it and the browser synthesises a
+   fake bold rather than failing visibly, so keep the range honest.
+
+   font-display: swap matches what Google's stylesheet asked for: show the
+   fallback immediately and repaint when Cairo lands. The alternative is a
+   page that is briefly blank. */
+@font-face {
+  font-family: "Cairo";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("fonts/cairo-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Cairo";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("fonts/cairo-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+:root {
+  /* The width of the curriculum band: the timeline and every week slide
+     are set to it, so "Oct 1" and the module heading below it start on the
+     same pixel and "Nov 19" ends level with the right edge of the video.
+     Declared here rather than on either of them because the whole point is
+     that neither owns it. */
+  --band-w: min(1140px, calc(100vw - 3em));
+  --bg: #0a0a0f;
+  --surface: #13131a;
+  --border: rgba(255, 255, 255, 0.08);
+  --text: #e4e4eb;
+  --text-muted: #8a8a9a;
+  /* Where the hero photograph meets the top of the screen, and the one
+     colour the notch arrangement is built on.
+
+     Measured rather than picked: the top edge of the hero image is
+     #5218E0 on the portrait crop and #5B1DCF on the landscape ones, and
+     .hero-bg lays rgba(10,10,15,0.55) over both, which composites to
+     #2A106D and #2E1365. This is the average of those two, so it is a
+     near miss for the real top of either file and an exact match for the
+     band that is painted over them. */
+  --hero-top: #2c1169;
+  /* The same colour at zero alpha, for the fade to run out into. Written
+     out rather than left as `transparent` so there is no question of what
+     it interpolates through. */
+  --hero-top-clear: rgba(44, 17, 105, 0);
+  --accent: #9207c3;
+  --accent-glow: rgba(146, 7, 195, 0.3);
+  --warm: #ff6116;
+  --ease: cubic-bezier(0.22, 0.8, 0.24, 1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Base type scale. Almost everything on the page is sized in em from here,
+   so this is the one knob that moves the whole page together. */
+html {
+  font-size: 115%;
+}
+
+/* The two links to the signup section -- the hero's CTA and the nav's --
+   glide there instead of teleporting. CSS rather than a click handler, so
+   it costs nothing and keeps the anchors as plain anchors: the hash still
+   lands in the URL and back still works.
+
+   Safe against the scripted scrolls because every one of them passes an
+   explicit behavior of its own, which wins over this: see jumpTo() in
+   curriculum.js, where a deep link deliberately asks for "auto" so it
+   arrives already there rather than gliding in from the top of the page.
+
+   Guarded on no-preference rather than switched off in a reduce block. A
+   long animated scroll is exactly the kind of motion that setting is for,
+   and this way the declaration is never made in the first place. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* The canvas colour, and the whole of the notch arrangement in four
+   moves:
+
+     1. the top 25px of the hero fades to --hero-top, so the photograph's
+        top edge is that flat colour rather than whatever pixel row the
+        crop happened to land on;
+     2. the body is the same colour, so at rest the strip behind the notch
+        -- which Safari fills from the body when nothing fixed is up there
+        to sample -- matches the top of the picture exactly;
+     3. scrolling slides that band up under the notch, and because both
+        sides of the seam are the same colour there is no seam to see;
+     4. past the hero, hero.js swaps this for the page's black, and the
+        strip goes black with it.
+
+   Nothing samples a translucent surface and nothing depends on a safe-area
+   inset. The nav's glass sits on an absolutely positioned child precisely
+   so that Safari keeps reading the body here and step 4 stays true.
+
+   Everything between is covered by .sheet and .site-footer, which carry
+   their own backgrounds; this shows only at the very top and in the
+   overscroll past the end. */
+body {
+  font-family: "Cairo", sans-serif;
+  background: var(--hero-top);
+  /* No transition, and this is the whole of a bug worth writing down.
+     There used to be a 220ms linear fade here, so for a fifth of a second
+     as the header arrived the body was neither colour but a blend of the
+     two -- and Safari samples the strip behind the notch once and keeps
+     what it got. Sampled a third of the way through that fade, purple to
+     black gives #200F4A, which is exactly the dark indigo that kept
+     showing up above the header instead of black.
+
+     The swap is instantaneous now, so whenever Safari looks, the only two
+     answers available are the two correct ones. Nothing is lost visually
+     either: the header slides in over 340ms across the same moment, which
+     is far more motion than a background step behind it. */
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* For phrases that shouldn't be split across lines. Same name as the one
+   on the rest of avand.fm. */
+.no-break {
+  white-space: nowrap;
+}
+
+:focus-visible {
+  outline: 2px solid var(--warm);
+  outline-offset: 2px;
+}
+
+
+/* --- Nav --- */
+
+/* Nothing fixed sits at the top edge on purpose. iOS 26 samples the colour
+   behind the status bar from fixed or sticky elements there, and falls
+   back to the canvas background when it finds none -- and the fallback is
+   what we want, because the canvas is the one colour that can hand over to
+   the real photograph the instant the page scrolls. A strip pinned up
+   there would keep painting over it. See the note on body.
+
+   theme-color is not an alternative: Safari 26 parses it and discards the
+   value. */
+
+.site-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  /* The fallback, and what anything without backdrop-filter keeps: a
+     nearly opaque strip. The glass is applied over this in the @supports
+     below, so an engine that cannot blur never ends up with the thin tint
+     and no frost behind it -- which would leave the brand and the button
+     sitting on raw video. */
+  background: rgba(10, 10, 15, 0.94);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  /* The top inset is added to the padding so that in landscape, where the
+     inset is real, the brand and the button sit clear of the sensor
+     housing rather than under it. In portrait it resolves to 0.
+     timeline.js measures this element's height for --nav-h, so the sticky
+     timeline follows on its own. */
+  padding: calc(0.8em + env(safe-area-inset-top, 0px)) 2em 0.8em;
+  gap: 1em;
+}
+
+
+/* --- The bar as dark glass ---
+   This reverses an earlier decision, which is worth saying plainly: the
+   bar used to be nearly opaque on the grounds that a blur behind a fixed
+   element has to be recomputed against whatever is moving underneath it.
+   That is true, but the cost is set by the blurred area, not by how much
+   page scrolls past it -- one pass over a strip the width of the screen
+   and about fifty pixels tall. That is a bargain worth making now in a way
+   it was not a few years ago, and the bar only exists at all once you are
+   past the hero, so it is not on screen for the whole page either.
+
+   The glass sits on an absolutely positioned child rather than on the bar
+   itself, which is the documented shape for a translucent fixed header and
+   is load-bearing here for a second reason. Safari reads background-color
+   and backdrop-filter off fixed and sticky elements to decide what to put
+   behind the notch, and reads only their own properties -- absolutely
+   positioned children are ignored. Sampling a translucent surface is
+   documented as unpredictable, because the answer depends on whatever
+   happens to be behind it at the time. A bar that is transparent to that
+   algorithm leaves Safari reading the body instead, which is a colour this
+   page sets deliberately. See the note on body.
+
+   The rest is what separates glass from fog. saturate is most of it: a
+   plain blur greys out whatever is behind, and pulling the colour back up
+   is what makes the purple of the instructor band and the module videos
+   actually bleed through. The gradient is a sheen down the pane, brightest
+   where the light would catch it. The hairline below is the lit edge --
+   a pane has a thickness, and that edge is where you see it. */
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .site-nav {
+    /* Nothing of its own to sample. The glass is on the child below, and
+       that is the point rather than a detail: Safari reads only the fixed
+       element's own background-color and backdrop-filter and ignores its
+       absolutely positioned children, so a bar that is transparent here
+       leaves it reading the body -- which is the colour the notch
+       arrangement drives. Put the glass back on the bar itself and step 4
+       of that arrangement stops working. */
+    background: transparent;
+    /* Kept, at zero alpha, rather than removed: timeline.js measures this
+       element's height for --nav-h and the sticky timeline hangs off it.
+       Dropping a 1px border to draw the edge as a pseudo-element instead
+       would quietly move everything below by a pixel. */
+    border-bottom-color: transparent;
+  }
+
+  /* The pane itself. Absolutely positioned, so it is out of the bar's flex
+     flow and not one of its items, and so it can be taller than the bar. */
+  .site-nav::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      linear-gradient(to bottom,
+        rgba(255, 255, 255, 0.07) 0%,
+        rgba(255, 255, 255, 0.02) 55%,
+        rgba(255, 255, 255, 0) 100%),
+      rgba(10, 10, 15, 0.55);
+    /* More blur as the tint comes down: they trade against each other for
+       legibility. At 0.55 the page underneath is genuinely visible, so the
+       blur has to be the thing keeping the brand and the button off it. */
+    -webkit-backdrop-filter: blur(26px) saturate(190%);
+    backdrop-filter: blur(26px) saturate(190%);
+  }
+
+  /* The lit edge. A gradient rather than a flat rule so it is brightest
+     across the middle and gone by the corners, which is how an edge
+     catches light and is the detail that stops this reading as a panel
+     with a border. */
+  .site-nav::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    pointer-events: none;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.16) 18%,
+        rgba(255, 255, 255, 0.16) 82%,
+        transparent 100%);
+  }
+}
+
+/* Transparency is an accessibility setting on both platforms this ships
+   to, and it is set by people who find layered translucency hard to read
+   through. Hand them back the flat bar. */
+@media (prefers-reduced-transparency: reduce) {
+  .site-nav {
+    background: rgba(10, 10, 15, 0.97);
+    border-bottom-color: var(--border);
+  }
+
+  .site-nav::before,
+  .site-nav::after {
+    display: none;
+  }
+}
+
+.site-nav .brand {
+  font-weight: 700;
+  font-size: 1.1em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* The site name is context, the page name is the point: knocking the
+   former back lets "headroom" carry the header. */
+.site-nav .brand a {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 200ms;
+}
+
+.site-nav .brand a:hover {
+  color: var(--text);
+}
+
+.site-nav .brand-sep {
+  color: var(--text-muted);
+  opacity: 0.55;
+}
+
+.site-nav .brand-here {
+  color: var(--text);
+}
+
+/* The angle the gradient ring below is rotated to. Registered rather than
+   a plain custom property because only a registered one has a type the
+   browser can interpolate -- an unregistered --angle would jump between
+   keyframes instead of sweeping. */
+@property --nav-angle {
+  syntax: "<angle>";
+  /* Inherited, so the angle can be animated once on the button and both
+     layers below -- the crisp edge and the blurred glow under it -- read
+     the same value and stay locked together. */
+  inherits: true;
+  initial-value: 0deg;
+}
+
+/* How far round the price pill's border has been drawn. Where --nav-angle
+   *rotates* a fixed gradient forever, this one is a progress value: the
+   gradient's colour stops are positioned from it, so the border exists
+   only behind the head and the lap leaves a finished ring. Registered for
+   the same reason -- an unregistered property has no type to interpolate,
+   and the trace would jump rather than travel. */
+/* Registered so they are numbers rather than token soup: typed, clamped
+   to something valid, and cheap to recompute on every mark when --t moves.
+   An invalid value falls back to the initial instead of dropping the whole
+   transform it sits in. */
+@property --t {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+@property --tag-angle {
+  syntax: "<angle>";
+  inherits: true;
+  initial-value: 0deg;
+}
+
+/* The bright head of that trace, cooled to plain orange over the last of
+   the lap so the ring it leaves behind is one even colour rather than
+   keeping a white arc where the head stopped. */
+@property --tag-head {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #fff;
+}
+
+.site-nav .cta-nav a {
+  display: inline-block;
+  /* Deliberately no z-index: that would make this a stacking context, and
+     the glow below could then never get behind it. */
+  position: relative;
+  color: var(--text);
+  background: #000;
+  /* The resting state, and the only thing painted between bursts: a plain
+     solid edge. No gradient, no blur, nothing composited -- the sweep
+     below is laid over this and fades back to it. */
+  border: 1.5px solid var(--accent);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.92em;
+  padding: 0.5em 1.4em;
+  border-radius: 2em;
+  transition: color 200ms;
+  white-space: nowrap;
+  /* The sweep angle and the glow both live here: the ring above is masked,
+     and a mask clips an element's box-shadow along with everything else,
+     so the glow cannot ride on it.
+
+     Delayed so the button holds still while the hero's price reveal plays
+     out -- two things asking for the eye at once and neither gets it --
+     then every 9s from there. The angle is held through the long tail so
+     there is nothing to repaint between bursts; an angle sweeping the
+     whole cycle would keep the fixed bar busy over every scroll. */
+  /* Gated on .is-visible below -- there is no reason for this to compete
+     with the hero's own CTA while that one is still on screen. Applying
+     the animation with the class also means it starts from zero the
+     moment the button arrives, rather than mid-cycle. */
+  animation: none;
+}
+
+/* Hidden only once hero.js has taken charge, so no JS leaves the button
+   simply present rather than permanently invisible. */
+.site-nav .cta-nav {
+  transition:
+    opacity 320ms var(--ease),
+    transform 320ms var(--ease),
+    visibility 320ms;
+}
+
+/* Hidden from the very first frame where JS is running, rather than
+   rendered and then hidden once hero.js gets around to it -- that is the
+   flash. Gated on .js so a no-JS visitor keeps the button. */
+/* The whole bar stays away while the hero is on screen, so there is one
+   thing to look at rather than two, and slides down once the hero is
+   behind you. Gated on .js, set in the document head: without it the nav
+   would paint and then vanish, and with no script at all it would never
+   come back. hero.js decides when, on the same signal that brings the
+   nav's own CTA in.
+
+   Gated on .has-hero as well, and that is the load-bearing half now that
+   the glossary shares this bar. The rule is not "hide the nav"; it is "get
+   out of the way of the hero, which is already showing this CTA". A concept
+   page has no hero, and does not load hero.js either -- so left ungated the
+   bar would translate off screen on first paint with nothing in the page
+   able to bring it back. Both classes sit on <html>, hence .js.has-hero and
+   not .js .has-hero: one element, two conditions. */
+.js.has-hero .site-nav {
+  transform: translateY(-100%);
+  transition: transform 340ms var(--ease);
+}
+
+.js.has-hero .site-nav.is-visible {
+  transform: none;
+}
+
+.js.has-hero .site-nav .cta-nav {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-0.4em);
+}
+
+.js.has-hero .site-nav .cta-nav.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
+
+/* Half a second after it has built itself in, then every 9s. */
+.site-nav .cta-nav.is-visible a {
+  animation: nav-sweep 9s ease-in-out 0.5s infinite;
+}
+
+.site-nav .cta-nav.is-visible a::before {
+  animation: nav-ring 9s ease-in-out 0.5s infinite;
+}
+
+/* Mostly dim, with one bright arc: that is what makes the rotation read as
+   a light travelling the border rather than a wheel turning. The tail
+   ramps up over ~110deg and the head drops off sharply behind it. */
+.site-nav .cta-nav a {
+  --nav-dim: rgba(146, 7, 195, 0.32);
+  --nav-comet: conic-gradient(from var(--nav-angle, 0deg),
+      var(--nav-dim) 0deg,
+      var(--nav-dim) 190deg,
+      var(--accent) 300deg,
+      var(--warm) 340deg,
+      var(--nav-dim) 360deg);
+}
+
+/* Both shadows are present in every keyframe and only their alpha moves --
+   interpolating between different shadow counts is not something to rely
+   on. */
+@keyframes nav-sweep {
+  0%, 8% {
+    --nav-angle: 0deg;
+    box-shadow:
+      0 0 10px rgba(146, 7, 195, 0),
+      0 0 20px rgba(255, 97, 22, 0);
+  }
+
+  18%, 32% {
+    box-shadow:
+      0 0 10px rgba(146, 7, 195, 0.55),
+      0 0 20px rgba(255, 97, 22, 0.28);
+  }
+
+  42%, 100% {
+    --nav-angle: 720deg;
+    box-shadow:
+      0 0 10px rgba(146, 7, 195, 0),
+      0 0 20px rgba(255, 97, 22, 0);
+  }
+}
+
+/* The border, drawn as a border rather than as a rectangle hidden behind
+   something: a transparent 1.5px border with two backgrounds under it,
+   the gradient clipped to the border box and nothing clipped to the
+   padding box. Only the ring is painted; the middle stays empty and the
+   button's own black shows through.
+
+   The obvious-looking alternative -- a filled rectangle at z-index: -1 --
+   does not work. Negative z-index puts a child behind its parent's
+   *content*, but still in front of the parent's *background*, so it
+   covers the face rather than sitting under it. */
+/* The sweep, laid exactly over the solid border and fading back to it.
+
+   Sits *above* the button rather than behind: behind is where the button's
+   own opaque background and border hide it. Which means its middle has to
+   be genuinely transparent or it would cover the label -- hence the mask
+   rather than a solid fill. Two mask layers, the whole box and its content
+   box, composited to exclude one from the other: what survives is the
+   padding ring and nothing else. */
+.site-nav .cta-nav a::before {
+  content: "";
+  position: absolute;
+  /* Exactly the button's border box. */
+  inset: -1.5px;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: var(--nav-comet);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  animation: none;
+  pointer-events: none;
+}
+
+/* The glow: the same comet, blurred and sitting a little wider, so the
+   light spills off the edge and travels with it rather than the whole
+   button blooming at once.
+
+   This is a blur, which was avoided on the nav bar itself -- but the two
+   are not the same cost. That was a backdrop-filter sampling the entire
+   width of the page behind a fixed bar; this is a ~120x45px layer with
+   nothing behind it to sample. */
+/* Fades up over the solid border, sweeps, and fades back to it. The angle
+   it reads is animated on the button above. */
+@keyframes nav-ring {
+  0%, 8% {
+    opacity: 0;
+  }
+
+  18%, 32% {
+    opacity: 1;
+  }
+
+  42%, 100% {
+    opacity: 0;
+  }
+}
+
+/* Answers straight away rather than waiting for the next burst. */
+/* The spin belongs on the button, which is what owns the angle both layers
+   read; the layers themselves just hold at full. */
+.site-nav .cta-nav a:hover,
+.site-nav .cta-nav a:focus-visible {
+  animation: nav-spin 2.4s linear infinite;
+  /* nav-spin only carries the angle, so the glow has to be stated here or
+     it would drop back to nothing the moment the pointer arrives. */
+  box-shadow:
+    0 0 10px rgba(146, 7, 195, 0.55),
+    0 0 20px rgba(255, 97, 22, 0.28);
+}
+
+.site-nav .cta-nav a:hover::before,
+.site-nav .cta-nav a:focus-visible::before {
+  opacity: 1;
+  animation: none;
+}
+
+.site-nav .cta-nav a:hover {
+  color: #fff;
+}
+
+@keyframes nav-spin {
+  to {
+    --nav-angle: 360deg;
+  }
+}
+
+
+.btn-primary {
+  display: inline-block;
+  background: var(--accent);
+  color: white;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1.1em;
+  padding: 0.75em 2.5em;
+  border-radius: 2em;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: box-shadow 200ms, transform 200ms;
+  box-shadow: 0 0 1.5em var(--accent-glow);
+}
+
+/* The comet treatment, built exactly like the nav button and scaled up:
+   black face, solid accent border at rest, the same comet laid over it.
+   Worn by the two buttons that ask for the same thing -- the hero's CTA
+   and the signup form's submit -- so the page opens and closes on the same
+   object.
+
+   A class rather than a descendant selector: it used to be scoped as
+   .hero-content .btn-primary, which put the treatment somewhere it could
+   not be reused. The compound keeps the old specificity exactly, so it
+   still wins against the plain .btn-primary:hover below without that rule
+   having to move. */
+.btn-primary.btn-comet {
+  position: relative;
+  /* Solid black, not glass. Glass was tried here at three strengths and
+     the crisp version won: the pills above are a row of quiet facts and
+     want to sit in the photograph, but this is the one thing on the screen
+     to press, and a hard edge between it and the picture is what makes it
+     read that way. */
+  background: #000;
+  color: var(--text);
+  border: 2px solid var(--accent);
+  box-shadow: none;
+  /* Its own copy: a custom property holding var() resolves where it is
+     declared, so this cannot be shared with the nav button's. */
+  --cta-dim: rgba(146, 7, 195, 0.32);
+  --cta-comet: conic-gradient(from var(--nav-angle, 0deg),
+      var(--cta-dim) 0deg,
+      var(--cta-dim) 190deg,
+      var(--accent) 300deg,
+      var(--warm) 340deg,
+      var(--cta-dim) 360deg);
+  /* Starts once the price reveal has finished saying its piece. */
+  animation: cta-sweep 9s ease-in-out 2.2s infinite;
+}
+
+.btn-primary.btn-comet::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: var(--cta-comet);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  animation: nav-ring 9s ease-in-out 2.2s infinite;
+  pointer-events: none;
+}
+
+/* As nav-sweep, with the glow scaled to the larger button. */
+@keyframes cta-sweep {
+  0%, 8% {
+    --nav-angle: 0deg;
+    box-shadow:
+      0 0 16px rgba(146, 7, 195, 0),
+      0 0 32px rgba(255, 97, 22, 0);
+  }
+
+  18%, 32% {
+    box-shadow:
+      0 0 16px rgba(146, 7, 195, 0.6),
+      0 0 32px rgba(255, 97, 22, 0.3);
+  }
+
+  42%, 100% {
+    --nav-angle: 720deg;
+    box-shadow:
+      0 0 16px rgba(146, 7, 195, 0),
+      0 0 32px rgba(255, 97, 22, 0);
+  }
+}
+
+.btn-primary.btn-comet:hover {
+  animation: nav-spin 2.4s linear infinite;
+  color: #fff;
+  transform: none;
+  box-shadow:
+    0 0 16px rgba(146, 7, 195, 0.6),
+    0 0 32px rgba(255, 97, 22, 0.3);
+}
+
+.btn-primary.btn-comet:hover::before {
+  opacity: 1;
+  animation: none;
+}
+
+.btn-primary:hover {
+  box-shadow: 0 0 2.5em var(--accent-glow);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* --- Sections --- */
+
+section {
+  padding: 5em 2em;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+section.wide {
+  max-width: 1140px;
+}
+
+
+.final-cta {
+  text-align: center;
+  padding: 8em 2em;
+  max-width: none;
+  margin: 0 auto;
+  position: relative;
+  background:
+    linear-gradient(to bottom, var(--bg) 0%, rgba(10, 10, 15, 0.5) 30%, rgba(10, 10, 15, 0.5) 70%, var(--bg) 100%),
+    url('final-cta-2200.webp') center bottom / cover no-repeat;
+}
+
+.final-cta::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 100% at 50% 50%,
+      rgba(10, 10, 15, 0) 55%, var(--bg) 100%);
+  pointer-events: none;
+}
+
+.final-cta h2 {
+  font-size: 2.4em;
+  margin-bottom: 0.3em;
+  position: relative;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.final-cta>p {
+  color: var(--text);
+  margin-bottom: 2em;
+  font-size: 1.2em;
+  position: relative;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+  /* Was 540px, which set a shorter line than the copy wanted; this is
+     around 60 characters at this size, still inside a comfortable measure.
+     Deliberately not the form's width below -- see .signup, which is a
+     narrower column on purpose. Only desktop feels this;
+     below ~680px the viewport and the section's padding are the narrower
+     constraint. */
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* The page proper. The heavy drop shadow it used to carry was there to
+   give the footer something to be revealed from under; with the footer
+   flat there is nothing beneath it to cast onto. */
+.sheet {
+  position: relative;
+  z-index: 1;
+  background: var(--bg);
+}
+
+/* --- Footer ---
+   A plain block at the end of the page: a few credits, a sign-off, a
+   colophon.
+
+   It used to be a layer of dark purple underneath the page, uncovered as
+   the sheet of near-black scrolled away, with its contents lagging behind
+   the scroll so it read as being revealed rather than arriving. That is
+   gone, and with it footer.js -- which drove the lag from a scroll
+   listener that measured the footer and every acknowledgement on it, once
+   a frame. Two forced layouts per frame for the length of the page, for an
+   effect nobody was going to see twice. */
+.site-footer {
+  position: relative;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  /* Bottom inset so the last line clears the home indicator, which the
+     page now paints behind. */
+  padding: 4.5em 2em calc(3em + env(safe-area-inset-bottom, 0px));
+  text-align: center;
+  font-size: 0.95em;
+}
+
+.footer-inner {
+  max-width: 680px;
+  margin: 0 auto;
+  display: grid;
+  gap: 0.9em;
+}
+
+.site-footer a {
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.3);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.22em;
+  transition: text-decoration-color 200ms;
+}
+
+.site-footer a:hover {
+  text-decoration-color: #fff;
+}
+
+/* The sign-off, set apart from the credits above it without a rule to do
+   the separating -- at this size a border would be the loudest thing in
+   the footer. */
+.footer-signoff {
+  margin-top: 0.6em;
+  color: var(--text);
+}
+
+.colophon {
+  margin-top: 1.6em;
+  color: #6f6f80;
+  font-size: 0.92em;
+}
+
+
+/* --- Responsive --- */
+
+@media (max-width: 640px) {
+  .site-nav {
+    padding: calc(0.6em + env(safe-area-inset-top, 0px)) 0.8em 0.6em;
+    gap: 0.6em;
+  }
+
+  /* "Free class" became "Free sample class" and the button grew by about
+     a third, which is enough to run it off the right edge of a 390px
+     phone -- the brand on the left does not shrink to make room. The bar
+     is a fixed width budget, so the copy change has to be paid for here:
+     smaller type, tighter sides, and a brand that gives way first. */
+  .site-nav .cta-nav a {
+    font-size: 0.84em;
+    padding-left: 0.65em;
+    padding-right: 0.65em;
+  }
+
+  /* The crumb was set at 20px here, which is headline size for what is
+     really a location label -- and it was spending 250px of a 390px bar.
+     Bringing it down to 16px is what buys "avand.fm /" its place back
+     next to the longer button, rather than dropping it. */
+
+
+  /* The button is the thing being clicked, so it keeps its size and the
+     brand is what gives way. Below the width where both fit, the crumb
+     drops to just this page's name -- avand.fm is one tap away up the
+     breadcrumb everywhere else, and a truncated "AVAND.FM / HEADRO..."
+     serves nobody. */
+  .site-nav .cta-nav {
+    flex: none;
+  }
+
+  /* nowrap is load-bearing, not cosmetic: a brand that wraps doubles the
+     nav's height, which timeline.js measures as --nav-h, which sets the
+     sticky bar's offset and --tl-space, which sets every module slide's
+     padding. One wrapped crumb shifts the whole curriculum down. */
+  .site-nav .brand {
+    min-width: 0;
+    white-space: nowrap;
+    font-size: clamp(13px, 3.6vw, 17px);
+  }
+}
+
+
+/* --- Reduced motion ---
+   Last in the stylesheet, and it has to be. A media query adds no
+   specificity, so every rule in here wins or loses purely on source
+   order against the rule it is overriding. This block used to sit up
+   beside the nav button, which made it half-effective in a way that
+   looked deliberate: the nav overrides landed, because those rules are
+   above it, while the hero CTA and the entire price reveal -- declared
+   hundreds of lines below -- quietly ignored it and animated anyway.
+
+   Anything added here needs to stay here, after everything it names. */
+@media (prefers-reduced-motion: reduce) {
+
+  /* Straight to the end state: struck price, new price, tag, no reveal. */
+  .price-reveal .price-was,
+  .price-reveal .price-now,
+  .comet {
+    animation: none;
+  }
+
+  /* The pill's fill and label come from its own rule, so dropping the
+     animation above already leaves them settled. The border does not -- it
+     is drawn entirely by the trace -- so its finished state has to be
+     stated here: a completed lap with the head cooled. Set on the element,
+     which is where the trace would have animated them and where both rings
+     inherit from. */
+  .comet {
+    --tag-angle: 360deg;
+    --tag-head: var(--warm);
+  }
+
+  .comet::after {
+    animation: none;
+    opacity: 1;
+  }
+
+  /* The glow belongs to a moving head. Without the movement there is
+     nothing for it to be the glow of. */
+  .comet .tag-glow {
+    animation: none;
+    opacity: 0;
+  }
+
+  /* Left-aligned leaves the plain orange end of the gradient over the
+     letters -- the shimmer's resting colour, with none of its travel. */
+  .price-reveal-tag .tag-label {
+    animation: none;
+    opacity: 1;
+    background-position: 0 0;
+  }
+
+  .price-reveal .price-was::after {
+    animation: none;
+    transform: scaleX(1);
+  }
+
+  /* The solid border on the buttons is the whole treatment here: still
+     marked out as the thing to press, with nothing sweeping over them. */
+  .site-nav .cta-nav a,
+  .site-nav .cta-nav a:hover,
+  .site-nav .cta-nav.is-visible a,
+  .btn-primary.btn-comet,
+  .btn-primary.btn-comet:hover {
+    animation: none;
+  }
+
+  .btn-primary.btn-comet::before,
+  .site-nav .cta-nav.is-visible a::before {
+    animation: none;
+    opacity: 0;
+  }
+
+  .site-nav .cta-nav a::before,
+  .site-nav .cta-nav a:hover::before {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+
+/* --- Background art: the CTA's photograph ---
+
+   The same picture at three sizes, one per device class, so nothing
+   downloads a file larger than its screen can show. Only the matching
+   rule's image is ever fetched.
+
+   These live here rather than beside the hero's equivalents because the
+   CTA is on every page and the hero is on one. A concept page gets the
+   full set for free, which is the point of the split: adding a breakpoint
+   is an edit in one file, not a change that has to be repeated wherever
+   the block appears.
+
+   The url()s are relative to this stylesheet, not to the page including
+   it -- headroom.css sits in /headroom/, so 'final-cta-2560.webp' resolves
+   to /headroom/final-cta-2560.webp from a concept page two directories
+   down just as it does from the landing page. That is why nothing here
+   needs an absolute path. */
+@media (min-width: 800px) {
+  .final-cta {
+    background-image: linear-gradient(to bottom, var(--bg) 0%, rgba(10, 10, 15, 0.5) 30%, rgba(10, 10, 15, 0.5) 70%, var(--bg) 100%), url('final-cta-2560.webp');
+  }
+}
+
+/* Retina desktop: a 1512pt laptop at 2x is 3024 real pixels wide. */
+@media (min-width: 800px) and (min-resolution: 2dppx) {
+  .final-cta {
+    background-image: linear-gradient(to bottom, var(--bg) 0%, rgba(10, 10, 15, 0.5) 30%, rgba(10, 10, 15, 0.5) 70%, var(--bg) 100%), url('final-cta-3200.webp');
+  }
+}
