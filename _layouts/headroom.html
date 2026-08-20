@@ -134,7 +134,7 @@
        Bump ?v= in the same commit as any change to these files. They are
        cached the way the scripts are, and an un-bumped edit reaches nobody for
        ten minutes. -->
-  <link rel="stylesheet" href="/headroom/headroom.css?v=1" />
+  <link rel="stylesheet" href="/headroom/headroom.css?v=2" />
   {% if page.landing %}<link rel="stylesheet" href="/headroom/index.css?v=1" />{% endif %}
   {% if page.subsection %}<link rel="stylesheet" href="/headroom/concepts/concepts.css" />{% endif %}
 
@@ -184,7 +184,7 @@
   <nav class="site-nav">
     <div class="brand">
       <a href="/">avand.fm</a> <span class="brand-sep">/</span>
-      {% if page.landing %}<span class="brand-here">headroom</span>{% else %}<a href="/headroom/">headroom</a>{% endif %}
+      {% if page.landing %}<span class="brand-here">headroom</span>{% else %}<a class="brand-here" href="/headroom/">headroom</a>{% endif %}
     </div>
     <!-- The CTA is an in-page jump to #cta, so it only belongs on a page that
          has one. The glossary keeps its own lighter call to action at the foot

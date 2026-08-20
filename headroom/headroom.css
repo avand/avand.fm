@@ -352,7 +352,14 @@ body {
   opacity: 0.55;
 }
 
-.site-nav .brand-here {
+/* The current page, whether it is a link or not. On the landing page this is
+   a plain span -- there is nowhere for it to go. On a concept page it is an
+   anchor back to /headroom/, and without the extra class in this selector the
+   rule above would win on specificity (.site-nav .brand a is 0,2,1 against
+   .site-nav .brand-here at 0,2,0) and knock the whole brand back to muted.
+   Which is what happened: the header read as all-context and no page, in a nav
+   whose entire premise is that one half is louder than the other. */
+.site-nav .brand .brand-here {
   color: var(--text);
 }
 
