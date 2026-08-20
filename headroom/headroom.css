@@ -885,11 +885,23 @@ section.wide {
      a third, which is enough to run it off the right edge of a 390px
      phone -- the brand on the left does not shrink to make room. The bar
      is a fixed width budget, so the copy change has to be paid for here:
-     smaller type, tighter sides, and a brand that gives way first. */
+     smaller type, tighter sides, and a brand that gives way first.
+
+     The sides were 0.65em, which paid for that in one go and left the
+     label crowded against its own border. Measured rather than guessed:
+     at 390pt the brand takes 173pt and the button 131pt, which with the
+     bar's own padding leaves about 61pt of air between them. 1em spends
+     9pt of it. The label reads as a button again and there is still more
+     than 30pt spare at 360pt.
+
+     Below about 330pt it stops fitting, and what gives is the brand --
+     min-width: 0 and nowrap below, so it overflows its box rather than
+     wrapping. Worth knowing if this is ever asked to hold a longer label:
+     the budget is spent, and the next word costs the crumb. */
   .site-nav .cta-nav a {
     font-size: 0.84em;
-    padding-left: 0.65em;
-    padding-right: 0.65em;
+    padding-left: 1em;
+    padding-right: 1em;
   }
 
   /* The crumb was set at 20px here, which is headline size for what is
