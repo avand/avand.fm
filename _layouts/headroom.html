@@ -131,11 +131,17 @@
        forty-five glossary entries. The other two are loaded only where they
        apply.
 
+       The order matters and is not alphabetical by accident: index.css comes
+       second because it overrides headroom.css. The body's canvas colour is
+       the case that would bite -- both files set it at the same specificity,
+       so the later one wins, and swapping these two lines would leave the
+       landing page's notch strip black against a purple hero.
+
        Bump ?v= in the same commit as any change to these files. They are
        cached the way the scripts are, and an un-bumped edit reaches nobody for
        ten minutes. -->
-  <link rel="stylesheet" href="/headroom/headroom.css?v=3" />
-  {% if page.landing %}<link rel="stylesheet" href="/headroom/index.css?v=1" />{% endif %}
+  <link rel="stylesheet" href="/headroom/headroom.css?v=4" />
+  {% if page.landing %}<link rel="stylesheet" href="/headroom/index.css?v=2" />{% endif %}
   {% if page.subsection %}<link rel="stylesheet" href="/headroom/concepts/concepts.css" />{% endif %}
 
   <!-- Fathom Analytics -->

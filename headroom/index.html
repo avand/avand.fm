@@ -689,7 +689,15 @@ description: "Advanced DJ training for aspiring performers. An eight-week, end-t
     </div>
   </section>
 
-  <!-- Final CTA.
+  <!-- #book is where this section used to live, and it is still the anchor on
+       the page in production today -- so it is the one an existing link, a
+       social post or somebody's bookmark is pointing at. An unknown hash is a
+       soft failure rather than a 404: the browser simply stays at the top of
+       the page, which looks like the link went nowhere. Kept as a target so
+       those keep arriving where they meant to. Nothing on this page links to
+       it; when the inbound ones have aged out it can go.
+
+       Final CTA.
 
        The id is "cta" and not what the section currently says. It was
        "notify", from a version of this block that collected emails for an
@@ -700,6 +708,7 @@ description: "Advanced DJ training for aspiring performers. An eight-week, end-t
 
        Name the destination by its job, not by this month's offer, and links
        from anywhere in the site keep working as the pitch changes. -->
+  <span id="book" aria-hidden="true"></span>
   <div class="final-cta" id="cta">
     <h2>Start with a Free Sample Class</h2>
     <p>

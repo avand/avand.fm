@@ -3340,6 +3340,43 @@ h2 {
   color: #fff;
 }
 
+/* The canvas colour while the hero is on screen, and the whole of the notch
+   arrangement in four moves:
+
+     1. the top 25px of the hero fades to --hero-top, so the photograph's top
+        edge is that flat colour rather than whatever pixel row the crop
+        happened to land on;
+     2. the body is the same colour, so at rest the strip behind the notch --
+        which Safari fills from the body when nothing fixed is up there to
+        sample -- matches the top of the picture exactly;
+     3. scrolling slides that band up under the notch, and because both sides
+        of the seam are the same colour there is no seam to see;
+     4. past the hero, hero.js adds .is-past-hero and this returns to the
+        page's black, and the strip goes black with it.
+
+   Nothing samples a translucent surface and nothing depends on a safe-area
+   inset. The nav's glass sits on an absolutely positioned child precisely so
+   that Safari keeps reading the body here and step 4 stays true.
+
+   Both of these live in this file rather than headroom.css because both are
+   about the hero. A page without one has no reason to start purple, and every
+   glossary entry is such a page. */
+body {
+  background: var(--hero-top);
+}
+
+/* No transition between the two, and this is the whole of a bug worth writing
+   down. There used to be a 220ms linear fade here, so for a fifth of a second
+   as the header arrived the body was neither colour but a blend of the two --
+   and Safari samples the strip behind the notch once and keeps what it got.
+   Sampled a third of the way through that fade, purple to black gives
+   #200F4A, which is exactly the dark indigo that kept showing up above the
+   header instead of black.
+
+   The swap is instantaneous, so whenever Safari looks, the only two answers
+   available are the two correct ones. Nothing is lost visually either: the
+   header slides in over 340ms across the same moment, which is far more
+   motion than a background step behind it. */
 body.is-past-hero {
   background: var(--bg);
 }

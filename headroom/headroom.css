@@ -126,42 +126,25 @@ html {
   }
 }
 
-/* The canvas colour, and the whole of the notch arrangement in four
-   moves:
+/* The canvas colour: what shows above the content and in the overscroll past
+   the end of it, and -- the part that matters on a phone -- what iOS fills
+   the strip behind the notch with, since Safari samples the body when nothing
+   fixed is up there to read instead.
 
-     1. the top 25px of the hero fades to --hero-top, so the photograph's
-        top edge is that flat colour rather than whatever pixel row the
-        crop happened to land on;
-     2. the body is the same colour, so at rest the strip behind the notch
-        -- which Safari fills from the body when nothing fixed is up there
-        to sample -- matches the top of the picture exactly;
-     3. scrolling slides that band up under the notch, and because both
-        sides of the seam are the same colour there is no seam to see;
-     4. past the hero, hero.js swaps this for the page's black, and the
-        strip goes black with it.
+   The page's own black is the right answer for every page here. The landing
+   page overrides it while its hero is on screen, because there the strip has
+   to match the top of the photograph; that whole arrangement lives in
+   index.css next to the hero it serves.
 
-   Nothing samples a translucent surface and nothing depends on a safe-area
-   inset. The nav's glass sits on an absolutely positioned child precisely
-   so that Safari keeps reading the body here and step 4 stays true.
-
-   Everything between is covered by .sheet and .site-footer, which carry
-   their own backgrounds; this shows only at the very top and in the
-   overscroll past the end. */
+   It used to be declared the other way round -- purple here, black in the
+   override -- which was correct while the landing page was the only page. It
+   is not any more. A glossary entry loads neither the override nor hero.js,
+   so it kept the purple with nothing to justify it: a violet band behind the
+   status bar, violet rubber-band at both ends, and violet under the footer on
+   any entry shorter than the viewport. */
 body {
   font-family: "Cairo", sans-serif;
-  background: var(--hero-top);
-  /* No transition, and this is the whole of a bug worth writing down.
-     There used to be a 220ms linear fade here, so for a fifth of a second
-     as the header arrived the body was neither colour but a blend of the
-     two -- and Safari samples the strip behind the notch once and keeps
-     what it got. Sampled a third of the way through that fade, purple to
-     black gives #200F4A, which is exactly the dark indigo that kept
-     showing up above the header instead of black.
-
-     The swap is instantaneous now, so whenever Safari looks, the only two
-     answers available are the two correct ones. Nothing is lost visually
-     either: the header slides in over 340ms across the same moment, which
-     is far more motion than a background step behind it. */
+  background: var(--bg);
   color: var(--text);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
