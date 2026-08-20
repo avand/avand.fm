@@ -1,753 +1,627 @@
 ---
 layout: headroom
-title: "Headroom — Advanced DJ Training for Serious Performers"
-description: "Advanced DJ systems training for serious performers. Master the tech so you can confidently step into any booth and find your flow amongst the chaos."
-og_image: og-image.jpg
+landing: true
+title: "Headroom — Advanced DJ Training for Aspiring Performers"
+description: "Advanced DJ training for aspiring performers. An eight-week, end-to-end up-leveling of your entire stack so you can step into any booth and find your flow."
 ---
 
-<style>
-  /* --- Hero --- */
-
-  .hero {
-    min-height: 90vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    padding: 8em 2em 4em;
-    position: relative;
-    overflow: hidden;
-    background:
-      linear-gradient(to bottom, rgba(10, 10, 15, 0.55) 0%, rgba(10, 10, 15, 0.85) 80%, var(--bg) 100%),
-      url('djvibe-studiox-urXtcqrAW18-unsplash.jpg') center / cover no-repeat;
-  }
-
-  .hero::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    box-shadow: inset 0 0 8em 2em var(--bg);
-    pointer-events: none;
-  }
-
-  .hero > * {
-    position: relative;
-  }
-
-  .hero-label {
-    font-size: 0.85em;
-    font-weight: 700;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-bottom: 1em;
-  }
-
-  .hero h1 {
-    font-size: clamp(2.4em, 6vw, 4.5em);
-    font-weight: 900;
-    line-height: 1.1;
-    margin-bottom: 0.3em;
-    position: relative;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
-  }
-
-  .hero .subtitle {
-    font-size: clamp(1.1em, 2.5vw, 1.35em);
-    color: var(--text);
-    max-width: 580px;
-    margin-bottom: 2em;
-    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
-  }
-
-  .hero-details {
-    display: flex;
-    gap: 2em;
-    flex-wrap: wrap;
-    justify-content: center;
-    font-size: 0.95em;
-    color: var(--text-muted);
-    margin-bottom: 2.5em;
-  }
-
-  .hero-details span {
-    display: flex;
-    align-items: center;
-    gap: 0.4em;
-  }
-
-  .btn-primary {
-    display: inline-block;
-    background: var(--accent);
-    color: white;
-    text-decoration: none;
-    font-weight: 700;
-    font-size: 1.1em;
-    padding: 0.75em 2.5em;
-    border-radius: 2em;
-    transition: box-shadow 200ms, transform 200ms;
-    box-shadow: 0 0 1.5em var(--accent-glow);
-  }
-
-  .btn-primary:hover {
-    box-shadow: 0 0 2.5em var(--accent-glow);
-    transform: translateY(-1px);
-  }
-
-  .btn-primary:active {
-    transform: translateY(0);
-  }
-
-  /* --- Sections --- */
-
-  section {
-    padding: 5em 2em;
-    max-width: 960px;
-    margin: 0 auto;
-  }
-
-  h2 {
-    font-size: 2em;
-    font-weight: 700;
-    margin-bottom: 0.3em;
-  }
-
-  .section-lead {
-    color: var(--text-muted);
-    font-size: 1.1em;
-    max-width: 600px;
-    margin-bottom: 2.5em;
-  }
-
-  /* --- Curriculum Timeline --- */
-
-  .timeline {
-    position: relative;
-    margin-top: 1em;
-  }
-
-  .timeline::before {
-    content: "";
-    position: absolute;
-    left: 24px;
-    top: 14px;
-    bottom: 14px;
-    width: 2px;
-    background: linear-gradient(to bottom, var(--accent), var(--warm));
-    opacity: 0.5;
-  }
-
-  .module {
-    position: relative;
-    display: grid;
-    grid-template-columns: 50px 1fr;
-    gap: 1.6em;
-    padding-bottom: 3em;
-  }
-
-  .module:last-child {
-    padding-bottom: 0;
-  }
-
-  .module-icon {
-    position: relative;
-    z-index: 1;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: var(--surface);
-    border: 2px solid var(--accent);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 0 1.2em var(--accent-glow);
-  }
-
-  .module-icon svg {
-    width: 26px;
-    height: 26px;
-    stroke: var(--accent);
-    fill: none;
-    stroke-width: 1.5;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-
-  .module-head {
-    display: flex;
-    align-items: baseline;
-    flex-wrap: wrap;
-    gap: 0.7em;
-    margin-bottom: 0.45em;
-  }
-
-  .module-week {
-    font-size: 0.72em;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--warm);
-    white-space: nowrap;
-  }
-
-  .module-body h3 {
-    font-size: 1.55em;
-    font-weight: 700;
-    line-height: 1.2;
-  }
-
-  .module-outcome {
-    font-size: 1.08em;
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 0.55em;
-  }
-
-  .module-desc {
-    color: var(--text-muted);
-    font-size: 1em;
-    margin-bottom: 0.9em;
-  }
-
-  .module-points {
-    list-style: none;
-    display: grid;
-    gap: 0.35em;
-  }
-
-  .module-points li {
-    position: relative;
-    padding-left: 1.4em;
-    color: var(--text-muted);
-    font-size: 0.95em;
-  }
-
-  .module-points li::before {
-    content: "\25B8";
-    position: absolute;
-    left: 0;
-    color: var(--accent);
-  }
-
-  .module-points li.optional {
-    font-style: italic;
-  }
-
-  .module-points li.optional::before {
-    content: "+";
-    color: var(--warm);
-  }
-
-  /* --- Instructor --- */
-
-  .instructor {
-    display: grid;
-    grid-template-columns: 200px 1fr;
-    gap: 2.5em;
-    align-items: start;
-  }
-
-  .instructor-photo {
-    width: 200px;
-    height: 200px;
-    border-radius: 0.5em;
-    object-fit: cover;
-  }
-
-  .credential-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1em;
-    margin-top: 1.5em;
-  }
-
-  .credential {
-    border: 1px solid var(--border);
-    border-radius: 0.5em;
-    padding: 1.2em;
-    background: var(--surface);
-  }
-
-  .credential .number {
-    font-size: 1.8em;
-    font-weight: 900;
-    line-height: 1;
-    margin-bottom: 0.15em;
-  }
-
-  .credential .label {
-    font-size: 0.85em;
-    color: var(--text-muted);
-  }
-
-  /* --- Format --- */
-
-  .format-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1.5em;
-  }
-
-  .format-item {
-    border-left: 2px solid var(--accent);
-    padding-left: 1.2em;
-  }
-
-  .format-item .value {
-    font-size: 1.3em;
-    font-weight: 700;
-  }
-
-  .format-item .desc {
-    font-size: 0.9em;
-    color: var(--text-muted);
-  }
-
-  /* --- Guarantee --- */
-
-  .guarantee {
-    text-align: center;
-    border: 1px solid var(--border);
-    border-radius: 0.75em;
-    padding: 3em 2em;
-    background: var(--surface);
-  }
-
-  .guarantee h2 {
-    font-size: 1.5em;
-  }
-
-  .guarantee p {
-    color: var(--text-muted);
-    max-width: 520px;
-    margin: 0.5em auto 0;
-  }
-
-  /* --- Final CTA --- */
-
-  .final-cta {
-    text-align: center;
-    padding: 8em 2em;
-    position: relative;
-    background:
-      linear-gradient(to bottom, var(--bg) 0%, rgba(10, 10, 15, 0.5) 30%, rgba(10, 10, 15, 0.5) 70%, var(--bg) 100%),
-      url('djvibe-studiox-dt_UuLU_foM-unsplash.jpg') center bottom / cover no-repeat;
-  }
-
-  .final-cta::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    box-shadow: inset 0 0 8em 2em var(--bg);
-    pointer-events: none;
-  }
-
-  .final-cta h2 {
-    font-size: 2.4em;
-    margin-bottom: 0.3em;
-    position: relative;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
-  }
-
-  .final-cta p {
-    color: var(--text);
-    margin-bottom: 2em;
-    font-size: 1.2em;
-    position: relative;
-    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
-    max-width: 540px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  /* --- Responsive --- */
-
-  @media (max-width: 640px) {
-    .hero {
-      padding: 7em 1.2em 3em;
-    }
-
-    .hero-details {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.5em;
-      justify-items: center;
-    }
-
-    section {
-      padding: 3em 1.2em;
-    }
-
-    .module {
-      gap: 1em;
-    }
-
-    .module-body h3 {
-      font-size: 1.3em;
-    }
-
-    .instructor {
-      grid-template-columns: 1fr;
-    }
-
-    .instructor-photo {
-      width: 140px;
-      height: 140px;
-    }
-
-    .credential-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .format-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-</style>
-
-<!-- Hero -->
-<div class="hero">
-  <div class="hero-label">Fall 2026: Cohort #1</div>
-  <h1>HEADROOM</h1>
-  <p class="subtitle">
-    Advanced DJ training for serious performers. Master the tech
-    so you can confidently step into any booth and find your flow
-    amongst the chaos.
-  </p>
-  <div class="hero-details">
-    <span>8 weeks</span>
-    <span>2 hrs / week</span>
-    <span>10&ndash;15 students</span>
-    <span><s style="color: var(--text-muted); text-decoration-thickness: 1px;">$1,800</s> $900</span>
-  </div>
-  <a class="btn-primary" href="https://calendar.app.google/2dhPnZHUngrQUUoF7" target="_blank">Book an intro call</a>
-</div>
-
-<!-- The Curriculum -->
-<section id="curriculum">
-  <h2>The curriculum</h2>
-  <p class="section-lead">
-    At the white-hot center of every world-class set is a relaxed,
-    composed DJ. Headroom distills decades of experience into eight
-    focused modules&mdash;one per week&mdash;covering the technical
-    foundations, preparation techniques, and relational dynamics that
-    turn capable DJs into confident performers.
-  </p>
-
-  <div class="timeline">
-
-    <!-- Week 1: Sound -->
-    <div class="module">
-      <div class="module-icon">
-        <svg viewBox="0 0 32 32">
-          <path d="M4 12h4l6-5v18l-6-5H4z" />
-          <path d="M20 11a6 6 0 0 1 0 10" />
-          <path d="M24 8a11 11 0 0 1 0 16" />
-        </svg>
-      </div>
-      <div class="module-body">
-        <div class="module-head">
-          <span class="module-week">Week 1</span>
-          <h3>Sound</h3>
-        </div>
-        <p class="module-outcome">
-          Understand what sound actually is and how it exists in the physical world.
-        </p>
-        <p class="module-desc">
-          Build the mental framework behind everything else in the course.
-          Sound as a physical phenomenon&mdash;energy moving through a medium
-          as a pressure wave&mdash;and how the body hears and feels it. Then
-          follow sound through the full audio chain: from a vibrating object,
-          to an electrical signal, to a loudspeaker, and ultimately to the
-          listener's body.
-        </p>
-        <ul class="module-points">
-          <li>How sound is created, transmitted, perceived, recorded, and reproduced</li>
-          <li>How <a href="/headroom/concepts/frequency/" style="color: inherit; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 0.2em;">frequency</a>, <a href="/headroom/concepts/amplitude/" style="color: inherit; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 0.2em;">amplitude</a>, and wavelength shape pitch, loudness, and sensation</li>
-          <li>The 20 Hz&ndash;20 kHz spectrum&mdash;what's felt vs. heard, and why systems split into lows, mids, and highs</li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- Week 2: Signal Flow -->
-    <div class="module">
-      <div class="module-icon">
-        <svg viewBox="0 0 32 32">
-          <circle cx="6" cy="16" r="2.5" />
-          <path d="M8.5 16h4" />
-          <rect x="12.5" y="11" width="9" height="10" rx="1.5" />
-          <path d="M21.5 16h5" />
-          <path d="M23.5 13.5l3 2.5-3 2.5" />
-        </svg>
-      </div>
-      <div class="module-body">
-        <div class="module-head">
-          <span class="module-week">Week 2</span>
-          <h3>Signal Flow</h3>
-        </div>
-        <p class="module-outcome">
-          Trace an audio signal through a system and know what each piece of gear is doing to it.
-        </p>
-        <p class="module-desc">
-          How audio is represented, transmitted, processed, and reproduced
-          across modern systems. Why signal format and signal level make the
-          difference between a vibey dance floor and a shouting match. Once you
-          see audio as information moving through a chain of devices,
-          troubleshooting and unfamiliar setups stop being intimidating.
-        </p>
-        <ul class="module-points">
-          <li>Analog vs. digital, <a href="/headroom/concepts/balanced-vs-unbalanced/" style="color: inherit; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 0.2em;">balanced vs. unbalanced</a>, <a href="/headroom/concepts/mono-vs-stereo/" style="color: inherit; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 0.2em;">mono vs. stereo</a></li>
-          <li><a href="/headroom/concepts/line-level/" style="color: inherit; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 0.2em;">Line-</a>, mic-, and speaker-level signals</li>
-          <li>What's really happening when a signal is gained, <a href="/headroom/concepts/clipping/" style="color: inherit; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 0.2em;">clipped</a>, <a href="/headroom/concepts/eq/" style="color: inherit; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 0.2em;">EQ'd</a>, filtered, routed, and mixed</li>
-          <li>Identify, trace, and diagram <a href="/headroom/concepts/signal-flow/" style="color: inherit; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 0.2em;">signal flow</a> through any DJ, studio, or live rig</li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- Week 3: Equipment -->
-    <div class="module">
-      <div class="module-icon">
-        <svg viewBox="0 0 32 32">
-          <circle cx="16" cy="16" r="12" />
-          <circle cx="16" cy="16" r="4" />
-          <circle cx="16" cy="16" r="1" />
-          <line x1="16" y1="4" x2="16" y2="6" />
-          <line x1="16" y1="26" x2="16" y2="28" />
-          <line x1="4" y1="16" x2="6" y2="16" />
-          <line x1="26" y1="16" x2="28" y2="16" />
-        </svg>
-      </div>
-      <div class="module-body">
-        <div class="module-head">
-          <span class="module-week">Week 3</span>
-          <h3>Equipment</h3>
-        </div>
-        <p class="module-outcome">
-          Reason about unfamiliar gear, understand its role, and feel comfortable on it without prior experience.
-        </p>
-        <p class="module-desc">
-          The specific gear you'll meet in the booth&mdash;from approachable
-          controllers to intimidating standalone players&mdash;and the real
-          tradeoffs between laptop-only, controller, all-in-one, and CDJ
-          workflows. When and why to add a mixer, how to set a proper booth
-          reference, and how DIY rigs scale from a travel kit to a
-          block-party system that still fits in a car.
-        </p>
-        <ul class="module-points">
-          <li>Players, mixers, and configuring a proper booth</li>
-          <li><a href="/headroom/concepts/stereo-field/" style="color: inherit; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 0.2em;">Stereo fields</a>, <a href="/headroom/concepts/crossover/" style="color: inherit; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 0.2em;">crossovers</a>, dynamic range, and detail across system types</li>
-          <li>Thinking modularly and staying adaptable on any setup</li>
-          <li>Building the adapter-and-cable go-bag you never gig without</li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- Week 4: Music -->
-    <div class="module">
-      <div class="module-icon">
-        <svg viewBox="0 0 32 32">
-          <path d="M12 22V7l11-2v13" />
-          <circle cx="9" cy="22" r="3" />
-          <circle cx="20" cy="18" r="3" />
-        </svg>
-      </div>
-      <div class="module-body">
-        <div class="module-head">
-          <span class="module-week">Week 4</span>
-          <h3>Music</h3>
-        </div>
-        <p class="module-outcome">
-          Understand how music is structured, composed, and organized&mdash;and how it's stored in digital files.
-        </p>
-        <p class="module-desc">
-          The defining characteristics of a song: notes into <a href="/headroom/concepts/bars/" style="color: inherit; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 0.2em;">bars</a>, bars into
-          <a href="/headroom/concepts/phrase/" style="color: inherit; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 0.2em;">phrases</a>, phrases into structure, and how different genres are
-          composed and blended for variety. Then the fundamentals of digital
-          files and why quality matters on big systems, which expose details
-          you'll never hear on headphones or a car stereo.
-        </p>
-        <ul class="module-points">
-          <li>Song structure and how genres are built and mixed</li>
-          <li>Pitch, tempo, and <a href="/headroom/concepts/master-tempo/" style="color: inherit; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 0.2em;">Master Tempo</a>&mdash;and whether the beat-sync controversy is warranted</li>
-          <li>File formats and encoders: what compression loses&mdash;<a href="/headroom/concepts/transient/" style="color: inherit; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 0.2em;">transients</a>, reverb tails, spatial detail</li>
-          <li>ID3 tags for portability, less data loss, and a smoother workflow</li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- Week 5: Workflow -->
-    <div class="module">
-      <div class="module-icon">
-        <svg viewBox="0 0 32 32">
-          <rect x="7" y="5" width="18" height="22" rx="2" />
-          <path d="M11 12l2 2 4-4" />
-          <line x1="19" y1="11" x2="23" y2="11" />
-          <path d="M11 20l2 2 4-4" />
-          <line x1="19" y1="19" x2="23" y2="19" />
-        </svg>
-      </div>
-      <div class="module-body">
-        <div class="module-head">
-          <span class="module-week">Week 5</span>
-          <h3>Workflow</h3>
-        </div>
-        <p class="module-outcome">
-          Build systems that create confidence, reduce cognitive load, and induce flow during a set.
-        </p>
-        <p class="module-desc">
-          Turn a messy library into a performance instrument. File-system
-          hygiene so you always know where your music and metadata live, track
-          prep that unlocks ease behind the decks, and smart playlists that let
-          you improvise or play prepared. Finish with a "pre-flight
-          checklist"&mdash;like a pilot's&mdash;so you're locked in the moment
-          you press play.
-        </p>
-        <ul class="module-points">
-          <li>File hygiene and a library that travels between ecosystems</li>
-          <li>Track prep&mdash;<a href="/headroom/concepts/beat-grid/" style="color: inherit; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 0.2em;">beat grids</a>, <a href="/headroom/concepts/hot-cues/" style="color: inherit; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 0.2em;">hot cues</a>, and tools like Platinum Notes and Mixed In Key</li>
-          <li>Smart playlists by tempo, key, lyrics, vibe, tag, and acoustic similarity</li>
-          <li>A pre-flight checklist so you're locked in from the first track</li>
-          <li class="optional">Optional add-on: AI workflows that auto-acquire newly discovered music</li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- Week 6: Mixing -->
-    <div class="module">
-      <div class="module-icon">
-        <svg viewBox="0 0 32 32">
-          <line x1="9" y1="5" x2="9" y2="27" />
-          <rect x="6" y="10" width="6" height="5" rx="1" />
-          <line x1="16" y1="5" x2="16" y2="27" />
-          <rect x="13" y="17" width="6" height="5" rx="1" />
-          <line x1="23" y1="5" x2="23" y2="27" />
-          <rect x="20" y="13" width="6" height="5" rx="1" />
-        </svg>
-      </div>
-      <div class="module-body">
-        <div class="module-head">
-          <span class="module-week">Week 6</span>
-          <h3>Mixing</h3>
-        </div>
-        <p class="module-outcome">
-          Create clean, intentional transitions across genres and tempos, build and hold energy, and get the most out of any system.
-        </p>
-        <p class="module-desc">
-          You already know how to mix&mdash;now go deeper. <a href="/headroom/concepts/phrase/" style="color: inherit; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 0.2em;">Phrase</a> matching,
-          EQ-based mixing, and effects, all studied through the lens of
-          deliberately titrating energy on the dance floor. When to reach for
-          more than two decks to preserve the sounds holding the room, and the
-          sound-engineering basics that make every mix cleaner.
-        </p>
-        <ul class="module-points">
-          <li>Phrase-, EQ-, and effects-based mixing</li>
-          <li>Multi-deck techniques for continuity and energy</li>
-          <li>Reliable transitions across broader genres and tempo ranges</li>
-          <li><a href="/headroom/concepts/gain-staging/" style="color: inherit; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 0.2em;">Gain staging</a>, EQing for a room, and using your headphones to mix better</li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- Week 7: Relating -->
-    <div class="module">
-      <div class="module-icon">
-        <svg viewBox="0 0 32 32">
-          <circle cx="11" cy="11" r="4" />
-          <circle cx="21" cy="11" r="4" />
-          <path d="M4 26c0-3.9 3.1-7 7-7s7 3.1 7 7" />
-          <path d="M16 20.2c1.4-0.8 3.1-1.2 5-1.2 3.9 0 7 3.1 7 7" />
-        </svg>
-      </div>
-      <div class="module-body">
-        <div class="module-head">
-          <span class="module-week">Week 7</span>
-          <h3>Relating</h3>
-        </div>
-        <p class="module-outcome">
-          Develop the awareness, communication, and etiquette to navigate high-stakes, shared performance spaces with confidence and ease.
-        </p>
-        <p class="module-desc">
-          The most overlooked DJ skill is working with people. Treat equipment
-          like an extension of someone's body, apply the principles of consent
-          to the decks for smoother hand-offs, and build the reputation that
-          gets you invited back. Then turn to the crowd&mdash;meeting an
-          audience where it is and earning the trust to take it on a journey.
-        </p>
-        <ul class="module-points">
-          <li>Smooth hand-offs and booth etiquette between DJs</li>
-          <li>Being easy to work with&mdash;and getting invited to play more</li>
-          <li>"Playing what I want" vs. "playing what they want," authentically</li>
-          <li>Reading the room and earning a crowd's trust</li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- Week 8: Real-World Systems -->
-    <div class="module">
-      <div class="module-icon">
-        <svg viewBox="0 0 32 32">
-          <circle cx="16" cy="18" r="9" />
-          <line x1="16" y1="6" x2="16" y2="9" />
-          <line x1="7" y1="18" x2="25" y2="18" />
-          <line x1="9.5" y1="12" x2="22.5" y2="12" />
-          <line x1="9.5" y1="24" x2="22.5" y2="24" />
-          <line x1="16" y1="9" x2="16" y2="27" />
-          <path d="M11 10.5c-2 4-2 11 0 15" />
-          <path d="M21 10.5c2 4 2 11 0 15" />
-        </svg>
-      </div>
-      <div class="module-body">
-        <div class="module-head">
-          <span class="module-week">Week 8</span>
-          <h3>Real-World Systems</h3>
-        </div>
-        <p class="module-outcome">
-          Confidently operate in real-world environments.
-        </p>
-        <p class="module-desc">
-          Bring it all together and take it into the world&mdash;clubs,
-          festivals, renegade stages, and house parties, each with its own
-          advantages and pitfalls. What to show up with, how to work with the
-          system that's already there, and how to stay connected to a
-          dancefloor you can't always hear or feel.
-        </p>
-        <ul class="module-points">
-          <li>Clubs and festivals&mdash;essential gear and working with house systems</li>
-          <li>House parties and renegades&mdash;power distribution, batteries, and generators without blow-ups</li>
-          <li>Staying connected to a crowd you can't necessarily hear</li>
-          <li>The basics of recording and live-streaming your sets</li>
-        </ul>
-      </div>
-    </div>
-
-  </div>
-</section>
-
-<!-- Instructor -->
-<section>
-  <h2>Your instructor</h2>
-  <p class="section-lead">
-    I'm Avand&mdash;a DJ and software engineer who has spent over a decade
-    obsessing over how sound systems work so the music sounds exactly right.
-  </p>
-
-  <div class="instructor">
-    <img class="instructor-photo" src="avand.jpg" alt="Avand" />
-    <div>
-      <p>
-        I've played everywhere from Burning Man art cars and mobile rigs that I set up
-        myself to nightclubs around the world. I've used CDJs, controllers,
-        all-in-ones, Traktor, rekordbox, and laptop-only setups. I don't have one
-        "right way"&mdash;I just have some well-formed opinions born from real-world
-        experience across the full range of gear and environments.
+<!-- This page brings its own .sheet, where a concept page is given one by the
+     layout. The reason is the modal below: .sheet carries a z-index, which
+     makes it a stacking context, and a fixed-position child cannot escape one.
+     Inside it the modal's z-index of 200 would be trapped under .sheet's 1 and
+     the nav at 100 would paint straight over the open dialog. As a sibling it
+     competes with the nav directly, which is what the numbers were chosen
+     for. -->
+<div class="sheet">
+
+  <!-- Hero: the pitch, then the brand video, then the curriculum lead-in --
+       plain document flow, no scroll-jacking. See hero.js. -->
+  <div class="hero">
+    <div class="hero-bg" aria-hidden="true"></div>
+
+    <div class="hero-content">
+      <div class="hero-label">Fall 2026</div>
+      <h1>HEADROOM</h1>
+      <p class="subtitle">
+        Advanced DJ training for aspiring performers. An end-to-end
+        up-leveling of your entire stack so you can step into any booth and
+        find your flow <span class="no-break">amongst the chaos.</span>
       </p>
-      <p style="margin-top: 1em;">
-        I was an instructor at <a href="https://generalassemb.ly/" target="_blank" style="color: var(--text); text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 0.2em;">General Assembly</a>, where I logged
-        700+ hours in front of students and designed my own curriculum from
-        scratch. I love to teach and share my experience with others. I've
-        also worked in software for long time so technical details are my jam.
-      </p>
+      <div class="hero-details">
+        <span class="stat"><svg class="stat-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/></svg>8 weeks</span>
+        <span class="stat"><svg class="stat-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>2 hrs / week</span>
+        <span class="stat"><svg class="stat-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><path d="M16 5.2a3.2 3.2 0 0 1 0 5.9M17.5 14.9c2.1.6 3.5 2.4 3.5 5.1"/></svg>12 students</span>
+        <!-- The fourth cell. The tag sits under the figures rather than beside
+             them so the cell stays the same width as the other three. The row
+             does not wrap: .hero-details is a grid of either four columns or
+             two, never whatever the fourth pill's width would have chosen. -->
+        <!-- The comet traces this pill itself. There was a second, smaller
+             pill under it reading "Launch price" and the two rings stacked
+             badly; the label lives on down in "How it works", where there is
+             room for it and a price to attach it to. What is left here is one
+             pill with a light going round it. The empty span is that light's
+             glow -- a blur has to sit on a different element from the mask it
+             softens; see .tag-glow in the stylesheet. -->
+        <span class="price-reveal">
+          <span class="price-reveal-figures stat comet"><span class="tag-glow" aria-hidden="true"></span><svg class="stat-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/></svg><s class="price-was">$1,600</s><span class="price-now">$800</span></span>
+        </span>
+      </div>
+
+      <a class="btn-primary btn-comet" href="#cta">Join a free sample class</a>
+    </div>
+  </div>
+
+  <h2 class="hero-video-heading">What is Headroom?</h2>
+
+  <div class="hero-video">
+    <div class="player" data-video="brand" data-duration="206.581" data-autoplay data-captions
+      data-captions-into="brand-captions" data-label="Why I built Headroom"></div>
+  </div>
+
+  <!-- This video's captions are rendered here as page text rather than over
+       the picture. See renderLyrics in player.js. -->
+  <div class="brand-captions" id="brand-captions" aria-live="off"></div>
+
+  <!-- The curriculum, as one band: its title, the timeline, the weeks.
+       The timeline is sticky inside this wrapper, which is what makes it
+       flow under the title, hold at the top through the weeks, and leave
+       with the last one -- no element outside this band should be able to
+       see it or push it around. -->
+  <!-- id="curriculum" is a link target, not a hook: glossary entries point at
+       /headroom/#curriculum when they mention a module. The band is the right
+       thing to land on -- it opens on the section's title, where .curr-scroll
+       below would drop the reader into the middle of the slide mechanism. -->
+  <div class="curr-band" id="curriculum">
+    <div class="hero-intro" id="hero-intro">
+      <div class="hero-intro-inner">
+        <h2 class="reveal">The Curriculum</h2>
+        <p class="section-lead">
+          At the white-hot center of every world-class set is a relaxed,
+          composed DJ. Headroom distills decades of experience into eight
+          focused modules&mdash;one per week&mdash;covering the technical
+          foundations, preparation techniques, and relational dynamics that
+          turn capable DJs into confident performers.
+        </p>
+      </div>
+    </div>
+
+    <!-- The Curriculum -->
+    <!-- Course timeline: footer of the curriculum title, header of the weeks -->
+    <nav class="timeline" id="timeline" aria-label="Course timeline">
+      <span class="tl-cap tl-start">Oct 1</span>
+      <div class="tl-track">
+        <div class="tl-line"></div>
+        <div class="tl-progress"></div>
+        <!-- The cursor moves by translating this full-width rail, so its
+             percentage resolves against the track. Before the marks in the
+             source, so it tucks behind each dot as it passes. -->
+        <div class="tl-rail-clip"><div class="tl-rail"><span class="tl-cursor"></span></div></div>
+        <button class="tl-mark" type="button" style="--at: 0%" aria-current="false"
+          aria-label="Week 1">
+          <span class="tl-fill"></span><span class="tl-ring">1</span>
+        </button>
+        <button class="tl-mark" type="button" style="--at: 14.2857%" aria-current="false"
+          aria-label="Week 2">
+          <span class="tl-fill"></span><span class="tl-ring">2</span>
+        </button>
+        <button class="tl-mark" type="button" style="--at: 28.5714%" aria-current="false"
+          aria-label="Week 3">
+          <span class="tl-fill"></span><span class="tl-ring">3</span>
+        </button>
+        <button class="tl-mark" type="button" style="--at: 42.8571%" aria-current="false"
+          aria-label="Week 4">
+          <span class="tl-fill"></span><span class="tl-ring">4</span>
+        </button>
+        <button class="tl-mark" type="button" style="--at: 57.1429%" aria-current="false"
+          aria-label="Week 5">
+          <span class="tl-fill"></span><span class="tl-ring">5</span>
+        </button>
+        <button class="tl-mark" type="button" style="--at: 71.4286%" aria-current="false"
+          aria-label="Week 6">
+          <span class="tl-fill"></span><span class="tl-ring">6</span>
+        </button>
+        <button class="tl-mark" type="button" style="--at: 85.7143%" aria-current="false"
+          aria-label="Week 7">
+          <span class="tl-fill"></span><span class="tl-ring">7</span>
+        </button>
+        <button class="tl-mark" type="button" style="--at: 100%" aria-current="false"
+          aria-label="Week 8">
+          <span class="tl-fill"></span><span class="tl-ring">8</span>
+        </button>
+      </div>
+      <span class="tl-cap tl-end">Nov 19</span>
+    </nav>
+
+    <div class="curr-scroll" id="curr-scroll" data-anchor="curriculum">
+      <div class="curr-stage">
+
+        <div class="curr-slides">
+
+          <!-- Week 1: Sound -->
+          <article class="curr-slide">
+            <div class="curr-slide-inner">
+              <header class="curr-head">
+                <span class="module-week">Week 1</span>
+                <h3>Sound</h3>
+                <p class="module-outcome">
+                Understand what sound actually is and how it exists in the physical world.
+                </p>
+              </header>
+
+              <div class="curr-cols">
+                <div class="curr-media">
+                <div class="player" data-video="m1-sound" data-duration="38.163" data-manual data-captions
+                data-label="Module 1, Sound"></div>
+                </div>
+                <div class="curr-copy">
+                  <ul class="module-points">
+                  <li>Recording, transmission, &amp; reproduction</li>
+                  <li>Spectrum &amp; physical perception</li>
+                  <li>Frequency, amplitude, wavelength</li>
+                  <li>Loudspeaker design, airflow, &amp; vibration</li>
+                </ul>
+                  <button class="read-more">
+                  Learn more
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" />
+                  </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="module-full" hidden>
+              <p>In this module, students build a foundational understanding of sound. They learn how sound is created,
+                transmitted, perceived, recorded, and reproduced, creating the mental framework needed to understand every
+                other topic in the course&mdash;from gain staging and EQs to mixers, speakers, signal flow, and digital
+                audio systems.</p>
+              <p>Students begin by exploring sound as a physical phenomenon: energy moving through a medium as a pressure
+                wave. They learn how the human body hears and feels sound, and how frequency, amplitude, and wavelength
+                shape our perception of pitch, loudness, and physical sensation.</p>
+              <p>Students examine how vibrating objects&mdash;from musical instruments to loudspeakers&mdash;create sound
+                waves in the air. They learn how simple waveforms combine through superposition to create the complex
+                sounds we hear in music, and how multiple sounds are summed together both acoustically in physical space
+                and electrically within audio systems.</p>
+              <p>This module also explores how frequency ranges, from 20 Hz to 20 kHz, are felt vs. heard. It sets the
+                stage for why sound systems and mixers are generally stacked into low-, mid-, and high-range frequencies
+                and the impact each of those ranges has on the audience.</p>
+              <p>The module then follows sound as it travels through the audio chain. Students learn how microphones
+                convert pressure waves into electrical signals, how analog audio is carried over a wire, and how digital
+                systems capture, store, and reproduce sound through sampling and playback.</p>
+              <p>By the end of the module, students will understand not only what sound is, but how sound moves through
+                every stage of a modern audio system&mdash;from a vibrating object, to an electrical signal, to a
+                loudspeaker, and ultimately to the listener&rsquo;s body.</p>
+            </div>
+          </article>
+
+          <!-- Week 2: Signal Flow -->
+          <article class="curr-slide">
+            <div class="curr-slide-inner">
+              <header class="curr-head">
+                <span class="module-week">Week 2</span>
+                <h3>Signal Flow</h3>
+                <p class="module-outcome">
+                Learn how to preserve signal integrity as it travels through a system.
+                </p>
+              </header>
+
+              <div class="curr-cols">
+                <div class="curr-media">
+                <div class="player" data-video="m2-signal-flow" data-duration="41.083" data-manual data-captions
+                data-label="Module 2, Signal Flow"></div>
+                </div>
+                <div class="curr-copy">
+                  <ul class="module-points">
+                  <li>Analog vs. digital signals</li>
+                  <li>Signal formats, levels, &amp; gain staging</li>
+                  <li>Interconnects &amp; signal integrity</li>
+                  <li>Phase, summing, &amp; cancellation</li>
+                </ul>
+                  <button class="read-more">
+                  Learn more
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" />
+                  </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="module-full" hidden>
+              <p>Building directly on the concepts introduced in Module 1, students learn how sound is represented,
+                transmitted, processed, and reproduced throughout modern audio systems.</p>
+              <p>Students begin by exploring the relationship between sound and audio signals, learning how acoustic energy
+                is converted into analog and digital representations that can be stored, transmitted, manipulated, and
+                reproduced. They will develop a practical understanding of how audio moves through a system and how signal
+                flow serves as the foundation of every DJ setup, recording studio, sound system, and live performance
+                environment.</p>
+              <p>Students will learn how signals travel between devices, how different types of connections and cables
+                carry audio, and why signal format and signal level make the difference between a vibey dance floor and a
+                shouting match. Students will be introduced to common audio connections and learn the differences between
+                analog and digital transmission, balanced and unbalanced connections, mono and stereo signals, and
+                line-level, microphone-level, and speaker-level signals.</p>
+              <p>The module also explores how signals are modified and combined within an audio system. Students will learn
+                what is happening fundamentally when a signal is gained, attenuated, clipped, EQ&rsquo;d, filtered, routed,
+                and mixed. By understanding audio as information moving through a chain of devices, it will become second
+                nature for students to quickly troubleshoot equipment, feel at home in unfamiliar setups, and reason
+                through signal-path problems.</p>
+              <p>By the end of the module, students will be able to identify, trace, and diagram signal flow through common
+                DJ, studio, and live sound systems.</p>
+            </div>
+          </article>
+
+          <!-- Week 3: Gear -->
+          <article class="curr-slide">
+            <div class="curr-slide-inner">
+              <header class="curr-head">
+                <span class="module-week">Week 3</span>
+                <h3>Gear</h3>
+                <p class="module-outcome">
+                Learn how to reason about unfamiliar gear and feel at home with any equipment.
+                </p>
+              </header>
+
+              <div class="curr-cols">
+                <div class="curr-media">
+                <div class="player" data-video="m3-gear" data-duration="41.375" data-manual data-captions
+                data-label="Module 3, Gear"></div>
+                </div>
+                <div class="curr-copy">
+                  <ul class="module-points">
+                  <li>Laptops, controllers, all-in-ones, &amp; CDJs</li>
+                  <li>Mixers, booth, &amp; multi-DJ configurations</li>
+                  <li>Power distribution, batteries, &amp; generators</li>
+                  <li>Portability, ergonomics, &amp; redundancy</li>
+                </ul>
+                  <button class="read-more">
+                  Learn more
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" />
+                  </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="module-full" hidden>
+              <p>With the basics of sound and signal flow covered, Module 3 delves into specific pieces of equipment DJs
+                are likely to encounter in club setups.</p>
+              <p>Players can range from cheap (and approachable) controllers to expensive (and equally intimidating)
+                standalone machines. Students will learn the key tradeoffs between playing on laptop-only, controller,
+                all-in-one, and CDJs.</p>
+              <p>Students will learn when and why to add an additional mixer to the signal path and how to properly
+                configure reference sources and multi-performer situations to improve performance continuity.</p>
+              <p>For house parties and renegades, we&rsquo;ll cover the basics of power distribution, batteries, and
+                generators&mdash;how to set things up to prevent blow ups or shut downs.</p>
+              <p>In addition to covering the kinds of systems students will find in clubs, Module 3 also covers DIY setups
+                from small travel-sized kits to block-party-sized setups that can still travel in the back of a car.
+                It&rsquo;s crucial for DJs to understand the differences in sound reproduction across different types of
+                systems: why it&rsquo;s important to create a stereo field, how crossovers can be used to maximize dynamic
+                range, increase detail, and create more energy.</p>
+              <p>It&rsquo;s also important to protect gear and set it up comfortably. We&rsquo;ll spend some time talking
+                about the importance of ergonomics and how to optimize for portability without sacrificing quality. Along
+                the same vein, students will learn about battery-powered speaker setups and wireless setups too.</p>
+              <p>Students will learn the importance of being adaptable with different equipment as well as how to think
+                modularly about each piece of gear in the chain. They&rsquo;ll also develop their go bag of adapters and
+                cables they never go to a gig without.</p>
+            </div>
+          </article>
+
+          <!-- Week 4: Tracks -->
+          <article class="curr-slide">
+            <div class="curr-slide-inner">
+              <header class="curr-head">
+                <span class="module-week">Week 4</span>
+                <h3>Tracks</h3>
+                <p class="module-outcome">
+                Understand how music is structured and how it&rsquo;s digitally represented.
+                </p>
+              </header>
+
+              <div class="curr-cols">
+                <div class="curr-media">
+                <div class="player" data-video="m4-tracks" data-duration="39.498" data-manual data-captions
+                data-label="Module 4, Tracks"></div>
+                </div>
+                <div class="curr-copy">
+                  <ul class="module-points">
+                  <li>Notes, bars, phrases, &amp; song structure</li>
+                  <li>Pitch, tempo, &amp; Master Tempo</li>
+                  <li>Beatgrids, hot cues, &amp; quantize</li>
+                  <li>File formats, compression, &amp; ID3 tags</li>
+                </ul>
+                  <button class="read-more">
+                  Learn more
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" />
+                  </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="module-full" hidden>
+              <p>Module 4 focuses on the defining characteristics of a track. This is the prerequisite to Module 5, which
+                then uses these characteristics to develop music preparation skills.</p>
+              <p>Students will first cover the very basics of how notes are put together into bars/measures and how bars
+                build into phrases and ultimately compose the entire song&rsquo;s structure. Electronic music is
+                particularly formulaic but this module will explore how other genres are composed and how different genres
+                can be mixed to create dynamic range and variety.</p>
+              <p>Module 4 covers the nuances of pitch and tempo: the intricacies of when and why to use Master Tempo, when
+                and how to naturally speed up or slow down and by how much, and if all the controversy around beat sync and
+                being able to beat match by ear is warranted.</p>
+              <p>Module 4 introduces the fundamentals of digital files: why there are different formats, and what the
+                differences are between them. Core to this understanding is explaining how an encoder works to compress
+                music and how quiet details, transients, reverb tails, and spatial information are lost in the process. A
+                DJ is ultimately responsible for the way the dance floor feels. Big systems expose details that are often
+                missed on headphones, car stereos, and small sound systems. With sound as a DJ&rsquo;s medium, every step
+                of the chain matters and the quality of the audio signal is critical. Lossless files can even reduce
+                psycho-acoustic fatigue during long sets.</p>
+              <p>Beyond signal quality differences, choosing the right file format also affects track preparation as
+                certain file formats don&rsquo;t always read and write track metadata consistently across devices. In this
+                module, students will learn what an ID3 tag is and how it can be used to create more portability, reduce
+                data loss, and improve workflow efficiency.</p>
+            </div>
+          </article>
+
+          <!-- Week 5: Library -->
+          <article class="curr-slide">
+            <div class="curr-slide-inner">
+              <header class="curr-head">
+                <span class="module-week">Week 5</span>
+                <h3>Library</h3>
+                <p class="module-outcome">
+                Master your &ldquo;DJ chores&rdquo; with efficient systems and workflows.
+                </p>
+              </header>
+
+              <div class="curr-cols">
+                <div class="curr-media">
+                <div class="player" data-video="m5-library" data-duration="37.663" data-manual data-captions
+                data-label="Module 5, Library"></div>
+                </div>
+                <div class="curr-copy">
+                  <ul class="module-points">
+                  <li>File system hygiene</li>
+                  <li>Track prep &amp; analysis tools</li>
+                  <li>Set prep methods</li>
+                </ul>
+                  <button class="read-more">
+                  Learn more
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" />
+                  </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="module-full" hidden>
+              <p>Module 5 covers file system hygiene: why it&rsquo;s important to know where your music files live and
+                where the metadata about those tracks lives. Students will be able to apply these skills to prevent data
+                loss, improve sanity and efficiency, as well as to make their library more portable between ecosystems.</p>
+              <p>Students will learn how to systematically prepare tracks to unlock ease and flow behind the decks. From
+                using pre-library tools like Platinum Notes or Mixed In Key to ensuring proper beat grids and hot cues,
+                students will dramatically improve their performing experience.</p>
+              <p>In this module, students will learn how to organize the tracks in their library. This module unlocks the
+                power of intelligent/smart playlists and how they can be used in conjunction with static playlists to
+                improvise or to play a more prepared setlist. By the end of this module, students will gain confidence in
+                knowing how many tracks to prepare for different styles of gigs and have new organizational systems that
+                eliminate stress while improvising. These systems include being able to find tracks by concrete attributes
+                like lyrics, genre, tempo, key, but also by more subjective attributes like vibe, tag, and acoustic
+                similarity.</p>
+              <p>Finally, for when it comes time to play, this module introduces the &ldquo;pre-flight checklist.&rdquo;
+                Just like pilots don&rsquo;t take off without checking all critical systems, in this module students will
+                learn how to systematically check in before they start playing to ensure that they&rsquo;re locked in from
+                the moment they press play.</p>
+            </div>
+          </article>
+
+          <!-- Week 6: Playing -->
+          <article class="curr-slide">
+            <div class="curr-slide-inner">
+              <header class="curr-head">
+                <span class="module-week">Week 6</span>
+                <h3>Playing</h3>
+                <p class="module-outcome">
+                Fill gaps in your knowledge, expand your repertoire, and improve your dynamic range.
+                </p>
+              </header>
+
+              <div class="curr-cols">
+                <div class="curr-media">
+                <div class="player" data-video="m6-playing" data-duration="52.636" data-manual data-captions
+                data-label="Module 6, Playing"></div>
+                </div>
+                <div class="curr-copy">
+                  <ul class="module-points">
+                  <li>Players, mixers, &amp; controllers</li>
+                  <li>Phrase matching, EQ mixing, &amp; effects</li>
+                  <li>Three- &amp; four-deck continuity</li>
+                  <li>Auto-loops, loop rolls, &amp; hot cues</li>
+                </ul>
+                  <button class="read-more">
+                  Learn more
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" />
+                  </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="module-full" hidden>
+              <p>This module will start with a fairly exhaustive review of common music players: DDJ-FLX4, XDJ-RX3,
+                CDJ-3000. We&rsquo;ll also look at non-Pioneer/AlphaTheta products to compare and contrast features.
+                Versatility is important and it&rsquo;s important for students to understand the tools they want and need
+                and seek them out vs. accept what a company decides they need and be content.</p>
+              <p>Students will also be exposed to different styles of mixers. Mixers differ by far more than simply how
+                many channels are available. We&rsquo;ll look into all the features that may or may not exist on a mixer to
+                further deepen the student&rsquo;s adaptability.</p>
+              <p>There are an infinite number of ways to mix two tracks together, largely dependent on performance style,
+                environment, and genre, however, Module 6 covers the core concepts that can be adapted by each student. For
+                example, students will learn when and how using more than two decks can create deeper continuity and
+                increase energy by preserving sounds that are holding the dance floor. Students will also learn reliable
+                methods to transition between broader genres and tempo ranges.</p>
+              <p>This module also covers more advanced looping and positioning techniques like auto-looping, loop rolls,
+                hot-cue jumping, and loop builds.</p>
+              <p>This module will not teach every possible mixing trick because there are infinite, but it will point
+                students to external resources to further their practice.</p>
+            </div>
+          </article>
+
+          <!-- Week 7: Attunement -->
+          <article class="curr-slide">
+            <div class="curr-slide-inner">
+              <header class="curr-head">
+                <span class="module-week">Week 7</span>
+                <h3>Attunement</h3>
+                <p class="module-outcome">
+                Learn how to connect with your audience from the moment you start playing and navigate the booth with
+                other DJs.
+                </p>
+              </header>
+
+              <div class="curr-cols">
+                <div class="curr-media">
+                <div class="player" data-video="m7-attunement" data-duration="36.411" data-manual data-captions
+                data-label="Module 7, Attunement"></div>
+                </div>
+                <div class="curr-copy">
+                  <ul class="module-points">
+                  <li>Reading the crowd &amp; earning trust</li>
+                  <li>DJ booth etiquette</li>
+                  <li>Clean hand-offs</li>
+                  <li>Playing what you want vs. what they want</li>
+                </ul>
+                  <button class="read-more">
+                  Learn more
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" />
+                  </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="module-full" hidden>
+              <p>In the crowded, chaotic, and often over-hyped world of being a DJ, interacting with others is a core
+                competency that is often overlooked. In this module, students will learn how to present themselves and
+                interact with their colleagues and peers in ways that open doors.</p>
+              <p>Starting at the decks, students will learn how to treat equipment like an extension of a person&rsquo;s
+                body. Students will learn how to apply the principles of consent to the decks, resulting in smoother
+                hand-offs between DJs. These principles will also give students a leg up in being easy to work with and
+                result in developing better reputations and being invited to play more gigs.</p>
+              <p>Module 7 will also cover the relationship between the DJ and the crowd. Students will learn the importance
+                of always meeting their audience where they are at and how to earn their trust in taking them on a journey.
+                At the core of this lesson is understanding the differences between &ldquo;playing what I want to
+                play&rdquo; vs. &ldquo;playing what they want to play&rdquo; and how to mix these two modalities to stay
+                authentic and connect to the audience.</p>
+            </div>
+          </article>
+
+          <!-- Week 8: Showtime -->
+          <article class="curr-slide">
+            <div class="curr-slide-inner">
+              <header class="curr-head">
+                <span class="module-week">Week 8</span>
+                <h3>Showtime</h3>
+                <p class="module-outcome">
+                Become a true performer: how to prepare for a show, take the stage, engage the audience, and close.
+                </p>
+              </header>
+
+              <div class="curr-cols">
+                <div class="curr-media">
+                <div class="player" data-video="m8-showtime" data-duration="38.872" data-manual data-captions
+                data-label="Module 8, Showtime"></div>
+                </div>
+                <div class="curr-copy">
+                  <ul class="module-points">
+                  <li>Pre-show routines, riders, and self-care</li>
+                  <li>How to take the stage</li>
+                  <li>Audience engagement &amp; using the mic</li>
+                  <li>Closing, teardown, &amp; post-show routines</li>
+                </ul>
+                  <button class="read-more">
+                  Learn more
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" />
+                  </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="module-full" hidden>
+              <p>The last module is dedicated to the performance aspect of being a DJ, which is often overlooked by amateur
+                and self-taught DJs, who have no training as performers.</p>
+              <p>Students will learn how to prepare themselves for a show. This goes beyond set prep. How do you practice
+                your set and key moments? What is your day-before/day-of routine to get into the right headspace? A rider
+                isn&rsquo;t about being VIP, it&rsquo;s about acknowledging that you&rsquo;re about to really give of
+                yourself to a group and that it takes something to do that. We&rsquo;ll look at examples of ways performers
+                can stay grounded and students will be inspired to develop their own preparatory routines.</p>
+              <p>Students will then learn how to take the stage: how to take the pulse of the room before getting onstage
+                and how to take the reins from a previous performer. We&rsquo;ll discuss the advantages and disadvantages
+                of playing continuously through from a previous set.</p>
+              <p>Students will then learn how to create an engaging, slot-appropriate performance as well as how to take
+                moments for self- or other-promotion (e.g., getting on the mic, acknowledging openers).</p>
+              <p>Students will also learn how to close. This isn&rsquo;t just about choosing the last track. This is about
+                the difference between a comedown close and a big-finish close and how the choice depends on the slot and
+                the event.</p>
+              <p>Lastly, students will learn how to tear down and handle post-show self-care. How to nourish themselves and
+                also what post-show actions may be necessary (e.g., posting a recording of the set, social media).</p>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </div>
+  </div><!-- /.curr-band -->
+
+  <!-- Instructor.
+       No break above or below this one. The band arrives out of the page's
+       black and returns to it, which is the break -- a waveform drawn across
+       the seam would be marking a transition that is already being made, the
+       way the final CTA has never had one either. -->
+  <section class="instructor-band">
+    <!-- Two crops of one frame, and the shape is the point rather than the
+         size: the band puts the picture beside the copy on a desktop and above
+         it on a phone, and a landscape crop scaled down to a phone would be a
+         wide strip of his shoulders. sizes is the displayed width, which here
+         is set by the band's height rather than the viewport's width -- about
+         1120px on a desktop -- so it is stated flat instead of in vw. -->
+    <picture>
+      <source media="(max-width: 640px)" sizes="100vw"
+        srcset="instructor-tall-760.webp 760w, instructor-tall-1400.webp 1400w" />
+      <img class="instructor-photo" src="instructor-1400.webp"
+        srcset="instructor-1400.webp 1400w, instructor-1780.webp 1780w"
+        sizes="1120px" width="1780" height="1424"
+        loading="lazy" decoding="async"
+        alt="Avand behind the decks, headphones in both hands, a mirror ball lit up above him" />
+    </picture>
+
+    <div class="instructor-inner">
+      <div class="instructor-copy">
+        <h2>Your Instructor</h2>
+        <p class="section-lead">
+          I&rsquo;m Avand&mdash;a DJ and software engineer who has spent over a decade
+          obsessing over how sound systems work so the music sounds exactly right.
+        </p>
+        <p>
+          I&rsquo;ve played everywhere from Burning Man art cars and mobile rigs that I set up
+          myself to nightclubs around the world. I&rsquo;ve used CDJs, controllers,
+          all-in-ones, Traktor, rekordbox, and laptop-only setups. I don&rsquo;t have one
+          &rdquo;right way&rdquo;&mdash;I just have some well-formed opinions born from years of
+          real-world experience across the full range of gear and environments.
+        </p>
+        <p>
+          I was an instructor at <a href="https://generalassemb.ly/" target="_blank">General Assembly</a>, where I logged
+          700+ hours in front of students and designed my own curriculum from
+          scratch. I love to teach and share my experience with others. I&rsquo;ve
+          also worked in software for a long time so technical details are my jam.
+        </p>
+      </div>
 
       <div class="credential-grid">
         <div class="credential">
@@ -756,7 +630,7 @@ og_image: og-image.jpg
         </div>
         <div class="credential">
           <div class="number">700+ hours</div>
-          <div class="label">in-class teaching & curriculum design</div>
+          <div class="label">in-class teaching</div>
         </div>
         <div class="credential">
           <div class="number">20+ years</div>
@@ -764,54 +638,388 @@ og_image: og-image.jpg
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- Format -->
-<section>
-  <h2>How it works</h2>
-  <p class="section-lead">
-    This first cohort will be a small, focused group with room for real questions and hands-on work.
-  </p>
-
-  <div class="format-grid">
-    <div class="format-item">
-      <div class="value">8 weeks</div>
-      <div class="desc">Thursdays 6&ndash;8 PM MT &middot; Oct 1&ndash;Nov 19, 2026</div>
-    </div>
-    <div class="format-item">
-      <div class="value">2 hrs / wk</div>
-      <div class="desc">Lectures, demos, and hands-on work, plus ~30 min of homework each week</div>
-    </div>
-    <div class="format-item">
-      <div class="value">10&ndash;15 people</div>
-      <div class="desc">Small, focused, plenty of space for answering your specific questions</div>
-    </div>
-    <div class="format-item">
-      <div class="value"><s style="color: var(--text-muted); font-weight: 400; text-decoration-thickness: 1px;">$1,800</s> $900</div>
-      <div class="desc">Introductory price with a full, money-back guarantee</div>
-    </div>
-  </div>
-</section>
-
-<!-- Guarantee -->
-<section>
-  <div class="guarantee">
-    <h2>Money-back guarantee</h2>
-    <p>
-      This is the first cohort, and while I'm confident it will be great,
-      there may also be some rough edges. If the course falls below your
-      expectations for any reason, I'll refund up to 100% of your tuition.
+  <!-- Format -->
+  <section class="section-format">
+    <h2>How It Works</h2>
+    <p class="section-lead">
+      This first cohort will be a small, focused group with room for real questions and hands-on work.
     </p>
-  </div>
-</section>
 
-<!-- Final CTA -->
-<div class="final-cta" id="book">
-  <h2>Interested?</h2>
-  <p>
-    Book a quick intro call. We'll talk about your experience level,
-    what you want to get out of the course, and whether it's a good fit.
-  </p>
-  <a class="btn-primary" href="https://calendar.app.google/2dhPnZHUngrQUUoF7" target="_blank">Book an intro call</a>
+    <div class="format-grid">
+      <div class="format-item">
+        <div class="value">8 weeks</div>
+        <div class="desc">Thursdays 6&ndash;8 PM MT<br />Oct 1&ndash;Nov 19, 2026</div>
+      </div>
+      <div class="format-item">
+        <div class="value">2 hrs / wk</div>
+        <div class="desc">Live online video calls with ~30 minutes of homework each week</div>
+      </div>
+      <div class="format-item">
+        <div class="value">12 students</div>
+        <div class="desc">Small, focused, plenty of space for answering your specific questions</div>
+      </div>
+      <div class="format-item">
+        <!-- The hero's reveal, run a second time. Same block, same classes,
+             same timings -- the only difference is that this one is held until
+             it is on screen, and starts a beat later once it is. No stat icon
+             here: the other three cells of this grid don't carry one. -->
+        <div class="value price-reveal" data-reveal-on-view>
+          <span class="price-reveal-figures"><s class="price-was">$1,600</s><span class="price-now">$800</span></span>
+          <!-- The empty span is the comet's glow; see .tag-glow. -->
+          <span class="price-reveal-tag comet"><span class="tag-glow" aria-hidden="true"></span><span class="tag-label">Launch price</span></span>
+        </div>
+        <div class="desc">Special pricing for the 1st cohort with a money-back guarantee</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Guarantee.
+       No break above it either: the panel is bordered on all four sides, so it
+       already reads as its own thing arriving. A waveform above a box is two
+       separators stacked. -->
+  <section class="section-guarantee">
+    <div class="guarantee">
+      <h2>Money-Back Guarantee</h2>
+      <p>
+        I am committed to making this first cohort really great. If the course
+        falls below your expectation for any reason, I&rsquo;ll refund up to 100%
+        of your tuition.
+      </p>
+    </div>
+  </section>
+
+  <!-- #book is where this section used to live, and it is still the anchor on
+       the page in production today -- so it is the one an existing link, a
+       social post or somebody's bookmark is pointing at. An unknown hash is a
+       soft failure rather than a 404: the browser simply stays at the top of
+       the page, which looks like the link went nowhere. Kept as a target so
+       those keep arriving where they meant to. Nothing on this page links to
+       it; when the inbound ones have aged out it can go.
+
+       Final CTA.
+
+       The id is "cta" and not what the section currently says. It was
+       "notify", from a version of this block that collected emails for an
+       announcement; the offer has since become a free sample class, and the
+       anchor would have had to be renamed again -- in every link on the page
+       and, once the concept pages share this layout, in every glossary entry
+       that points here.
+
+       Name the destination by its job, not by this month's offer, and links
+       from anywhere in the site keep working as the pitch changes. -->
+  <span id="book" aria-hidden="true"></span>
+  <div class="final-cta" id="cta">
+    <h2>Start with a Free Sample Class</h2>
+    <p>
+      Sign up for a free 1 hour session to get a feel for the kind of step-function
+      improvements you can expect to get out of Headroom. I&rsquo;ll teach you the
+      AI-powered workflow I use to find, buy, and import new music. Then I&rsquo;ll open
+      it up to your questions.
+    </p>
+
+    <form class="signup" id="signup" novalidate>
+      <div class="signup-fields">
+        <label class="sr-only" for="su-name">First name</label>
+        <!-- data-1p-ignore keeps 1Password's inline menu off these two. It is
+             a two-field mailing list, not a login, and the menu covers the
+             button. autocomplete stays: the browser's own fill is wanted. -->
+        <input id="su-name" name="firstName" type="text" placeholder="First name" autocomplete="given-name" data-1p-ignore required />
+        <label class="sr-only" for="su-email">Email address</label>
+        <input id="su-email" name="email" type="email" placeholder="you@example.com" autocomplete="email" data-1p-ignore required />
+        <button class="btn-primary btn-comet" type="submit">Send me the dates</button>
+      </div>
+      <!-- Bots fill this in; people never see it. -->
+      <div class="hp" aria-hidden="true">
+        <label>Company <input type="text" name="company" tabindex="-1" autocomplete="off" /></label>
+      </div>
+      <p class="signup-status" role="status" aria-live="polite"></p>
+    </form>
+  </div>
+
 </div>
+
+  <!-- Module detail modal -->
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
+    <button class="modal-backdrop" tabindex="-1" aria-label="Close"></button>
+    <div class="modal-panel" tabindex="-1">
+      <div class="modal-head">
+        <span class="modal-week" id="modal-week"></span>
+        <button class="modal-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6 18 18M18 6 6 18"/></svg></button>
+      </div>
+      <h3 id="modal-title"></h3>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Cache-busted with a version query string. These are separate requests
+       from the page itself, at a URL that never changes, and GitHub Pages
+       serves every asset with `cache-control: max-age=600`. So for ten minutes
+       after a deploy a returning visitor can hold new HTML and old JS at the
+       same time -- the exact pairing nothing on the page is written to survive.
+       A changed URL cannot be answered from a cache at all, which is the whole
+       of the mechanism.
+
+       Bump the number in the same commit as any change to these files. It is
+       manual, and forgetting is the failure: the code is live but nobody is
+       running it yet.
+
+       This does nothing in development, which is the opposite of what this
+       comment used to claim. bin/dev rewrites every local .js/.css reference to
+       ?d=<mtime> on the way out and discards whatever query string was already
+       there, so the dev server has always handled it. The number is here for
+       production only.
+
+       captions.vtt has the same problem an order of magnitude worse -- R2
+       caches it for a year, not ten minutes -- and is versioned separately by
+       CAPTIONS_V in player.js. -->
+  <script src="player.js?v=71" defer></script>
+  <script src="hero.js?v=71" defer></script>
+  <script src="curriculum.js?v=71" defer></script>
+  <script src="timeline.js?v=71" defer></script>
+  <script src="price.js?v=71" defer></script>
+  <script>
+    /* ---------- Module "read more" modal ---------- */
+    (function () {
+      var modal = document.getElementById("modal");
+      var panel = modal.querySelector(".modal-panel");
+      var titleEl = document.getElementById("modal-title");
+      var weekEl = document.getElementById("modal-week");
+      var bodyEl = document.getElementById("modal-body");
+      var slides = Array.prototype.slice.call(document.querySelectorAll(".curr-slide"));
+      var lastFocused = null;
+      var openIndex = -1;
+
+      /* Each module is addressable as #module-1 … #module-8, so a particular
+         week can be linked to directly. The hash is the state: opening sets it,
+         closing clears it, and the back button therefore closes the dialog the
+         way people expect on a phone. */
+      function indexFromHash() {
+        var m = /^#module-(\d+)$/.exec(window.location.hash);
+        if (!m) return -1;
+        var i = parseInt(m[1], 10) - 1;
+        return i >= 0 && i < slides.length ? i : -1;
+      }
+
+      // Whether this page put the hash there, so closing knows if going back
+      // would leave the site entirely.
+      var pushedHash = false;
+
+      function render(index) {
+        var slide = slides[index];
+        if (!slide) return;
+
+        weekEl.textContent = "Week " + (index + 1);
+        titleEl.textContent = slide.querySelector("h3").textContent;
+        bodyEl.innerHTML = slide.querySelector(".module-full").innerHTML;
+
+        modal.hidden = false;
+        modal.classList.add("is-open");
+        document.body.classList.add("modal-open");
+        panel.scrollTop = 0;
+        // The dialog, not its close button -- focusing the button lands the
+        // focus ring on it every time the modal opens. Tab still reaches it.
+        panel.focus();
+        openIndex = index;
+      }
+
+      function open(index, viaHash) {
+        if (openIndex === index) return;
+        if (!viaHash) {
+          pushedHash = true;
+          // Setting the hash re-enters through hashchange, which renders.
+          window.location.hash = "module-" + (index + 1);
+          return;
+        }
+        render(index);
+      }
+
+      function dismiss() {
+        modal.classList.remove("is-open");
+        modal.hidden = true;
+        document.body.classList.remove("modal-open");
+        openIndex = -1;
+        if (lastFocused) lastFocused.focus();
+      }
+
+      function close() {
+        if (indexFromHash() < 0) {
+          dismiss();
+          return;
+        }
+        if (pushedHash) {
+          pushedHash = false;
+          window.history.back(); // hashchange dismisses
+        } else {
+          // Arrived here directly: drop the hash without adding history.
+          window.history.replaceState(
+            null,
+            "",
+            window.location.pathname + window.location.search
+          );
+          dismiss();
+        }
+      }
+
+      function syncFromHash(initial) {
+        var index = indexFromHash();
+        if (index >= 0) {
+          // Bring the matching week up behind the dialog, so closing it leaves
+          // you on the module you linked to.
+          if (initial && window.Headroom && window.Headroom.curriculum) {
+            window.Headroom.curriculum.jumpTo(index, { instant: true });
+          }
+          open(index, true);
+        } else if (openIndex >= 0) {
+          dismiss();
+        }
+      }
+
+      window.addEventListener("hashchange", function () {
+        syncFromHash(false);
+      });
+
+      document.addEventListener("click", function (e) {
+        var btn = e.target.closest(".read-more");
+        if (!btn) return;
+        lastFocused = btn;
+        open(slides.indexOf(btn.closest(".curr-slide")), false);
+      });
+
+      modal.querySelector(".modal-close").addEventListener("click", close);
+      modal.querySelector(".modal-backdrop").addEventListener("click", close);
+
+      // Runs after the curriculum registers, so a deep link can position it.
+      window.addEventListener("load", function () {
+        syncFromHash(true);
+      });
+
+      document.addEventListener("keydown", function (e) {
+        if (modal.hidden) return;
+        if (e.key === "Escape") {
+          close();
+          return;
+        }
+        // Keep Tab inside the dialog while it is open.
+        if (e.key !== "Tab") return;
+        var focusable = panel.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (!focusable.length) return;
+        var first = focusable[0];
+        var last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          last.focus();
+          e.preventDefault();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          first.focus();
+          e.preventDefault();
+        }
+      });
+    })();
+
+    /* ---------- Newsletter signup ---------- */
+    (function () {
+      /*
+       * The Apps Script Web App that writes each signup into a Google Sheet.
+       * See signup.gs in this directory for the script itself and for how to
+       * deploy it; paste the /exec URL it gives you here. It looks like:
+       *
+       *   https://script.google.com/macros/s/<id>/exec
+       *
+       * Safe to ship in a page anyone can read the source of: the deployment
+       * can only append rows to one Sheet, which is exactly what this form
+       * does. It cannot read them back. Until it is filled in, the form falls
+       * back to email so no signup is quietly dropped.
+       */
+      var SIGNUP_ENDPOINT =
+        "https://script.google.com/macros/s/AKfycbyiqhCLfyrsszqOGrbHxvIwqsAJvCPwzpW6o1FrN4pB2mwZslfeN2F57bcovuRDX-es/exec";
+
+      var FALLBACK_EMAIL = "wave@avand.fm";
+
+      var form = document.getElementById("signup");
+      var status = form.querySelector(".signup-status");
+      var button = form.querySelector('button[type="submit"]');
+
+      function say(message, kind) {
+        status.textContent = message;
+        status.className = "signup-status" + (kind ? " " + kind : "");
+      }
+
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        var name = form.elements.firstName.value.trim();
+        var email = form.elements.email.value.trim();
+
+        if (!name) {
+          say("What should I call you?", "err");
+          form.elements.firstName.focus();
+          return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          say("That email doesn't look right.", "err");
+          form.elements.email.focus();
+          return;
+        }
+        // Honeypot tripped — quietly accept and drop it.
+        if (form.elements.company.value) {
+          say("Thanks! You're on the list.", "ok");
+          form.reset();
+          return;
+        }
+
+        if (!SIGNUP_ENDPOINT) {
+          say("Signups aren't wired up yet — email me at " + FALLBACK_EMAIL + " and I'll add you.", "err");
+          return;
+        }
+
+        button.disabled = true;
+        say("Adding you…");
+
+        /* No Content-Type header, deliberately, and this is the one thing
+           that reliably breaks this integration.
+
+           A cross-origin POST labelled application/json is not a "simple"
+           request, so the browser sends an OPTIONS preflight first -- and Apps
+           Script Web Apps do not answer OPTIONS. The preflight fails, the real
+           request is never sent, and the script is never reached, so there is
+           nothing in its execution log to find either. It presents as a CORS
+           error against a URL that works perfectly when opened directly.
+
+           A string body with no Content-Type set is sent as text/plain, which
+           is on the CORS safelist, so no preflight happens. The body is still
+           JSON; it is just labelled as text, and signup.gs parses it by hand.
+           Do not add a Content-Type header here. */
+        fetch(SIGNUP_ENDPOINT, {
+          method: "POST",
+          body: JSON.stringify({
+            firstName: name,
+            email: email,
+            source: "headroom-website",
+            page: window.location.href,
+          }),
+        })
+          .then(function (res) {
+            if (!res.ok) throw new Error("bad status " + res.status);
+            return res.json();
+          })
+          .then(function (data) {
+            // Apps Script answers 200 whatever happens; the verdict is in the
+            // body. Treating the status line as the answer would report a
+            // rejected signup as a successful one.
+            if (!data || !data.ok) throw new Error(data && data.error);
+            say("You're in. I'll send the class dates shortly.", "ok");
+            form.reset();
+            if (window.fathom) window.fathom.trackEvent("headroom waitlist signup");
+          })
+          .catch(function () {
+            say("That didn't go through. Email me at " + FALLBACK_EMAIL + " and I'll add you.", "err");
+          })
+          .finally(function () {
+            button.disabled = false;
+          });
+      });
+    })();
+  </script>

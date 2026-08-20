@@ -1,7 +1,28 @@
 .DS_Store
+
+# video/src/ is a drop box for camera masters on their way to R2, and
+# video/dist/ is the HLS ladder built from them. Both are working space, not
+# content: the masters are archived in Google Drive, and the renditions live in
+# the R2 bucket once uploaded. The scripts that do the work are tracked; what
+# passes through them is not. Keep src/ itself so there is somewhere to drop.
+video/src/*
+!video/src/.gitkeep
+video/dist/
+
+# Local wrangler state (account cache), written when video/upload.sh runs.
+video/.wrangler/
+
+# Jekyll's output and its working files. There *is* a _config.yml now -- the
+# Headroom pages became a Jekyll layout -- but GitHub Pages runs the build on
+# their side, so anything here is a local copy that only ever goes stale.
+# Jekyll writes its own .gitignore inside .jekyll-cache, but a tool ignoring
+# itself is not something to depend on.
 _site/
-.sass-cache/
 .jekyll-cache/
 .jekyll-metadata
+.sass-cache/
 .bundle/
 vendor/
+
+# bin/dev keeps its background processes' output here.
+.dev.log

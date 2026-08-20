@@ -1,0 +1,3612 @@
+/*
+ * index.css -- the Headroom landing page's own furniture.
+ *
+ * Everything here is used by exactly one page: the hero, the curriculum band
+ * and its timeline, the video player, the comet, the instructor band, the
+ * stats, the module modal, and the signup form. What both this page and the
+ * glossary present the same way lives in headroom.css instead; see the note at
+ * the top of that file for why the split falls where it does.
+ *
+ * Rule of thumb when adding to either: if a concept page would look wrong
+ * without it, it belongs in headroom.css. If a concept page would never
+ * render the element at all, it belongs here.
+ *
+ * url()s resolve against this file, which sits in /headroom/ beside the images
+ * it names, so the relative paths are correct as written.
+ */
+
+/* --- Hero stage ---
+   A tall region with a sticky viewport inside it. One scroll progress
+   value (--p, set by hero.js) drives the whole move: the hero copy lifts
+   and fades out, the background darkens and pushes back, and the brand
+   video rises from below to settle dead centre — where it locks while the
+   rest of the region scrolls past underneath. */
+
+/* --- Hero ---
+   Plain document flow: the pitch, then the brand video, then the
+   curriculum lead-in. This used to be a 480vh scroll-jacked region with
+   the video riding up into a locked position -- that read as jittery on
+   iOS whether the choreography ran in JS or in a native scroll-timeline,
+   so it's gone. See hero.js. */
+
+.hero {
+  position: relative;
+  min-height: calc(var(--vh, 1vh) * 100);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  /* The photograph fills the screen edge to edge, notch included; the copy
+     inside it is held clear of the status bar by the inset. */
+  padding: calc(7em + env(safe-area-inset-top, 0px)) 2em 6em;
+  overflow: hidden;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  /* Written out rather than held in a custom property. A url() inside a
+     custom property, substituted into the background shorthand, is the
+     one exotic thing this file was doing with images, and it is not worth
+     defending on a device I cannot inspect. The media queries at the foot
+     of the stylesheet restate the gradient to swap the file. */
+  background:
+    linear-gradient(to bottom, rgba(10, 10, 15, 0.55) 0%, rgba(10, 10, 15, 0.85) 80%, var(--bg) 100%),
+    url('hero-bg-1600.webp') center / cover no-repeat;
+}
+
+/* The top of the photograph, resolved to a flat colour over 25px.
+
+   The crops do not agree about their top row -- portrait and landscape are
+   different pictures of the same room -- so without this the colour behind
+   the notch could only ever match one of them. Fading the last 25px to
+   --hero-top makes the hero's top edge the same colour on every breakpoint,
+   which is what lets one body colour match all of them.
+
+   A pseudo-element rather than another background layer: the media queries
+   at the foot of the stylesheet restate .hero-bg's background-image to swap
+   the file, so a layer added here would have to be repeated in each of them
+   and would be quietly dropped from any that were missed. */
+.hero-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  /* 25px was the first try and it read as a hard line on a phone. The
+     colours either side of that line were already right -- sampled at the
+     seam, the strip and the photograph's first row are the same value --
+     but a flat field meeting a photograph over a quarter of an inch is an
+     edge whatever the two colours are. What removes it is distance. */
+  height: 160px;
+  /* And a curve, not a ramp. A linear fade spends its first stops barely
+     moving and then releases the picture all at once around the middle,
+     which puts a second, softer edge halfway down. These stops hold the
+     flat colour nearly solid through the top third and let go slowly, so
+     there is no point on the way down where the image can be said to
+     start. */
+  background: linear-gradient(to bottom,
+      var(--hero-top) 0%,
+      rgba(44, 17, 105, 0.94) 20%,
+      rgba(44, 17, 105, 0.78) 40%,
+      rgba(44, 17, 105, 0.52) 60%,
+      rgba(44, 17, 105, 0.24) 80%,
+      var(--hero-top-clear) 100%);
+  pointer-events: none;
+}
+
+/* The vignette the hero has always had. A gradient rather than an inset
+   box-shadow: the shadow's blur radius is about 150px across the whole
+   viewport, which is expensive to paint even as a one-off on a phone. */
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: radial-gradient(120% 100% at 50% 50%,
+      rgba(10, 10, 15, 0) 55%, var(--bg) 100%);
+  pointer-events: none;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+}
+
+/* The season, ruled off on both sides. Solid rather than dashed, and each
+   rule fades out as it leaves the words rather than stopping at a hard end
+   -- at this weight a hard stop reads as a piece of furniture, and the
+   point is only to set the words apart. currentColor, so the rules are
+   always exactly as muted as the text they flank. */
+.hero-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9em;
+  font-size: 0.855em;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 1em;
+}
+
+.hero-label::before,
+.hero-label::after {
+  content: "";
+  height: 1px;
+  width: clamp(1.6em, 9vw, 4.5em);
+  opacity: 0.55;
+  background: linear-gradient(90deg, transparent, currentColor);
+}
+
+.hero-label::after {
+  background: linear-gradient(270deg, transparent, currentColor);
+}
+
+/* Each figure in its own pill: at four across, containment is what stops
+   the row reading as one long sentence. Translucent white rather than a
+   flat fill, so it takes its tint from whatever the photograph is doing
+   behind it.
+
+   These used to carry a note saying deliberately not backdrop-filter, on
+   the same reasoning the nav used to carry. That reasoning is gone from
+   the nav and it goes from here too: the blurred area is four small pills,
+   and they sit on the hero, which is one screen at the top of the page
+   rather than something scrolling past for the whole document. Lighter
+   than the bar's glass, because there is a photograph behind these that is
+   worth still being able to see. */
+.hero-details .stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.45em 0.95em;
+  border-radius: 2em;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  -webkit-backdrop-filter: blur(10px) saturate(150%);
+  backdrop-filter: blur(10px) saturate(150%);
+  white-space: nowrap;
+  /* The figures are the content; the row's muted grey is for the space
+     around them. Set on the pill rather than on .hero-details so the icons
+     can stay behind -- they take their stroke from currentColor, so they
+     would have come up to white with everything else. */
+  color: var(--text);
+}
+
+/* ...and held back, deliberately, one step further than the row used to
+   be. An icon that reads at a glance has done its whole job; brought up to
+   the figures' weight it starts competing with them. */
+.hero-details .stat .stat-icon {
+  color: var(--text-muted);
+  opacity: 0.85;
+}
+
+/* Enough to say which figure is which at a glance, and no more: one
+   weight, one size, currentColor, no fills. */
+.stat-icon {
+  width: 1.05em;
+  height: 1.05em;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.75;
+}
+
+.hero-content h1 {
+  font-size: clamp(2.4em, 6vw, 4.5em);
+  font-weight: 900;
+  line-height: 1.1;
+  margin-bottom: 0.3em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.hero-content .subtitle {
+  font-size: clamp(1.1em, 2.5vw, 1.35em);
+  color: var(--text);
+  max-width: 640px;
+  margin-bottom: 2em;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+}
+
+/* Four cells, and the only two arrangements worth having are all four
+   across and two-by-two. Wrapping decided that on its own and picked the
+   third: three on one line and the price stranded underneath, which reads
+   as something having gone wrong rather than as a layout.
+
+   A grid takes the choice back. The column count is stated, so the break is
+   at a width chosen here rather than wherever the fourth pill happens to
+   stop fitting -- there is no width at which this can produce three and one.
+
+   justify-items: center rather than the default stretch: in the two-by-two
+   the columns take the width of their widest cell, and stretching would pull
+   "8 weeks" out to the width of "12 students". The pills should go on hugging
+   their own figures; it is the grid that lines up, not them.
+
+   Measured for the switch: four across needs about 552px of the 616px a
+   780px screen leaves after the hero's padding, so it is not close at the
+   moment it changes. Two across needs about 284px, which holds down to
+   roughly 350px -- below that the widest pair runs out of room, and the
+   pills are nowrap by design. */
+.hero-details {
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  gap: 1em;
+  /* Baseline, not centre. All four cells are one line tall now that the
+     launch-price tag has gone, so this mostly does not matter -- but it is
+     the right rule for a row of figures either way, and it is what keeps
+     them on one line if a cell ever grows again. */
+  align-items: baseline;
+  justify-content: center;
+  justify-items: center;
+  font-size: 1.05em;
+  color: var(--text-muted);
+  margin-bottom: 2.5em;
+}
+
+/* The same width the timeline drops its dates below the track at. Not a
+   coincidence worth preserving if either changes, but they agree today. */
+@media (max-width: 780px) {
+  .hero-details {
+    grid-template-columns: repeat(2, auto);
+  }
+}
+
+.hero-details>span {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+}
+
+.price-was {
+  color: var(--text-muted);
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+.price-now {
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* Warm rather than accent: the CTA below is a solid block of accent, and
+   two purples that close together compete instead of leading one to the
+   other. */
+.price-reveal {
+  /* Figures on one line, the pill under them. In the hero this overrides
+     the row layout the other three cells of that strip use; stated in full
+     here because the same block runs again down in "How it works", where
+     nothing above it has made it a flex container. */
+  display: flex;
+  flex-direction: column;
+  /* Otherwise the pill stretches to whatever it is sitting in -- a
+     full-width outline round a two-word label in the "How it works" cell.
+     The hero centres it instead, from the row rule above, which is why
+     that copy looks right without this. */
+  align-items: flex-start;
+  gap: 0.2em;
+
+  /* When the rule starts being drawn through $1,600, and how long it takes.
+     Declared here rather than on the two elements that run it because the
+     pill inherits them too: the comet's own start is described against this
+     one, and the tag below reads it.
+
+     --strike-start doubles as the reveal's global offset. Every other
+     moment is written against it, directly or through something that is, so
+     raising it holds the untouched price on screen for longer and slides
+     the whole promo back intact. There is no separate delay knob because
+     this already is one. */
+  --strike-start: 400ms;
+  --strike-dur: 320ms;
+
+  /* $800 begins arriving as the rule lands, so the wipe does not get a
+     delay of its own -- it gets the end of the strike. */
+  --wipe-start: calc(var(--strike-start) + var(--strike-dur));
+}
+
+.price-reveal-figures {
+  display: flex;
+  align-items: baseline;
+  /* This is the whole gap now: the markup used to carry an &nbsp; between
+     the two figures as well, which a flex container turns into a third
+     item -- so the space was really gap + nbsp + gap. */
+  gap: 0.45em;
+}
+
+.price-reveal-tag {
+  position: relative;
+  font-size: 0.52em;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--warm);
+  /* The settled state, which is where the reveal below ends up. The pill
+     holds its space from first paint -- the figures above must not move
+     when it arrives -- but starts fully transparent, so what is laid out
+     here and what is on screen are two different things until 2.74s in.
+
+     The border is transparent and stays that way: the visible edge is the
+     ring ::after draws, and this only reserves the 1.5px for it. The fill
+     is clipped to the padding box so the border area stays clear for that
+     ring, and the photograph shows through the part of the outline that
+     has not been traced yet.
+
+     An earlier version of this slid a *linear* gradient across
+     background-position, which is why every attempt at a comet here read
+     as a flash: a linear gradient's bright band is a straight line, so it
+     lights the top and bottom edges at the same x simultaneously and
+     slides sideways. Around a 1.5px ring that is a blink, not a journey.
+     Light that travels a perimeter has to come from a conic gradient. */
+  background-color: #180f0b;
+  background-clip: padding-box;
+  border: 1.5px solid transparent;
+  border-radius: 2em;
+  /* 0.8em against the smaller type above lands wider than the 0.6em it
+     replaces -- em padding shrinks with the font, so matching the old
+     figure would have made the pill tighter, not roomier. */
+  padding: 0.2em 0.8em;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+/* Round the hero's price pill the ring sits outside a hairline the pill
+   keeps rather than replacing a border, so it needs to clear it -- and it
+   is drawn heavier, because the same 1.5px that reads as a ring round a
+   two-word label reads as a thread round something this size.
+
+   tag-settle is dropped from the list here: it paints the label pill's own
+   dark fill and orange text, which on a glass pill would be a black lozenge
+   appearing under the price. The trace and the bloom are all this one
+   wants. */
+.hero-details .comet {
+  --ring-inset: -3px;
+  --ring-w: 2px;
+  --halo-inset: -4.5px;
+  --halo-w: 3.5px;
+
+  /* The bloom, moved onto the lap.
+
+     Both of these are worked out from --tag-text-start by default -- the
+     moment the launch-price label begins -- because that is what they were
+     built to punctuate. There is no label on this pill, so that reference
+     put the bloom 180ms after the comet had already finished and gone: two
+     separate events, a beat apart, neither explaining the other.
+
+     Against the lap instead. Half a lap in, running very nearly a whole
+     one, which puts the peak at about 770ms into a 780ms trip -- the light
+     swells as the head comes back round to where it started, and the two
+     crest together.
+
+     The start moves with the duration, not independently. Slowing the
+     bloom while leaving it starting where it was would have slid the peak
+     past the end of the lap, so the swell would arrive after the thing it
+     is meant to be swelling for. */
+  --tag-pulse-start: calc(var(--tag-start) + var(--tag-lap) * 0.5);
+  --tag-pulse-dur: calc(var(--tag-lap) * 0.975);
+
+  /* A fifth off the bloom. It is doing a different job here than it does
+     round the label: there it punctuates a small pill arriving, here it
+     swells around something already large and lit. Turned down rather than
+     retimed -- the overlap above is what it was wanted for. Knobs rather
+     than new keyframes, so the label's copy is left at full strength. */
+  --bloom-near: 0.48;
+  --bloom-far: 0.3;
+  animation:
+    tag-draw var(--tag-lap) linear var(--tag-start) both,
+    tag-pulse var(--tag-pulse-dur) var(--ease) var(--tag-pulse-start) both;
+}
+
+/* A light that passes, rather than a line that is drawn.
+
+   Round the label the trace is a pen: the gradient paints solid warm from
+   0deg all the way to the head, so by the end of the lap there is a
+   complete orange ring, and the ring is the point -- it is what marks the
+   pill out afterwards. Here it must leave nothing. This pill has to settle
+   looking exactly like the three beside it, so an outline that persists is
+   the one thing it cannot end with.
+
+   So the tail is finite. Transparent until 120deg behind the head, warming
+   through to the head itself, which means what travels round is a comet
+   with a tail and not a stroke with a hot tip. The stops go out of order
+   for the first part of the lap -- angle minus 120 is negative until the
+   head has come round that far -- and CSS clamps an out-of-order stop to
+   the one before it, so the tail simply starts short and grows to length,
+   which is what it should do anyway.
+
+   comet-pass then takes the whole thing off at the end. Between the finite
+   tail and that fade there is nothing left on the pill a moment later. */
+.hero-details .comet::after {
+  background: conic-gradient(from 0deg,
+      transparent 0deg,
+      transparent calc(var(--tag-angle) - 120deg),
+      rgba(255, 97, 22, 0.42) calc(var(--tag-angle) - 62deg),
+      var(--warm) calc(var(--tag-angle) - 16deg),
+      var(--tag-head) var(--tag-angle),
+      transparent calc(var(--tag-angle) + 0.5deg),
+      transparent 360deg);
+  animation: comet-pass var(--tag-lap) linear var(--tag-start) both;
+}
+
+/* Full strength for almost the whole lap, then gone. The fade is in the
+   last tenth rather than tag-halo's last fifth: the head is still moving
+   through it, and a tail that starts dimming a quarter of a lap out reads
+   as the light running down rather than leaving. */
+@keyframes comet-pass {
+  0% {
+    opacity: 0;
+  }
+
+  8%, 90% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+/* The reveal: $1,600 alone, a rule drawn through it, the old price sliding
+   aside as the new one arrives, then the tag.
+
+   Every "before" state below lives in a keyframe rather than in the rule
+   it belongs to, held in place by animation-fill-mode: both. Put opacity:0
+   on .price-now itself and anything that doesn't run the animation --
+   reduced motion, an older engine -- would hide the price permanently. */
+.price-reveal .price-was {
+  position: relative;
+  /* Replaced by the drawn rule below, which line-through can't be: text
+     decorations aren't animatable. */
+  text-decoration: none;
+  /* Same delay, duration and easing as the strike below, so the move, the
+     fade from white to grey and the line are one gesture: by the time the
+     rule lands, the space for the new price is already open and it has only
+     to fade into it. */
+  animation: price-shift var(--strike-dur) linear var(--strike-start) both;
+}
+
+.price-reveal .price-was::after {
+  content: "";
+  position: absolute;
+  /* A touch past the digits on each side, the way a struck-out figure is
+     crossed by hand. */
+  left: -0.06em;
+  right: -0.06em;
+  /* Vertically placed here rather than in the transform, so the one
+     thing the transform does is the drawing.
+
+     50% is the middle of the line box, and the line box is not what the
+     eye is measuring against -- the digits are. Measured in Cairo at this
+     size: the baseline lands 22.46px down a 30.89px box, and lining
+     figures run 12.96px above it and 0.19px below, so their optical centre
+     is at 16.07px while the box's is at 15.45px. The rule was drawing
+     0.63px high, which is nothing on its own and clearly visible once the
+     two horizontals are next to each other. 0.03em is that difference back,
+     in a unit that keeps it once the type is scaled.
+
+     -1px re-centres the 2px rule on the point, which is what the
+     translateY used to be doing. */
+  top: 50%;
+  height: 2px;
+  margin-top: calc(-1px + 0.03em);
+  border-radius: 2px;
+  background: var(--warm);
+  transform: scaleX(0);
+  transform-origin: left center;
+  /* Linear: a line being drawn travels at the speed of the hand drawing
+     it, and an eased one arrives looking like it slowed down to stop. */
+  animation: price-strike var(--strike-dur) linear var(--strike-start) both;
+}
+
+/* Wiped in left to right rather than faded, so it reads in the same
+   direction as the rule that was just drawn through the old price. The
+   mask is wider than the text: parked right, the text sits under its
+   transparent tail; travelling left, the opaque head passes over and
+   uncovers it.
+
+   The three stops and the 240% are one calculation, and it is worth
+   writing down because eyeballing them is what went wrong twice.
+
+   At rest the mask sits at position 100%, which puts its right edge on the
+   text's right edge -- so the image covers from -140% to +100% of the
+   text. For the text to be completely hidden there, the last stop has to
+   have gone transparent by the time it reaches x=0, which is 140/240 =
+   58.3% of the way along the image. And at the end, position 0%, the image
+   covers 0% to 240%, so the first stop has to still be opaque at x=100%,
+   which is 100/240 = 41.7% along. Every stop has to live between those two
+   numbers. 44 / 50 / 56 does, with about 5% of clearance at each end.
+
+   It was 45 / 52 / 60 at 220%, which failed both tests by a little: the
+   tail lay across the first eighth of the word, so $800 opened every
+   reveal with its dollar sign a quarter visible, and the head stopped 1%
+   short at the other end. The first repair was to park the mask at 115%
+   instead, which is legal and works, but it fixes the arithmetic by
+   feeding an out-of-range position to something whose handling of
+   out-of-range positions is the very thing in question -- and it showed:
+   Chrome went clean, Safari drew a bright vertical slice through $800
+   where a sliver of the head was landing. Fixing the stops instead means
+   no engine is being asked to agree about anything unusual. */
+.price-reveal .price-now {
+  -webkit-mask-image: linear-gradient(to right,
+      #000 44%, rgba(0, 0, 0, 0.35) 50%, transparent 56%);
+  mask-image: linear-gradient(to right,
+      #000 44%, rgba(0, 0, 0, 0.35) 50%, transparent 56%);
+  -webkit-mask-size: 240% 100%;
+  mask-size: 240% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  /* Starts as the move finishes -- the gap it lands in is already open. */
+  animation: price-wipe 500ms var(--ease) var(--wipe-start) both;
+}
+
+/* The whole reveal, in one place, because none of these numbers stands on
+   its own -- every one of them is derived from another, and changing one in
+   isolation breaks the joins:
+
+     400   strike + shift begin
+     600   comet sets off (strike + 200)
+     720   rule lands ................. $800 begins wiping in
+    1185   comet three quarters round . fill begins
+    1220   $800 in
+    1380   comet lands
+    1400   label begins
+    1560   sear opens ................. 20% of the shimmer
+    1880   sear crests ................ 60% of the shimmer
+    2200   shimmer, fill and sear all settle
+
+   The table is a consequence rather than a thing to maintain: it falls out
+   of --strike-start and --strike-dur on .price-reveal and the four levers
+   below. Nothing in the reveal carries a delay that another value already
+   implies -- the wipe starts where the strike ends, the comet a fixed beat
+   after the strike begins, the fill and the pulse off the lap itself -- so
+   moving any one of them drags whatever follows it along without further
+   editing. The two that are genuinely free, and so are plain numbers, are
+   when the label starts and how long it takes.
+
+   Three animations here rather than on the rings below, and the angle
+   especially: *both* pseudo-elements read it -- the crisp border and the
+   glow riding with its head -- and an inherited registered property
+   animated on the parent is the only way they stay locked to one value.
+   Animating it on either one would leave the other reading 0deg forever.
+
+   On .comet rather than on the pill, because there are two pills now: the
+   launch-price label further down the page, and the hero's price pill,
+   which is three times the size and a different shape. The trace is the
+   same trace; only what it is going round differs, which is what the two
+   ring knobs below are for. */
+.comet {
+  position: relative;
+  /* The four levers. Everything else in the reveal is worked out from
+     these, so they are the only numbers to change.
+
+     --tag-start is written against the strike's own start rather than as
+     the number that happens to equal it, so "the comet sets off 400ms
+     after the rule" survives the strike being moved. */
+  --tag-start: calc(var(--strike-start) + 200ms);
+  --tag-lap: 780ms;
+  /* Against the comet rather than as the timestamp it works out to. It was
+     the last absolute time left in the reveal, and so the one thing that
+     would have stayed put when --strike-start moved -- shifting everything
+     except the shimmer, which is worse than shifting nothing. */
+  --tag-text-start: calc(var(--tag-start) + 800ms);
+  --tag-text-dur: 800ms;
+
+  /* And the derivations, spelled out rather than left in a comment. The
+     comet lands where it started plus its lap; the pulse begins there and
+     has to finish where the label does, so its length is whatever closes
+     that gap. The floor keeps a pulse visible if the label is ever tuned
+     to settle before the comet lands, where the subtraction goes negative
+     and an animation with a negative duration simply never runs. */
+  --tag-end: calc(var(--tag-text-start) + var(--tag-text-dur));
+
+  /* The sear. It once began where the comet landed and stretched all the
+     way to the label, which is why it read as faint: the same light spread
+     over two seconds is a swell, not a mark.
+
+     Now it is placed by its crest, which is the part anyone actually
+     sees: full at 60% of the shimmer, so it peaks while the light is still
+     crossing the letters. It opens at 20% and closes at 100%, and the
+     keyframes below reach full at the halfway mark precisely so those three
+     line up -- 20 + 80/2 = 60. Move that keyframe and the crest moves with
+     it. All three are fractions of the shimmer, so this holds at any
+     --tag-text-dur.
+
+     Worth knowing that these fractions only mean anything because the
+     sweep below is linear. On the shared easing they were measuring a
+     clock that had nothing to do with what was on screen. */
+  --tag-sear-dur: calc(var(--tag-text-dur) * 0.8);
+  --tag-pulse-start: calc(var(--tag-text-start) + var(--tag-text-dur) * 0.2);
+  --tag-pulse-dur: var(--tag-sear-dur);
+
+  /* The fill is pinned at both ends, but to two different things: it starts
+     as the comet rounds the last bend, and settles with the label rather
+     than with the ring. So it is a fraction of the lap at one end and
+     --tag-end at the other, and it outlives the comet by some margin.
+
+     Neither end is a timestamp. Retiming the lap moves where it begins;
+     retiming the label moves where it finishes; and the same floor as the
+     pulse keeps it from inverting into a negative duration -- which would
+     not look wrong, it would simply never run, leaving the pill
+     permanently transparent. */
+  --tag-fill-start: calc(var(--tag-start) + var(--tag-lap) * 0.75);
+  --tag-fill-dur: max(160ms, calc(var(--tag-end) - var(--tag-fill-start)));
+
+  animation:
+    tag-draw var(--tag-lap) linear var(--tag-start) both,
+    tag-settle var(--tag-fill-dur) var(--ease) var(--tag-fill-start) both,
+    tag-pulse var(--tag-pulse-dur) var(--ease) var(--tag-pulse-start) both;
+}
+
+/* The border answering the label's arrival. Separate from tag-settle rather
+   than folded into it because the two want different lengths, and because
+   animations on one element only collide if they touch the same property --
+   these do not, so both simply run. */
+@keyframes tag-pulse {
+  0% {
+    box-shadow:
+      0 0 0 rgba(255, 156, 96, 0),
+      0 0 0 rgba(255, 97, 22, 0);
+  }
+
+  50% {
+    box-shadow:
+      0 0 12px rgba(255, 156, 96, var(--bloom-near, 0.6)),
+      0 0 26px rgba(255, 97, 22, var(--bloom-far, 0.38));
+  }
+
+  100% {
+    box-shadow:
+      0 0 0 rgba(255, 156, 96, 0),
+      0 0 0 rgba(255, 97, 22, 0);
+  }
+}
+
+/* The ring: two mask layers, the whole box and its content box, composited
+   to exclude one from the other, so what survives is the 1.5px band the
+   transparent border reserved and nothing else. It sits above the pill
+   rather than behind, where the fill would hide it -- which is why its
+   middle has to be genuinely transparent rather than merely dark.
+
+   Not the nav button's gradient. That one is a fixed pattern rotated
+   forever, so its dim arc is always painted somewhere and the border is
+   whole from the start. This one is positioned *from* the progress value:
+   everything behind the head is solid, everything ahead of it is
+   transparent, and the boundary is the head itself. Sweeping the angle
+   therefore draws the border rather than lighting an existing one, and the
+   lap ends with a finished ring instead of back where it began.
+
+   Written out here rather than held in a --tag-comet custom property on
+   the pill, which is what the first version did and why it drew nothing: a
+   custom property is substituted where it is *declared*, not where it is
+   used, so a gradient built on the parent reads whatever --tag-angle is on
+   the parent -- 0deg, always, since the animation runs here on the
+   pseudo-element. The nav button gets away with the indirection only
+   because it animates its angle on the same element that declares the
+   gradient. Keeping the two together is the whole fix.
+
+   Stops written as calc() off --tag-angle land out of order at the
+   extremes: negative at the start, past 360deg at the end. That is
+   well-defined -- a stop before the one preceding it is clamped up to it,
+   which is exactly the behaviour wanted -- so no clamping is spelled out. */
+.comet::after {
+  content: "";
+  position: absolute;
+  /* The two knobs that let one trace serve two pills. Round the label the
+     ring is the border; round the hero's price pill it runs just outside a
+     hairline that pill keeps, and a little heavier, because it is going
+     round something three times the size. */
+  inset: var(--ring-inset, -1.5px);
+  border-radius: inherit;
+  padding: var(--ring-w, 1.5px);
+  background: conic-gradient(from 0deg,
+      var(--warm) 0deg,
+      var(--warm) calc(var(--tag-angle) - 45deg),
+      var(--tag-head) var(--tag-angle),
+      transparent calc(var(--tag-angle) + 0.5deg),
+      transparent 360deg);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  animation: tag-ring var(--tag-lap) linear var(--tag-start) both;
+  pointer-events: none;
+}
+
+/* The glow riding with the head, and the reason there is an empty span in
+   the markup for it.
+
+   A glow has to be blurred, and a blur cannot be applied to the ring that
+   needs it: filters run *before* masks, so blurring the ring above would
+   spread the light and then immediately clip the spread away, leaving a
+   hard-edged band. Two attempts at this read as a blade sticking out of
+   the tip rather than a glow around it.
+
+   Splitting them across two elements is what fixes it. The span carries
+   the blur; its own ::before carries the mask and the gradient. The child
+   is masked to a ring first, and the parent's filter then blurs the
+   finished result -- so the light spills outside the shape, which is the
+   entire point.
+
+   It is drawn before ::after in paint order, being a real child where that
+   is a pseudo-element on the same parent, so the crisp border lands on top
+   of its own glow without either one needing a z-index. */
+.comet .tag-glow {
+  position: absolute;
+  inset: var(--halo-inset, -3px);
+  border-radius: 2em;
+  filter: blur(3.5px);
+  opacity: 0;
+  animation: tag-halo var(--tag-lap) linear var(--tag-start) both;
+  pointer-events: none;
+}
+
+/* Only the last stretch of the arc: brightest at the tip, falling away
+   behind it, nothing at all in front. Wider and hotter than the border it
+   accompanies, since the blur above spends most of it. */
+.comet .tag-glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: var(--halo-w, 3px);
+  background: conic-gradient(from 0deg,
+      transparent 0deg,
+      transparent calc(var(--tag-angle) - 55deg),
+      rgba(255, 97, 22, 0.55) calc(var(--tag-angle) - 18deg),
+      rgba(255, 176, 122, 0.95) var(--tag-angle),
+      transparent calc(var(--tag-angle) + 1.5deg),
+      transparent 360deg);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+}
+
+/* The label. Wrapped in its own span so the shimmer has something to clip
+   to: painting a gradient into text means background-clip: text, and the
+   pill itself already needs its background for the dark fill. One element
+   cannot do both. */
+/* Two animations over the same window, and they need different easing --
+   which is the whole reason they are separate.
+
+   The fade is an entrance and wants --ease. The sweep must not have it. On
+   one shared curve the band was 73% across a quarter of the way in and 95%
+   across by half, so the shimmer was over to the eye while the animation
+   still had a second left running imperceptibly. Anything positioned as a
+   percentage of the shimmer -- the sear especially -- was then measured
+   against a clock nobody could see, and fired after the light had gone.
+
+   Linear here means nominal time and perceived time are the same thing, so
+   "three quarters of the shimmer" is a place on screen and not just a place
+   in the timeline. */
+.price-reveal-tag .tag-label {
+  opacity: 0;
+  animation:
+    tag-label-in calc(var(--tag-text-dur) * 0.4) var(--ease) var(--tag-text-start) both,
+    tag-label-shine var(--tag-text-dur) linear var(--tag-text-start) both;
+}
+
+/* The shimmer is a light band sliding through the letters, left to right,
+   cooler than the orange it passes over so it reads as a highlight rather
+   than a colour change.
+
+   Both the gradient and the transparent colour that reveals it are inside
+   the @supports, deliberately. Splitting them would mean an engine without
+   background-clip: text painting a wide orange gradient as a block behind
+   the words, or worse, holding colour: transparent with nothing to fill the
+   glyphs and losing the label entirely. Either both apply or neither does,
+   and neither leaves the label inheriting the pill's own colour. */
+@supports (-webkit-background-clip: text) or (background-clip: text) {
+  .price-reveal-tag .tag-label {
+    background-image: linear-gradient(100deg,
+        var(--warm) 0%,
+        var(--warm) 40%,
+        #fff4ea 50%,
+        var(--warm) 60%,
+        var(--warm) 100%);
+    background-size: 250% 100%;
+    background-repeat: no-repeat;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+/* Right-aligned to left-aligned: the window on to a gradient two and a half
+   times the width of the text moves leftward, so the bright band inside it
+   travels rightward across the letters. The fade is done well before the
+   band arrives, so the text is read first and lit second. */
+@keyframes tag-label-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes tag-label-shine {
+  from {
+    background-position: 100% 0;
+  }
+
+  to {
+    background-position: 0 0;
+  }
+}
+
+/* One lap, set off by the rule being drawn through $1,600 rather than
+   waiting for it -- the pill outlines itself while the price is still
+   changing, and lands just after. Linear, and deliberately: a comet tracing
+   an outline should hold its speed. Easing it would have the head lunge
+   from the top of the pill and crawl into its own tail. The head cools to
+   orange over the last stretch so what it leaves behind is an even ring
+   rather than a white scar where it stopped. */
+@keyframes tag-draw {
+  0% {
+    --tag-angle: 0deg;
+    --tag-head: #fff;
+  }
+
+  82% {
+    --tag-head: #fff;
+  }
+
+  100% {
+    --tag-angle: 360deg;
+    --tag-head: var(--warm);
+  }
+}
+
+/* Both rings fade up in the first moment rather than switching on, so the
+   head arrives rather than appears. The border then stays -- it is the
+   finished thing -- while the glow leaves with the head that carried it. */
+@keyframes tag-ring {
+  0% {
+    opacity: 0;
+  }
+
+  12%, 100% {
+    opacity: 1;
+  }
+}
+
+@keyframes tag-halo {
+  0% {
+    opacity: 0;
+  }
+
+  12%, 78% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Last beat: the fill and the label, into a pill that is already outlined.
+   Both start from nothing, so before this runs the element is laid out and
+   invisible and the border draws around empty space. */
+@keyframes tag-settle {
+  0% {
+    background-color: rgba(24, 15, 11, 0);
+    color: rgba(255, 97, 22, 0);
+    /* Transparent, not merely invisible. This shadow used to start at full
+       strength, and because fill-mode holds a delayed animation's first
+       frame from page load, it painted a soft orange glow around text that
+       had no colour yet -- a smudge sitting under the price for the three
+       seconds before anything was meant to be there. A transparent colour
+       hides glyphs; it does not hide what they cast. */
+    text-shadow: 0 0 10px rgba(255, 97, 22, 0);
+  }
+
+  55% {
+    text-shadow: 0 0 10px rgba(255, 97, 22, 0.85);
+  }
+
+  100% {
+    background-color: rgba(24, 15, 11, 1);
+    color: rgba(255, 97, 22, 1);
+    text-shadow: 0 0 10px rgba(255, 97, 22, 0);
+  }
+}
+
+@keyframes price-strike {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Roughly half the width of "$800" plus the gap, so the old price sits
+   near enough to centred while it is the only thing there. */
+/* The old price moving aside, and going quiet as it does.
+
+   --was-shift is where it starts, relative to where it ends. The hero's
+   row is centred, so its lone $1,600 begins a little right of its final
+   slot and slides left as $800 wipes in behind it -- the move is what
+   opens the space. A left-aligned copy has no such space to open: it is
+   flush with the column above it and has to stay there, or its first
+   moments read as an indent nothing else on the page has. So the distance
+   is a knob rather than a number, and that copy sets it to zero.
+
+   The colour rides along rather than getting an animation of its own,
+   because it is the same event: white is what the live price looks like,
+   and $1,600 is the live price right up until the rule goes through it. By
+   the time the line lands it is a former price and reads as one. Putting it
+   in these keyframes means it inherits the strike's delay, duration and
+   easing for free -- one gesture, one clock, and nothing to keep in step by
+   hand.
+
+   The resting colour in .price-was is the same muted grey this ends on, so
+   anything that never runs this -- reduced motion, a held copy, an engine
+   without the animation -- shows a settled struck price rather than a white
+   one stranded mid-thought. */
+@keyframes price-shift {
+  from {
+    transform: translateX(var(--was-shift, 1.25em));
+    color: var(--text);
+  }
+
+  to {
+    transform: translateX(0);
+    color: var(--text-muted);
+  }
+}
+
+/* Plain 100% to 0%. Which stop sits where is worked out against exactly
+   these two positions -- see the note on .price-now -- so nothing here
+   needs to reach outside the range every engine agrees on.
+
+   The opacity is a belt to that braces. It costs one interpolated frame
+   and it makes the delay's held state -- the several seconds this spends
+   waiting to be scrolled to -- not depend on mask arithmetic at all. Two
+   different engines have now drawn two different artefacts in that frame,
+   and the second was only visible on a browser not available to test
+   here; something that cannot be checked wants a floor under it. By 6% the
+   mask has barely moved and is still covering everything, so the fade is
+   over before there is anything to see. */
+@keyframes price-wipe {
+  from {
+    -webkit-mask-position: 100% 0;
+    mask-position: 100% 0;
+    opacity: 0;
+  }
+
+  6% {
+    opacity: 1;
+  }
+
+  to {
+    -webkit-mask-position: 0 0;
+    mask-position: 0 0;
+  }
+}
+
+/* --- Holding the reveal until it is watched ---
+   The hero's copy of this plays on load, which is right: it is on screen
+   on load. The one down in "How it works" is three or four screens below
+   the fold, and left alone it would perform the whole thing to an empty
+   room and be sitting there finished by the time anyone arrived. So it is
+   held, and price.js lets it go when it comes into view.
+
+   Held by taking the animations away rather than by pausing them, because
+   the two resume differently and only one of them is a reveal. Pausing
+   preserves the playhead, so a hold applied a moment after load -- which
+   is exactly when a deferred script gets to run -- would freeze the strike
+   part-drawn and then resume it from there in front of the reader, who
+   never saw it start. Removing the animation and putting it back starts a
+   new one, from zero, every time.
+
+   The direction of the switch is the other half of it. This is a hold that
+   JavaScript applies, not one it releases: with no script, or a script
+   that failed, the class is never added, nothing is held, and the reveal
+   simply plays on load the way the hero's does. Nobody is left looking at
+   a masked-out price that had been waiting for an observer that never
+   came. */
+.price-reveal.is-held .price-was,
+.price-reveal.is-held .price-was::after,
+.price-reveal.is-held .price-now,
+.price-reveal.is-held .comet,
+.price-reveal.is-held .comet::after,
+.price-reveal.is-held .tag-glow,
+.price-reveal.is-held .tag-glow::before,
+.price-reveal.is-held .tag-label {
+  animation: none;
+}
+
+/* A beat longer than the hero's 400ms. The hero's reveal begins while the
+   page is still settling and the reader's eye is already on it; this one
+   begins the moment a scroll brings it in, mid-motion, and needs the extra
+   moment for the scroll to stop and the eye to land before the rule starts
+   being drawn. Everything else in the reveal is written against this, so
+   it is the only number that moves. */
+[data-reveal-on-view] {
+  /* Two and a half times the hero's 400ms. The hero's reveal begins while
+     the page is still settling and the reader's eye is already on it; this
+     one begins the moment a scroll brings it in, mid-motion, and needs
+     long enough for the scroll to stop, the eye to land, and $1,600 to be
+     read as a price before anything happens to it. Everything else in the
+     reveal is written against this, so it is the only number that moves. */
+  --strike-start: 1050ms;
+
+  /* Beside the figures rather than under them. The hero stacks because its
+     cell has to stay the same width as the three next to it; this one is a
+     grid cell with its own row, and a pill on the same line keeps the whole
+     claim -- old price, new price, why -- as one thing to read.
+
+     Centred rather than on the baseline: the label inside the pill is
+     0.52em and its own baseline sits well up inside the ring, so aligning
+     the two baselines hangs the pill below the figures rather than beside
+     them. */
+  flex-direction: row;
+  align-items: center;
+  gap: 0.7em;
+
+  /* Flush left from the first frame. See price-shift: the hero's opening
+     offset is there to open a gap in a centred row, and here it would only
+     indent $1,600 past the three values above it. */
+  --was-shift: 0px;
+}
+
+
+/* Same size as the curriculum's "The Curriculum" (.hero-intro h2) --
+   intentionally, so the video reads as its own section rather than
+   sitting there with no introduction. */
+.hero-video-heading {
+  font-size: clamp(2em, 4.5vw, 3.2em);
+  text-align: center;
+  padding: 0 2em;
+  /* Carries the gap above the pair. The gap *below* it has to be the
+     video's margin-top of 0 rather than a margin here: adjacent siblings
+     collapse to the larger of the two, so any bottom margin set here
+     would just lose to the video's and the heading would drift away from
+     what it introduces. */
+  margin: 4em auto 0.6em;
+}
+
+/* As wide as the viewport allows with a little air, and never taller than
+   the viewport — the height term is what keeps it fully visible on short
+   and wide screens. The absolute cap matches section.wide, so the video
+   lines up with the widest content on the page instead of overshooting it
+   on a large display. */
+.hero-video {
+  position: relative;
+  max-width: min(calc(100vw - 3em), 1140px, calc((var(--vh, 1vh) * 100 - 8em) * 16 / 9));
+  /* The captions below carry the gap to whatever follows. Not the full
+     gap: .brand-captions now opens with 0.55em of its own top padding
+     (headroom for the outgoing line to rise into before the clip), so
+     that much comes off here to leave the space between the two as it
+     was. */
+  margin: 0 auto 0.85em;
+}
+
+/* This video's captions, as page text rather than an overlay -- the line
+   being spoken and the one after it. Fills what is otherwise a lot of
+   empty column under the video on a phone. */
+.brand-captions {
+  position: relative;
+  /* Wide enough for a clause.
+
+     The cues this renders are cut on the clock, not on the sentence -- a
+     caption file generated at two-second intervals -- so at 30em a line
+     like "It's very easy to get started as a DJ" was followed by "these
+     days," on a line of its own. That reads as a bad wrap, but nothing was
+     wrapping: the break was the cue boundary. Re-cut to clause length (see
+     video/brand-captions-merged.vtt) the longest line is 64 characters,
+     and this is what holds one without turning it over. */
+  max-width: 33em;
+  /* No bottom margin of its own. It used to be that the break below owned
+     that gap; there is no break now, and the curriculum's own 92px of top
+     padding owns it instead. Either way not here -- this element's em is a
+     clamped, larger one, so 4em came out as 96px against the 92px used
+     everywhere else, and adjacent margins collapse to the larger of the
+     two, so it would have quietly won. */
+  margin: 0 auto;
+  --cc-pad-x: 1.5em;
+  /* Top padding, not a margin: the outgoing lines rise 0.55em before they
+     are gone, and the clip below happens at the padding edge, so this is
+     the room they rise into without being sliced. */
+  padding: 0.55em var(--cc-pad-x) 0;
+  text-align: center;
+  font-size: clamp(1.03em, 2.15vw, 1.3em);
+  line-height: 1.5;
+  /* Fixed, not a minimum. Three cues are three lines on a wide screen but
+     four, five or six once they start turning over, and a box that grew
+     and shrank with them moved the whole page under the reader every time
+     a line changed -- visible as a jitter while the video plays and you
+     are reading something further down.
+
+     So the height is set and whatever does not fit is cut. The cut is not
+     a hard edge: the mask fades the last 1.6em out, and the read-ahead
+     lines are already the faintest thing here, so a fourth or fifth line
+     dissolves into the page rather than being chopped. Anything past that
+     was unreadable grey anyway.
+
+     4.5em of that is the three lines; the rest is the fade's room. */
+  height: 7em;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 1.6em), transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 1.6em), transparent 100%);
+}
+
+/* One turn of the lines. The outgoing set rises and fades while the
+   incoming set comes up from below into its place. */
+.cc-frame {
+  transition: transform 420ms var(--ease), opacity 420ms var(--ease);
+}
+
+.cc-frame.is-entering {
+  transform: translateY(0.75em);
+  opacity: 0;
+}
+
+.cc-frame.is-out {
+  /* Out of flow so the incoming lines take this space straight away
+     rather than waiting for the transition to finish. Offset by the
+     box's own top padding, which is where the in-flow lines start. */
+  position: absolute;
+  left: var(--cc-pad-x);
+  right: var(--cc-pad-x);
+  top: 0.55em;
+  /* The rise is the same length as that padding on purpose -- the box
+     clips now, and this is what keeps the rise inside it. */
+  transform: translateY(-0.55em);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.brand-captions .cc-line {
+  margin: 0;
+}
+
+/* Not yet spoken: present, so the sentence can be read ahead, but clearly
+   behind the voice. The line after next is knocked back further again, so
+   the two don't read as one block of grey. */
+.brand-captions .cc-word {
+  color: var(--text-muted);
+  opacity: 0.55;
+}
+
+.brand-captions .cc-next {
+  color: var(--text-muted);
+  opacity: 0.38;
+}
+
+/* Two lines read ahead, each a step further back, so the three don't read
+   as one block of grey. */
+.brand-captions .cc-next + .cc-next {
+  opacity: 0.22;
+}
+
+.brand-captions .cc-word {
+  transition: color 220ms var(--ease), opacity 220ms var(--ease);
+}
+
+.brand-captions .cc-word.is-said {
+  color: var(--text);
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .brand-captions .cc-word,
+  .cc-frame {
+    transition: none;
+  }
+}
+
+.hero-video .player {
+  box-shadow: 0 2em 6em rgba(0, 0, 0, 0.75);
+}
+
+.hero-intro {
+  /* Top padding is the break above's share of the gap -- 5em, the same as
+     every section on the page. Little at the bottom: the timeline follows
+     immediately and belongs with this text, so the air goes below the pair
+     (the timeline's own margin) rather than between them. */
+  padding: 5em 2em 2.2em;
+  text-align: center;
+}
+
+.hero-intro-inner {
+  max-width: 68ch;
+  margin: 0 auto;
+}
+
+.hero-intro h2 {
+  font-size: clamp(2em, 4.5vw, 3.2em);
+  margin-bottom: 0.45em;
+}
+
+/* Set down a step from the standard lead, and given a wider column to go
+   with it, so the paragraph reads as an introduction rather than a second
+   heading. Both halves are needed: ch is relative to the font, so shrinking
+   the type alone would have narrowed the column by the same amount and
+   fitted not one extra word. */
+.hero-intro .section-lead {
+  margin: 0 auto;
+  max-width: none;
+  font-size: 1.03em;
+}
+
+/* Each word arrives on its own beat. Set once, on the way in, and left
+   alone after that. */
+.hero-intro .word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.45em);
+  transition: opacity 520ms var(--ease), transform 520ms var(--ease);
+}
+
+.hero-intro.is-revealed .word {
+  opacity: 1;
+  transform: none;
+}
+
+@media (max-width: 640px) {
+  /* Targets .hero, which is where the base padding lives -- on
+     .hero-content it would stack on top of it rather than replace it,
+     and this exists to narrow the gutter, not widen it. */
+  .hero {
+    padding: calc(6em + env(safe-area-inset-top, 0px)) 1.2em 5em;
+  }
+
+  .hero-video {
+    max-width: min(calc(100vw - 1.6em), calc((var(--vh, 1vh) * 100 - 6em) * 16 / 9));
+  }
+
+  .hero-video .player {
+    box-shadow: 0 1em 2em rgba(0, 0, 0, 0.6);
+  }
+
+  /* A phone is the one place these lines turn over. The cues run up to 64
+     characters and fitting that on a 390px screen would mean type around
+     11px, which is not worth reading -- so this does not chase the longest
+     line. Smaller type and a narrower gutter buy roughly 44 characters to
+     54, which holds most of the file (the median cue is 45) and leaves the
+     long tail to wrap into the fade below.
+
+     Taller here for the same reason: what does wrap needs somewhere to go,
+     and the empty column under the video on a phone is the one place there
+     is room for it. */
+  .brand-captions {
+    --cc-pad-x: 0.85em;
+    font-size: 0.92em;
+    height: 8.5em;
+  }
+}
+
+
+/* --- Section rules ---
+   The thematic break between the page's main sections, drawn as the peak
+   view of a track: an intro, a build, the hush before the drop, a
+   breakdown, a second drop, an outro.
+
+   The macro shape is the whole trick. Bars of even density read as a
+   barcode, and a sparse trace on a flat baseline reads as a heart monitor;
+   what makes this read as music is that the silhouette is a real envelope
+   with quiet passages and loud ones. The per-bar jitter on top is texture,
+   not the subject.
+
+   Drawn as a mask rather than an image, so the colour is this page's own
+   token instead of a value baked into an SVG that would then have to be
+   kept in step by hand. What shows through is the plain line below -- which
+   doubles as the fallback anywhere masks are missing, and is the simple
+   version of this idea anyway. Stretched to the width of the section with
+   preserveAspectRatio="none", so the bar count is fixed and it reads the
+   same on a phone as on a desktop. */
+
+.rule {
+  border: 0;
+  height: 1px;
+  width: calc(100% - 4em);
+  max-width: 960px;
+  margin: 0 auto;
+  opacity: 0.8;
+  background: linear-gradient(90deg,
+      transparent,
+      var(--accent) 30%,
+      var(--accent) 70%,
+      transparent);
+}
+
+@supports ((-webkit-mask-image: linear-gradient(#000, #000)) or (mask-image: linear-gradient(#000, #000))) {
+  .rule {
+    height: 22px;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    /* The default is also the first one, so a rule that forgets its
+       variant is still a waveform rather than a solid bar. */
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 445.8 40%22 preserveAspectRatio=%22none%22%3E%3Cpath fill=%22%23000%22 d=%22M0 15.698h1.8v8.6044h-1.8zM4 15.6h1.8v8.7999h-1.8zM8 15.786h1.8v8.4271h-1.8zM12 15.499h1.8v9.0023h-1.8zM16 15.291h1.8v9.417h-1.8zM20 16.205h1.8v7.5894h-1.8zM24 14.913h1.8v10.175h-1.8zM28 14.827h1.8v10.346h-1.8zM32 15.241h1.8v9.5186h-1.8zM36 14.179h1.8v11.642h-1.8zM40 15.207h1.8v9.5858h-1.8zM44 14.91h1.8v10.181h-1.8zM48 15.25h1.8v9.5008h-1.8zM52 13.439h1.8v13.122h-1.8zM56 14.163h1.8v11.674h-1.8zM60 13.992h1.8v12.017h-1.8zM64 14.313h1.8v11.373h-1.8zM68 16.295h1.8v7.4099h-1.8zM72 15.394h1.8v9.2129h-1.8zM76 15.036h1.8v9.9278h-1.8zM80 16.313h1.8v7.3743h-1.8zM84 15.033h1.8v9.9337h-1.8zM88 15.82h1.8v8.3593h-1.8zM92 13.409h1.8v13.182h-1.8zM96 14.555h1.8v10.89h-1.8zM100 13.393h1.8v13.214h-1.8zM104 12.084h1.8v15.832h-1.8zM108 12.436h1.8v15.129h-1.8zM112 12.326h1.8v15.349h-1.8zM116 11.768h1.8v16.464h-1.8zM120 13.283h1.8v13.435h-1.8zM124 11.187h1.8v17.626h-1.8zM128 9.5861h1.8v20.828h-1.8zM132 11.829h1.8v16.342h-1.8zM136 11.167h1.8v17.665h-1.8zM140 8.0557h1.8v23.889h-1.8zM144 6.905h1.8v26.19h-1.8zM148 7.6507h1.8v24.699h-1.8zM152 11.753h1.8v16.495h-1.8zM156 12.661h1.8v14.678h-1.8zM160 14.732h1.8v10.535h-1.8zM164 16.367h1.8v7.2664h-1.8zM168 15.664h1.8v8.6722h-1.8zM172 10.569h1.8v18.861h-1.8zM176 4.1511h1.8v31.698h-1.8zM180 4.2005h1.8v31.599h-1.8zM184 6.5331h1.8v26.934h-1.8zM188 6.958h1.8v26.084h-1.8zM192 5.6475h1.8v28.705h-1.8zM196 7.9542h1.8v24.092h-1.8zM200 2.3183h1.8v35.363h-1.8zM204 6.4587h1.8v27.083h-1.8zM208 6.4972h1.8v27.006h-1.8zM212 5.3547h1.8v29.291h-1.8zM216 6.1842h1.8v27.632h-1.8zM220 7.2602h1.8v25.48h-1.8zM224 8.9067h1.8v22.187h-1.8zM228 5.5247h1.8v28.951h-1.8zM232 5.2456h1.8v29.509h-1.8zM236 9.3301h1.8v21.34h-1.8zM240 6.6617h1.8v26.677h-1.8zM244 11.195h1.8v17.61h-1.8zM248 9.4412h1.8v21.118h-1.8zM252 13.268h1.8v13.463h-1.8zM256 14.91h1.8v10.18h-1.8zM260 14.748h1.8v10.504h-1.8zM264 15.334h1.8v9.3328h-1.8zM268 15.575h1.8v8.8508h-1.8zM272 16.671h1.8v6.6583h-1.8zM276 15.503h1.8v8.9941h-1.8zM280 16.294h1.8v7.4123h-1.8zM284 16.484h1.8v7.0311h-1.8zM288 15.448h1.8v9.1041h-1.8zM292 15.134h1.8v9.7316h-1.8zM296 16.369h1.8v7.2626h-1.8zM300 16.586h1.8v6.8281h-1.8zM304 15.224h1.8v9.5528h-1.8zM308 14.803h1.8v10.393h-1.8zM312 13.201h1.8v13.597h-1.8zM316 12.189h1.8v15.623h-1.8zM320 12.076h1.8v15.848h-1.8zM324 11.823h1.8v16.354h-1.8zM328 13.141h1.8v13.717h-1.8zM332 10.989h1.8v18.021h-1.8zM336 9.0444h1.8v21.911h-1.8zM340 9.5915h1.8v20.817h-1.8zM344 7.7549h1.8v24.49h-1.8zM348 2.5474h1.8v34.905h-1.8zM352 4.1347h1.8v31.731h-1.8zM356 4.1659h1.8v31.668h-1.8zM360 3.7909h1.8v32.418h-1.8zM364 7.4866h1.8v25.027h-1.8zM368 5.3727h1.8v29.255h-1.8zM372 7.9087h1.8v24.183h-1.8zM376 9.125h1.8v21.75h-1.8zM380 7.4859h1.8v25.028h-1.8zM384 10.409h1.8v19.183h-1.8zM388 8.7903h1.8v22.419h-1.8zM392 6.2027h1.8v27.595h-1.8zM396 9.9858h1.8v20.028h-1.8zM400 6.6925h1.8v26.615h-1.8zM404 8.5963h1.8v22.807h-1.8zM408 9.084h1.8v21.832h-1.8zM412 12.888h1.8v14.223h-1.8zM416 11.62h1.8v16.759h-1.8zM420 11.792h1.8v16.416h-1.8zM424 13.726h1.8v12.547h-1.8zM428 14.575h1.8v10.851h-1.8zM432 15.084h1.8v9.8315h-1.8zM436 15.74h1.8v8.5198h-1.8zM440 15.66h1.8v8.6792h-1.8zM444 15.962h1.8v8.0753h-1.8z%22/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 445.8 40%22 preserveAspectRatio=%22none%22%3E%3Cpath fill=%22%23000%22 d=%22M0 15.698h1.8v8.6044h-1.8zM4 15.6h1.8v8.7999h-1.8zM8 15.786h1.8v8.4271h-1.8zM12 15.499h1.8v9.0023h-1.8zM16 15.291h1.8v9.417h-1.8zM20 16.205h1.8v7.5894h-1.8zM24 14.913h1.8v10.175h-1.8zM28 14.827h1.8v10.346h-1.8zM32 15.241h1.8v9.5186h-1.8zM36 14.179h1.8v11.642h-1.8zM40 15.207h1.8v9.5858h-1.8zM44 14.91h1.8v10.181h-1.8zM48 15.25h1.8v9.5008h-1.8zM52 13.439h1.8v13.122h-1.8zM56 14.163h1.8v11.674h-1.8zM60 13.992h1.8v12.017h-1.8zM64 14.313h1.8v11.373h-1.8zM68 16.295h1.8v7.4099h-1.8zM72 15.394h1.8v9.2129h-1.8zM76 15.036h1.8v9.9278h-1.8zM80 16.313h1.8v7.3743h-1.8zM84 15.033h1.8v9.9337h-1.8zM88 15.82h1.8v8.3593h-1.8zM92 13.409h1.8v13.182h-1.8zM96 14.555h1.8v10.89h-1.8zM100 13.393h1.8v13.214h-1.8zM104 12.084h1.8v15.832h-1.8zM108 12.436h1.8v15.129h-1.8zM112 12.326h1.8v15.349h-1.8zM116 11.768h1.8v16.464h-1.8zM120 13.283h1.8v13.435h-1.8zM124 11.187h1.8v17.626h-1.8zM128 9.5861h1.8v20.828h-1.8zM132 11.829h1.8v16.342h-1.8zM136 11.167h1.8v17.665h-1.8zM140 8.0557h1.8v23.889h-1.8zM144 6.905h1.8v26.19h-1.8zM148 7.6507h1.8v24.699h-1.8zM152 11.753h1.8v16.495h-1.8zM156 12.661h1.8v14.678h-1.8zM160 14.732h1.8v10.535h-1.8zM164 16.367h1.8v7.2664h-1.8zM168 15.664h1.8v8.6722h-1.8zM172 10.569h1.8v18.861h-1.8zM176 4.1511h1.8v31.698h-1.8zM180 4.2005h1.8v31.599h-1.8zM184 6.5331h1.8v26.934h-1.8zM188 6.958h1.8v26.084h-1.8zM192 5.6475h1.8v28.705h-1.8zM196 7.9542h1.8v24.092h-1.8zM200 2.3183h1.8v35.363h-1.8zM204 6.4587h1.8v27.083h-1.8zM208 6.4972h1.8v27.006h-1.8zM212 5.3547h1.8v29.291h-1.8zM216 6.1842h1.8v27.632h-1.8zM220 7.2602h1.8v25.48h-1.8zM224 8.9067h1.8v22.187h-1.8zM228 5.5247h1.8v28.951h-1.8zM232 5.2456h1.8v29.509h-1.8zM236 9.3301h1.8v21.34h-1.8zM240 6.6617h1.8v26.677h-1.8zM244 11.195h1.8v17.61h-1.8zM248 9.4412h1.8v21.118h-1.8zM252 13.268h1.8v13.463h-1.8zM256 14.91h1.8v10.18h-1.8zM260 14.748h1.8v10.504h-1.8zM264 15.334h1.8v9.3328h-1.8zM268 15.575h1.8v8.8508h-1.8zM272 16.671h1.8v6.6583h-1.8zM276 15.503h1.8v8.9941h-1.8zM280 16.294h1.8v7.4123h-1.8zM284 16.484h1.8v7.0311h-1.8zM288 15.448h1.8v9.1041h-1.8zM292 15.134h1.8v9.7316h-1.8zM296 16.369h1.8v7.2626h-1.8zM300 16.586h1.8v6.8281h-1.8zM304 15.224h1.8v9.5528h-1.8zM308 14.803h1.8v10.393h-1.8zM312 13.201h1.8v13.597h-1.8zM316 12.189h1.8v15.623h-1.8zM320 12.076h1.8v15.848h-1.8zM324 11.823h1.8v16.354h-1.8zM328 13.141h1.8v13.717h-1.8zM332 10.989h1.8v18.021h-1.8zM336 9.0444h1.8v21.911h-1.8zM340 9.5915h1.8v20.817h-1.8zM344 7.7549h1.8v24.49h-1.8zM348 2.5474h1.8v34.905h-1.8zM352 4.1347h1.8v31.731h-1.8zM356 4.1659h1.8v31.668h-1.8zM360 3.7909h1.8v32.418h-1.8zM364 7.4866h1.8v25.027h-1.8zM368 5.3727h1.8v29.255h-1.8zM372 7.9087h1.8v24.183h-1.8zM376 9.125h1.8v21.75h-1.8zM380 7.4859h1.8v25.028h-1.8zM384 10.409h1.8v19.183h-1.8zM388 8.7903h1.8v22.419h-1.8zM392 6.2027h1.8v27.595h-1.8zM396 9.9858h1.8v20.028h-1.8zM400 6.6925h1.8v26.615h-1.8zM404 8.5963h1.8v22.807h-1.8zM408 9.084h1.8v21.832h-1.8zM412 12.888h1.8v14.223h-1.8zM416 11.62h1.8v16.759h-1.8zM420 11.792h1.8v16.416h-1.8zM424 13.726h1.8v12.547h-1.8zM428 14.575h1.8v10.851h-1.8zM432 15.084h1.8v9.8315h-1.8zM436 15.74h1.8v8.5198h-1.8zM440 15.66h1.8v8.6792h-1.8zM444 15.962h1.8v8.0753h-1.8z%22/%3E%3C/svg%3E");
+  }
+
+  /* Three different takes, one per break, so the page is not repeating
+     itself down the margin: (a) a build into two drops with a breakdown
+     between them, (b) a long slow burn into one sustained peak, (c) a
+     choppier one with a real hush through the middle. Same generator, same
+     bar geometry -- only the envelope changes. */
+  .rule-b {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 445.8 40%22 preserveAspectRatio=%22none%22%3E%3Cpath fill=%22%23000%22 d=%22M0 16.924h1.8v6.1516h-1.8zM4 17.521h1.8v4.9575h-1.8zM8 16.796h1.8v6.4088h-1.8zM12 16.18h1.8v7.6397h-1.8zM16 16.156h1.8v7.688h-1.8zM20 17.1h1.8v5.8005h-1.8zM24 16.556h1.8v6.8873h-1.8zM28 15.725h1.8v8.5497h-1.8zM32 15.878h1.8v8.2439h-1.8zM36 16.544h1.8v6.9117h-1.8zM40 16.676h1.8v6.6487h-1.8zM44 16.275h1.8v7.4504h-1.8zM48 16.743h1.8v6.5141h-1.8zM52 14.934h1.8v10.133h-1.8zM56 15.849h1.8v8.3028h-1.8zM60 15.563h1.8v8.8735h-1.8zM64 14.873h1.8v10.254h-1.8zM68 14.914h1.8v10.172h-1.8zM72 15.161h1.8v9.6784h-1.8zM76 15.747h1.8v8.5055h-1.8zM80 14.517h1.8v10.967h-1.8zM84 14.5h1.8v11h-1.8zM88 16.028h1.8v7.9435h-1.8zM92 14.582h1.8v10.837h-1.8zM96 15.646h1.8v8.7072h-1.8zM100 13.066h1.8v13.869h-1.8zM104 13.861h1.8v12.278h-1.8zM108 13.971h1.8v12.059h-1.8zM112 13.291h1.8v13.418h-1.8zM116 13.71h1.8v12.58h-1.8zM120 13.743h1.8v12.514h-1.8zM124 15.112h1.8v9.7752h-1.8zM128 13.213h1.8v13.573h-1.8zM132 14.288h1.8v11.423h-1.8zM136 14.452h1.8v11.097h-1.8zM140 12.506h1.8v14.987h-1.8zM144 11.529h1.8v16.942h-1.8zM148 13.286h1.8v13.429h-1.8zM152 13.515h1.8v12.97h-1.8zM156 11.624h1.8v16.751h-1.8zM160 11.984h1.8v16.032h-1.8zM164 10.796h1.8v18.408h-1.8zM168 10.541h1.8v18.919h-1.8zM172 11.15h1.8v17.701h-1.8zM176 11.196h1.8v17.609h-1.8zM180 12.896h1.8v14.207h-1.8zM184 11.455h1.8v17.09h-1.8zM188 10.697h1.8v18.606h-1.8zM192 12.267h1.8v15.466h-1.8zM196 12.137h1.8v15.725h-1.8zM200 10.343h1.8v19.314h-1.8zM204 12.406h1.8v15.188h-1.8zM208 13.363h1.8v13.273h-1.8zM212 14.016h1.8v11.969h-1.8zM216 15.876h1.8v8.2486h-1.8zM220 15.507h1.8v8.9852h-1.8zM224 15.985h1.8v8.0306h-1.8zM228 14.485h1.8v11.03h-1.8zM232 10.385h1.8v19.229h-1.8zM236 10.183h1.8v19.634h-1.8zM240 6.9469h1.8v26.106h-1.8zM244 3.1471h1.8v33.706h-1.8zM248 7.2214h1.8v25.557h-1.8zM252 2.4835h1.8v35.033h-1.8zM256 4.382h1.8v31.236h-1.8zM260 4.1208h1.8v31.758h-1.8zM264 8.8485h1.8v22.303h-1.8zM268 5.6497h1.8v28.701h-1.8zM272 4.3984h1.8v31.203h-1.8zM276 6.4654h1.8v27.069h-1.8zM280 6.3596h1.8v27.281h-1.8zM284 5.2684h1.8v29.463h-1.8zM288 4.7029h1.8v30.594h-1.8zM292 1.8526h1.8v36.295h-1.8zM296 1.7498h1.8v36.5h-1.8zM300 7.6914h1.8v24.617h-1.8zM304 2.585h1.8v34.83h-1.8zM308 2.567h1.8v34.866h-1.8zM312 6.8979h1.8v26.204h-1.8zM316 8.4689h1.8v23.062h-1.8zM320 3.9945h1.8v32.011h-1.8zM324 6.6358h1.8v26.728h-1.8zM328 5.9095h1.8v28.181h-1.8zM332 6.5127h1.8v26.975h-1.8zM336 5.4202h1.8v29.16h-1.8zM340 6.175h1.8v27.65h-1.8zM344 7.7516h1.8v24.497h-1.8zM348 8.5085h1.8v22.983h-1.8zM352 9.9467h1.8v20.107h-1.8zM356 9.9562h1.8v20.088h-1.8zM360 9.8375h1.8v20.325h-1.8zM364 13.321h1.8v13.358h-1.8zM368 14.84h1.8v10.32h-1.8zM372 15.969h1.8v8.0627h-1.8zM376 15.854h1.8v8.2914h-1.8zM380 14.25h1.8v11.5h-1.8zM384 13.788h1.8v12.424h-1.8zM388 13.677h1.8v12.645h-1.8zM392 13.234h1.8v13.532h-1.8zM396 13.781h1.8v12.438h-1.8zM400 13.541h1.8v12.919h-1.8zM404 10.551h1.8v18.898h-1.8zM408 13.807h1.8v12.386h-1.8zM412 13.646h1.8v12.707h-1.8zM416 13.218h1.8v13.565h-1.8zM420 13.973h1.8v12.054h-1.8zM424 14.963h1.8v10.075h-1.8zM428 16.093h1.8v7.8138h-1.8zM432 16.126h1.8v7.7487h-1.8zM436 15.892h1.8v8.2161h-1.8zM440 17.053h1.8v5.893h-1.8zM444 17.544h1.8v4.9125h-1.8z%22/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 445.8 40%22 preserveAspectRatio=%22none%22%3E%3Cpath fill=%22%23000%22 d=%22M0 16.924h1.8v6.1516h-1.8zM4 17.521h1.8v4.9575h-1.8zM8 16.796h1.8v6.4088h-1.8zM12 16.18h1.8v7.6397h-1.8zM16 16.156h1.8v7.688h-1.8zM20 17.1h1.8v5.8005h-1.8zM24 16.556h1.8v6.8873h-1.8zM28 15.725h1.8v8.5497h-1.8zM32 15.878h1.8v8.2439h-1.8zM36 16.544h1.8v6.9117h-1.8zM40 16.676h1.8v6.6487h-1.8zM44 16.275h1.8v7.4504h-1.8zM48 16.743h1.8v6.5141h-1.8zM52 14.934h1.8v10.133h-1.8zM56 15.849h1.8v8.3028h-1.8zM60 15.563h1.8v8.8735h-1.8zM64 14.873h1.8v10.254h-1.8zM68 14.914h1.8v10.172h-1.8zM72 15.161h1.8v9.6784h-1.8zM76 15.747h1.8v8.5055h-1.8zM80 14.517h1.8v10.967h-1.8zM84 14.5h1.8v11h-1.8zM88 16.028h1.8v7.9435h-1.8zM92 14.582h1.8v10.837h-1.8zM96 15.646h1.8v8.7072h-1.8zM100 13.066h1.8v13.869h-1.8zM104 13.861h1.8v12.278h-1.8zM108 13.971h1.8v12.059h-1.8zM112 13.291h1.8v13.418h-1.8zM116 13.71h1.8v12.58h-1.8zM120 13.743h1.8v12.514h-1.8zM124 15.112h1.8v9.7752h-1.8zM128 13.213h1.8v13.573h-1.8zM132 14.288h1.8v11.423h-1.8zM136 14.452h1.8v11.097h-1.8zM140 12.506h1.8v14.987h-1.8zM144 11.529h1.8v16.942h-1.8zM148 13.286h1.8v13.429h-1.8zM152 13.515h1.8v12.97h-1.8zM156 11.624h1.8v16.751h-1.8zM160 11.984h1.8v16.032h-1.8zM164 10.796h1.8v18.408h-1.8zM168 10.541h1.8v18.919h-1.8zM172 11.15h1.8v17.701h-1.8zM176 11.196h1.8v17.609h-1.8zM180 12.896h1.8v14.207h-1.8zM184 11.455h1.8v17.09h-1.8zM188 10.697h1.8v18.606h-1.8zM192 12.267h1.8v15.466h-1.8zM196 12.137h1.8v15.725h-1.8zM200 10.343h1.8v19.314h-1.8zM204 12.406h1.8v15.188h-1.8zM208 13.363h1.8v13.273h-1.8zM212 14.016h1.8v11.969h-1.8zM216 15.876h1.8v8.2486h-1.8zM220 15.507h1.8v8.9852h-1.8zM224 15.985h1.8v8.0306h-1.8zM228 14.485h1.8v11.03h-1.8zM232 10.385h1.8v19.229h-1.8zM236 10.183h1.8v19.634h-1.8zM240 6.9469h1.8v26.106h-1.8zM244 3.1471h1.8v33.706h-1.8zM248 7.2214h1.8v25.557h-1.8zM252 2.4835h1.8v35.033h-1.8zM256 4.382h1.8v31.236h-1.8zM260 4.1208h1.8v31.758h-1.8zM264 8.8485h1.8v22.303h-1.8zM268 5.6497h1.8v28.701h-1.8zM272 4.3984h1.8v31.203h-1.8zM276 6.4654h1.8v27.069h-1.8zM280 6.3596h1.8v27.281h-1.8zM284 5.2684h1.8v29.463h-1.8zM288 4.7029h1.8v30.594h-1.8zM292 1.8526h1.8v36.295h-1.8zM296 1.7498h1.8v36.5h-1.8zM300 7.6914h1.8v24.617h-1.8zM304 2.585h1.8v34.83h-1.8zM308 2.567h1.8v34.866h-1.8zM312 6.8979h1.8v26.204h-1.8zM316 8.4689h1.8v23.062h-1.8zM320 3.9945h1.8v32.011h-1.8zM324 6.6358h1.8v26.728h-1.8zM328 5.9095h1.8v28.181h-1.8zM332 6.5127h1.8v26.975h-1.8zM336 5.4202h1.8v29.16h-1.8zM340 6.175h1.8v27.65h-1.8zM344 7.7516h1.8v24.497h-1.8zM348 8.5085h1.8v22.983h-1.8zM352 9.9467h1.8v20.107h-1.8zM356 9.9562h1.8v20.088h-1.8zM360 9.8375h1.8v20.325h-1.8zM364 13.321h1.8v13.358h-1.8zM368 14.84h1.8v10.32h-1.8zM372 15.969h1.8v8.0627h-1.8zM376 15.854h1.8v8.2914h-1.8zM380 14.25h1.8v11.5h-1.8zM384 13.788h1.8v12.424h-1.8zM388 13.677h1.8v12.645h-1.8zM392 13.234h1.8v13.532h-1.8zM396 13.781h1.8v12.438h-1.8zM400 13.541h1.8v12.919h-1.8zM404 10.551h1.8v18.898h-1.8zM408 13.807h1.8v12.386h-1.8zM412 13.646h1.8v12.707h-1.8zM416 13.218h1.8v13.565h-1.8zM420 13.973h1.8v12.054h-1.8zM424 14.963h1.8v10.075h-1.8zM428 16.093h1.8v7.8138h-1.8zM432 16.126h1.8v7.7487h-1.8zM436 15.892h1.8v8.2161h-1.8zM440 17.053h1.8v5.893h-1.8zM444 17.544h1.8v4.9125h-1.8z%22/%3E%3C/svg%3E");
+  }
+
+  .rule-c {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 445.8 40%22 preserveAspectRatio=%22none%22%3E%3Cpath fill=%22%23000%22 d=%22M0 15.574h1.8v8.8518h-1.8zM4 15.514h1.8v8.9719h-1.8zM8 13.327h1.8v13.347h-1.8zM12 12.469h1.8v15.062h-1.8zM16 10.006h1.8v19.987h-1.8zM20 8.633h1.8v22.734h-1.8zM24 8.8874h1.8v22.225h-1.8zM28 9.2177h1.8v21.565h-1.8zM32 12.019h1.8v15.963h-1.8zM36 11.534h1.8v16.932h-1.8zM40 12.004h1.8v15.993h-1.8zM44 14.073h1.8v11.854h-1.8zM48 14.316h1.8v11.368h-1.8zM52 12.782h1.8v14.435h-1.8zM56 13.371h1.8v13.257h-1.8zM60 12.603h1.8v14.795h-1.8zM64 11.133h1.8v17.735h-1.8zM68 11.974h1.8v16.051h-1.8zM72 9.2447h1.8v21.511h-1.8zM76 10.125h1.8v19.75h-1.8zM80 10.417h1.8v19.165h-1.8zM84 8.3444h1.8v23.311h-1.8zM88 10.695h1.8v18.611h-1.8zM92 8.8838h1.8v22.232h-1.8zM96 6.3518h1.8v27.296h-1.8zM100 10.387h1.8v19.225h-1.8zM104 8.0088h1.8v23.982h-1.8zM108 10.419h1.8v19.162h-1.8zM112 11.305h1.8v17.39h-1.8zM116 14.451h1.8v11.098h-1.8zM120 13.179h1.8v13.643h-1.8zM124 12.34h1.8v15.32h-1.8zM128 12.728h1.8v14.544h-1.8zM132 11.784h1.8v16.433h-1.8zM136 10.017h1.8v19.967h-1.8zM140 8.4269h1.8v23.146h-1.8zM144 4.92h1.8v30.16h-1.8zM148 3.7648h1.8v32.47h-1.8zM152 8.71h1.8v22.58h-1.8zM156 4.2684h1.8v31.463h-1.8zM160 5.1729h1.8v29.654h-1.8zM164 9.9711h1.8v20.058h-1.8zM168 12.364h1.8v15.272h-1.8zM172 11.147h1.8v17.705h-1.8zM176 13.965h1.8v12.071h-1.8zM180 14.762h1.8v10.475h-1.8zM184 15.604h1.8v8.7915h-1.8zM188 15.309h1.8v9.3827h-1.8zM192 15.511h1.8v8.9786h-1.8zM196 16.036h1.8v7.9285h-1.8zM200 16.325h1.8v7.3492h-1.8zM204 16.674h1.8v6.6511h-1.8zM208 16.396h1.8v7.2078h-1.8zM212 15.894h1.8v8.2128h-1.8zM216 16.887h1.8v6.2253h-1.8zM220 17.238h1.8v5.5234h-1.8zM224 17.664h1.8v4.6729h-1.8zM228 17.61h1.8v4.7802h-1.8zM232 16.721h1.8v6.5585h-1.8zM236 16.479h1.8v7.0419h-1.8zM240 16.413h1.8v7.1739h-1.8zM244 16.134h1.8v7.7312h-1.8zM248 16.411h1.8v7.1775h-1.8zM252 16.24h1.8v7.5207h-1.8zM256 14.483h1.8v11.035h-1.8zM260 16.249h1.8v7.5021h-1.8zM264 15.319h1.8v9.3613h-1.8zM268 13.421h1.8v13.158h-1.8zM272 12.208h1.8v15.585h-1.8zM276 11.411h1.8v17.177h-1.8zM280 11.373h1.8v17.253h-1.8zM284 9.2621h1.8v21.476h-1.8zM288 6.2197h1.8v27.561h-1.8zM292 8.5912h1.8v22.818h-1.8zM296 10.145h1.8v19.711h-1.8zM300 10.99h1.8v18.021h-1.8zM304 8.4589h1.8v23.082h-1.8zM308 12.079h1.8v15.843h-1.8zM312 13.401h1.8v13.198h-1.8zM316 12.932h1.8v14.136h-1.8zM320 14.559h1.8v10.881h-1.8zM324 12.793h1.8v14.413h-1.8zM328 12.161h1.8v15.678h-1.8zM332 11.572h1.8v16.856h-1.8zM336 6.6669h1.8v26.666h-1.8zM340 8.2205h1.8v23.559h-1.8zM344 5.0022h1.8v29.996h-1.8zM348 2.5349h1.8v34.93h-1.8zM352 3.0419h1.8v33.916h-1.8zM356 8.9356h1.8v22.129h-1.8zM360 5.6997h1.8v28.601h-1.8zM364 8.3262h1.8v23.348h-1.8zM368 12.04h1.8v15.919h-1.8zM372 12.499h1.8v15.002h-1.8zM376 11.967h1.8v16.067h-1.8zM380 10.6h1.8v18.8h-1.8zM384 12.874h1.8v14.251h-1.8zM388 9.3795h1.8v21.241h-1.8zM392 8.1403h1.8v23.719h-1.8zM396 10.226h1.8v19.548h-1.8zM400 8.9975h1.8v22.005h-1.8zM404 9.9963h1.8v20.007h-1.8zM408 9.677h1.8v20.646h-1.8zM412 10.009h1.8v19.982h-1.8zM416 8.0757h1.8v23.849h-1.8zM420 9.2902h1.8v21.42h-1.8zM424 12.038h1.8v15.924h-1.8zM428 11.291h1.8v17.419h-1.8zM432 13.563h1.8v12.875h-1.8zM436 14.593h1.8v10.814h-1.8zM440 15.45h1.8v9.1006h-1.8zM444 17.05h1.8v5.8996h-1.8z%22/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 445.8 40%22 preserveAspectRatio=%22none%22%3E%3Cpath fill=%22%23000%22 d=%22M0 15.574h1.8v8.8518h-1.8zM4 15.514h1.8v8.9719h-1.8zM8 13.327h1.8v13.347h-1.8zM12 12.469h1.8v15.062h-1.8zM16 10.006h1.8v19.987h-1.8zM20 8.633h1.8v22.734h-1.8zM24 8.8874h1.8v22.225h-1.8zM28 9.2177h1.8v21.565h-1.8zM32 12.019h1.8v15.963h-1.8zM36 11.534h1.8v16.932h-1.8zM40 12.004h1.8v15.993h-1.8zM44 14.073h1.8v11.854h-1.8zM48 14.316h1.8v11.368h-1.8zM52 12.782h1.8v14.435h-1.8zM56 13.371h1.8v13.257h-1.8zM60 12.603h1.8v14.795h-1.8zM64 11.133h1.8v17.735h-1.8zM68 11.974h1.8v16.051h-1.8zM72 9.2447h1.8v21.511h-1.8zM76 10.125h1.8v19.75h-1.8zM80 10.417h1.8v19.165h-1.8zM84 8.3444h1.8v23.311h-1.8zM88 10.695h1.8v18.611h-1.8zM92 8.8838h1.8v22.232h-1.8zM96 6.3518h1.8v27.296h-1.8zM100 10.387h1.8v19.225h-1.8zM104 8.0088h1.8v23.982h-1.8zM108 10.419h1.8v19.162h-1.8zM112 11.305h1.8v17.39h-1.8zM116 14.451h1.8v11.098h-1.8zM120 13.179h1.8v13.643h-1.8zM124 12.34h1.8v15.32h-1.8zM128 12.728h1.8v14.544h-1.8zM132 11.784h1.8v16.433h-1.8zM136 10.017h1.8v19.967h-1.8zM140 8.4269h1.8v23.146h-1.8zM144 4.92h1.8v30.16h-1.8zM148 3.7648h1.8v32.47h-1.8zM152 8.71h1.8v22.58h-1.8zM156 4.2684h1.8v31.463h-1.8zM160 5.1729h1.8v29.654h-1.8zM164 9.9711h1.8v20.058h-1.8zM168 12.364h1.8v15.272h-1.8zM172 11.147h1.8v17.705h-1.8zM176 13.965h1.8v12.071h-1.8zM180 14.762h1.8v10.475h-1.8zM184 15.604h1.8v8.7915h-1.8zM188 15.309h1.8v9.3827h-1.8zM192 15.511h1.8v8.9786h-1.8zM196 16.036h1.8v7.9285h-1.8zM200 16.325h1.8v7.3492h-1.8zM204 16.674h1.8v6.6511h-1.8zM208 16.396h1.8v7.2078h-1.8zM212 15.894h1.8v8.2128h-1.8zM216 16.887h1.8v6.2253h-1.8zM220 17.238h1.8v5.5234h-1.8zM224 17.664h1.8v4.6729h-1.8zM228 17.61h1.8v4.7802h-1.8zM232 16.721h1.8v6.5585h-1.8zM236 16.479h1.8v7.0419h-1.8zM240 16.413h1.8v7.1739h-1.8zM244 16.134h1.8v7.7312h-1.8zM248 16.411h1.8v7.1775h-1.8zM252 16.24h1.8v7.5207h-1.8zM256 14.483h1.8v11.035h-1.8zM260 16.249h1.8v7.5021h-1.8zM264 15.319h1.8v9.3613h-1.8zM268 13.421h1.8v13.158h-1.8zM272 12.208h1.8v15.585h-1.8zM276 11.411h1.8v17.177h-1.8zM280 11.373h1.8v17.253h-1.8zM284 9.2621h1.8v21.476h-1.8zM288 6.2197h1.8v27.561h-1.8zM292 8.5912h1.8v22.818h-1.8zM296 10.145h1.8v19.711h-1.8zM300 10.99h1.8v18.021h-1.8zM304 8.4589h1.8v23.082h-1.8zM308 12.079h1.8v15.843h-1.8zM312 13.401h1.8v13.198h-1.8zM316 12.932h1.8v14.136h-1.8zM320 14.559h1.8v10.881h-1.8zM324 12.793h1.8v14.413h-1.8zM328 12.161h1.8v15.678h-1.8zM332 11.572h1.8v16.856h-1.8zM336 6.6669h1.8v26.666h-1.8zM340 8.2205h1.8v23.559h-1.8zM344 5.0022h1.8v29.996h-1.8zM348 2.5349h1.8v34.93h-1.8zM352 3.0419h1.8v33.916h-1.8zM356 8.9356h1.8v22.129h-1.8zM360 5.6997h1.8v28.601h-1.8zM364 8.3262h1.8v23.348h-1.8zM368 12.04h1.8v15.919h-1.8zM372 12.499h1.8v15.002h-1.8zM376 11.967h1.8v16.067h-1.8zM380 10.6h1.8v18.8h-1.8zM384 12.874h1.8v14.251h-1.8zM388 9.3795h1.8v21.241h-1.8zM392 8.1403h1.8v23.719h-1.8zM396 10.226h1.8v19.548h-1.8zM400 8.9975h1.8v22.005h-1.8zM404 9.9963h1.8v20.007h-1.8zM408 9.677h1.8v20.646h-1.8zM412 10.009h1.8v19.982h-1.8zM416 8.0757h1.8v23.849h-1.8zM420 9.2902h1.8v21.42h-1.8zM424 12.038h1.8v15.924h-1.8zM428 11.291h1.8v17.419h-1.8zM432 13.563h1.8v12.875h-1.8zM436 14.593h1.8v10.814h-1.8zM440 15.45h1.8v9.1006h-1.8zM444 17.05h1.8v5.8996h-1.8z%22/%3E%3C/svg%3E");
+  }
+
+  .rule-d {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 445.8 40%22 preserveAspectRatio=%22none%22%3E%3Cpath fill=%22%23000%22 d=%22M0 15.399h1.8v9.2021h-1.8zM4 14.546h1.8v10.909h-1.8zM8 11.571h1.8v16.859h-1.8zM12 9.1059h1.8v21.788h-1.8zM16 11.171h1.8v17.658h-1.8zM20 6.2029h1.8v27.594h-1.8zM24 6.1824h1.8v27.635h-1.8zM28 10.493h1.8v19.014h-1.8zM32 12.788h1.8v14.424h-1.8zM36 11.709h1.8v16.582h-1.8zM40 14.255h1.8v11.489h-1.8zM44 14.448h1.8v11.104h-1.8zM48 14.084h1.8v11.831h-1.8zM52 12.053h1.8v15.894h-1.8zM56 10.607h1.8v18.786h-1.8zM60 10.156h1.8v19.688h-1.8zM64 9.8167h1.8v20.367h-1.8zM68 10.468h1.8v19.064h-1.8zM72 9.9577h1.8v20.085h-1.8zM76 9.3498h1.8v21.3h-1.8zM80 12.75h1.8v14.499h-1.8zM84 14.388h1.8v11.225h-1.8zM88 15.898h1.8v8.2037h-1.8zM92 16.216h1.8v7.5685h-1.8zM96 14.967h1.8v10.066h-1.8zM100 14.939h1.8v10.122h-1.8zM104 15.329h1.8v9.343h-1.8zM108 15.528h1.8v8.9441h-1.8zM112 16.332h1.8v7.3363h-1.8zM116 16.572h1.8v6.8553h-1.8zM120 15.404h1.8v9.1912h-1.8zM124 17.157h1.8v5.6851h-1.8zM128 17.11h1.8v5.7803h-1.8zM132 16.736h1.8v6.5273h-1.8zM136 16.746h1.8v6.5074h-1.8zM140 16.816h1.8v6.3682h-1.8zM144 17.011h1.8v5.9784h-1.8zM148 16.33h1.8v7.3395h-1.8zM152 15.169h1.8v9.6628h-1.8zM156 15.847h1.8v8.3051h-1.8zM160 16.23h1.8v7.5409h-1.8zM164 16.327h1.8v7.347h-1.8zM168 14.914h1.8v10.172h-1.8zM172 16.182h1.8v7.6363h-1.8zM176 16.508h1.8v6.9841h-1.8zM180 15.945h1.8v8.1109h-1.8zM184 16.732h1.8v6.5366h-1.8zM188 15.861h1.8v8.2785h-1.8zM192 16.055h1.8v7.8893h-1.8zM196 16.43h1.8v7.139h-1.8zM200 15.266h1.8v9.4671h-1.8zM204 16.415h1.8v7.1691h-1.8zM208 15.912h1.8v8.176h-1.8zM212 15.457h1.8v9.0863h-1.8zM216 15.515h1.8v8.9706h-1.8zM220 16.779h1.8v6.4414h-1.8zM224 15.122h1.8v9.7562h-1.8zM228 15.143h1.8v9.7145h-1.8zM232 15.907h1.8v8.1858h-1.8zM236 15.31h1.8v9.38h-1.8zM240 14.156h1.8v11.688h-1.8zM244 12.564h1.8v14.873h-1.8zM248 14.361h1.8v11.278h-1.8zM252 12.18h1.8v15.639h-1.8zM256 12.226h1.8v15.548h-1.8zM260 14.404h1.8v11.191h-1.8zM264 14.479h1.8v11.042h-1.8zM268 15.498h1.8v9.0044h-1.8zM272 15.668h1.8v8.6649h-1.8zM276 15.891h1.8v8.2189h-1.8zM280 14.864h1.8v10.272h-1.8zM284 14.41h1.8v11.181h-1.8zM288 14.271h1.8v11.458h-1.8zM292 10.866h1.8v18.268h-1.8zM296 10.021h1.8v19.957h-1.8zM300 7.8034h1.8v24.393h-1.8zM304 6.0351h1.8v27.93h-1.8zM308 9.5937h1.8v20.813h-1.8zM312 5.6076h1.8v28.785h-1.8zM316 7.1398h1.8v25.72h-1.8zM320 6.2276h1.8v27.545h-1.8zM324 7.2911h1.8v25.418h-1.8zM328 7.8534h1.8v24.293h-1.8zM332 8.3979h1.8v23.204h-1.8zM336 8.1475h1.8v23.705h-1.8zM340 9.3044h1.8v21.391h-1.8zM344 10.169h1.8v19.661h-1.8zM348 9.0937h1.8v21.813h-1.8zM352 9.4152h1.8v21.17h-1.8zM356 7.1113h1.8v25.777h-1.8zM360 7.5453h1.8v24.909h-1.8zM364 10.195h1.8v19.61h-1.8zM368 8.7584h1.8v22.483h-1.8zM372 4.6369h1.8v30.726h-1.8zM376 5.4919h1.8v29.016h-1.8zM380 3.3004h1.8v33.399h-1.8zM384 8.4004h1.8v23.199h-1.8zM388 8.2653h1.8v23.469h-1.8zM392 9.1582h1.8v21.684h-1.8zM396 10.071h1.8v19.858h-1.8zM400 10.017h1.8v19.966h-1.8zM404 9.7929h1.8v20.414h-1.8zM408 10.754h1.8v18.492h-1.8zM412 11.817h1.8v16.365h-1.8zM416 12.154h1.8v15.692h-1.8zM420 10.946h1.8v18.109h-1.8zM424 14.323h1.8v11.354h-1.8zM428 13.181h1.8v13.637h-1.8zM432 14.384h1.8v11.233h-1.8zM436 15.006h1.8v9.9883h-1.8zM440 16.163h1.8v7.6749h-1.8zM444 16.427h1.8v7.1466h-1.8z%22/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 445.8 40%22 preserveAspectRatio=%22none%22%3E%3Cpath fill=%22%23000%22 d=%22M0 15.399h1.8v9.2021h-1.8zM4 14.546h1.8v10.909h-1.8zM8 11.571h1.8v16.859h-1.8zM12 9.1059h1.8v21.788h-1.8zM16 11.171h1.8v17.658h-1.8zM20 6.2029h1.8v27.594h-1.8zM24 6.1824h1.8v27.635h-1.8zM28 10.493h1.8v19.014h-1.8zM32 12.788h1.8v14.424h-1.8zM36 11.709h1.8v16.582h-1.8zM40 14.255h1.8v11.489h-1.8zM44 14.448h1.8v11.104h-1.8zM48 14.084h1.8v11.831h-1.8zM52 12.053h1.8v15.894h-1.8zM56 10.607h1.8v18.786h-1.8zM60 10.156h1.8v19.688h-1.8zM64 9.8167h1.8v20.367h-1.8zM68 10.468h1.8v19.064h-1.8zM72 9.9577h1.8v20.085h-1.8zM76 9.3498h1.8v21.3h-1.8zM80 12.75h1.8v14.499h-1.8zM84 14.388h1.8v11.225h-1.8zM88 15.898h1.8v8.2037h-1.8zM92 16.216h1.8v7.5685h-1.8zM96 14.967h1.8v10.066h-1.8zM100 14.939h1.8v10.122h-1.8zM104 15.329h1.8v9.343h-1.8zM108 15.528h1.8v8.9441h-1.8zM112 16.332h1.8v7.3363h-1.8zM116 16.572h1.8v6.8553h-1.8zM120 15.404h1.8v9.1912h-1.8zM124 17.157h1.8v5.6851h-1.8zM128 17.11h1.8v5.7803h-1.8zM132 16.736h1.8v6.5273h-1.8zM136 16.746h1.8v6.5074h-1.8zM140 16.816h1.8v6.3682h-1.8zM144 17.011h1.8v5.9784h-1.8zM148 16.33h1.8v7.3395h-1.8zM152 15.169h1.8v9.6628h-1.8zM156 15.847h1.8v8.3051h-1.8zM160 16.23h1.8v7.5409h-1.8zM164 16.327h1.8v7.347h-1.8zM168 14.914h1.8v10.172h-1.8zM172 16.182h1.8v7.6363h-1.8zM176 16.508h1.8v6.9841h-1.8zM180 15.945h1.8v8.1109h-1.8zM184 16.732h1.8v6.5366h-1.8zM188 15.861h1.8v8.2785h-1.8zM192 16.055h1.8v7.8893h-1.8zM196 16.43h1.8v7.139h-1.8zM200 15.266h1.8v9.4671h-1.8zM204 16.415h1.8v7.1691h-1.8zM208 15.912h1.8v8.176h-1.8zM212 15.457h1.8v9.0863h-1.8zM216 15.515h1.8v8.9706h-1.8zM220 16.779h1.8v6.4414h-1.8zM224 15.122h1.8v9.7562h-1.8zM228 15.143h1.8v9.7145h-1.8zM232 15.907h1.8v8.1858h-1.8zM236 15.31h1.8v9.38h-1.8zM240 14.156h1.8v11.688h-1.8zM244 12.564h1.8v14.873h-1.8zM248 14.361h1.8v11.278h-1.8zM252 12.18h1.8v15.639h-1.8zM256 12.226h1.8v15.548h-1.8zM260 14.404h1.8v11.191h-1.8zM264 14.479h1.8v11.042h-1.8zM268 15.498h1.8v9.0044h-1.8zM272 15.668h1.8v8.6649h-1.8zM276 15.891h1.8v8.2189h-1.8zM280 14.864h1.8v10.272h-1.8zM284 14.41h1.8v11.181h-1.8zM288 14.271h1.8v11.458h-1.8zM292 10.866h1.8v18.268h-1.8zM296 10.021h1.8v19.957h-1.8zM300 7.8034h1.8v24.393h-1.8zM304 6.0351h1.8v27.93h-1.8zM308 9.5937h1.8v20.813h-1.8zM312 5.6076h1.8v28.785h-1.8zM316 7.1398h1.8v25.72h-1.8zM320 6.2276h1.8v27.545h-1.8zM324 7.2911h1.8v25.418h-1.8zM328 7.8534h1.8v24.293h-1.8zM332 8.3979h1.8v23.204h-1.8zM336 8.1475h1.8v23.705h-1.8zM340 9.3044h1.8v21.391h-1.8zM344 10.169h1.8v19.661h-1.8zM348 9.0937h1.8v21.813h-1.8zM352 9.4152h1.8v21.17h-1.8zM356 7.1113h1.8v25.777h-1.8zM360 7.5453h1.8v24.909h-1.8zM364 10.195h1.8v19.61h-1.8zM368 8.7584h1.8v22.483h-1.8zM372 4.6369h1.8v30.726h-1.8zM376 5.4919h1.8v29.016h-1.8zM380 3.3004h1.8v33.399h-1.8zM384 8.4004h1.8v23.199h-1.8zM388 8.2653h1.8v23.469h-1.8zM392 9.1582h1.8v21.684h-1.8zM396 10.071h1.8v19.858h-1.8zM400 10.017h1.8v19.966h-1.8zM404 9.7929h1.8v20.414h-1.8zM408 10.754h1.8v18.492h-1.8zM412 11.817h1.8v16.365h-1.8zM416 12.154h1.8v15.692h-1.8zM420 10.946h1.8v18.109h-1.8zM424 14.323h1.8v11.354h-1.8zM428 13.181h1.8v13.637h-1.8zM432 14.384h1.8v11.233h-1.8zM436 15.006h1.8v9.9883h-1.8zM440 16.163h1.8v7.6749h-1.8zM444 16.427h1.8v7.1466h-1.8z%22/%3E%3C/svg%3E");
+  }
+}
+
+h2 {
+  font-size: 2em;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 0.3em;
+}
+
+.section-lead {
+  color: var(--text-muted);
+  font-size: 1.1em;
+  max-width: 600px;
+  margin-bottom: 2.5em;
+}
+
+/* --- Video player --- */
+
+.player {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  /* Lets the chrome size itself against the player rather than the root
+     font, since the same player is 1200px wide in the hero and 360px on a
+     phone. */
+  container-type: inline-size;
+  /* The one knob for the whole control bar: everything in it is sized in
+     em from here, so this is what trades chrome for picture. */
+  --ctl: clamp(0.76rem, 1.84cqw, 1.16rem);
+  background: #000;
+  border-radius: 0.75em;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  isolation: isolate;
+}
+
+.player video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  cursor: pointer;
+  background: #000;
+}
+
+.player.is-playing:not(.show-controls) video {
+  cursor: none;
+}
+
+.player:fullscreen video {
+  object-fit: contain;
+}
+
+/* Captions are rendered by the player rather than by a <track>, so they can
+   sit above the control bar and match the page's type. */
+.pl-captions {
+  position: absolute;
+  left: 50%;
+  bottom: max(1.4em, 8%);
+  transition: bottom 220ms var(--ease);
+  transform: translateX(-50%);
+  z-index: 3;
+  pointer-events: none;
+  max-width: 88%;
+  text-align: center;
+  font-size: clamp(1.05rem, 4.65cqw, 2rem);
+  font-weight: 600;
+  line-height: 1.35;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.62);
+  padding: 0.25em 0.65em;
+  border-radius: 0.25em;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  text-wrap: balance;
+}
+
+.pl-captions.is-empty,
+.player:not(.cc-on) .pl-captions,
+/* Moved out of the picture entirely for this one; see .brand-captions. */
+.player.has-lyrics .pl-captions {
+  display: none;
+}
+
+/* Sit above the control bar rather than behind it while it is showing. */
+.player.show-controls .pl-captions,
+.player:not(.is-playing) .pl-captions {
+  bottom: calc(var(--ctl) * 4.6 + 1.1em);
+}
+
+/* Control bar */
+.pl-controls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* Everything below is sized in em from here, and this scales with the
+     player's own width — the same control bar serves a 1200px hero and a
+     360px phone, and a single fixed size can't suit both. */
+  font-size: var(--ctl);
+  /* The 3em top is the gradient's run-up, not spacing; the sides and
+     bottom are the actual inset, kept tight to give the picture the
+     room. */
+  padding: 3em 0.68em 0.56em;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
+  display: flex;
+  flex-direction: column;
+  /* Tight: the seek bar belongs to the row under it, and the gap was
+     reading as two separate strips of chrome. */
+  gap: 0.1em;
+  opacity: 0;
+  transform: translateY(0.5em);
+  transition: opacity 220ms, transform 220ms;
+  z-index: 3;
+  /* Invisible controls must not intercept clicks meant for the picture. */
+  pointer-events: none;
+}
+
+/* Visible whenever nothing is playing -- including before the first play,
+   which is what invites it -- and whenever the viewer is interacting. */
+.player.show-controls .pl-controls,
+.player:not(.is-playing) .pl-controls {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.pl-bar {
+  position: relative;
+  /* Still a comfortable touch target -- the visible track is only 0.3em,
+     the rest is grab room. */
+  height: 1.1em;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.pl-bar::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0.3em;
+  border-radius: 0.3em;
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.pl-buffered,
+.pl-played {
+  position: absolute;
+  left: 0;
+  height: 0.3em;
+  border-radius: 0.3em;
+  width: 0;
+}
+
+.pl-buffered {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.pl-played {
+  background: var(--accent);
+}
+
+.pl-knob {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 0.95em;
+  height: 0.95em;
+  border-radius: 50%;
+  background: #fff;
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 150ms;
+  pointer-events: none;
+}
+
+.pl-bar:hover .pl-knob,
+.pl-bar:focus-visible .pl-knob {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.pl-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  color: #fff;
+}
+
+.pl-btn {
+  /* Buttons don't inherit font-size from their parent, they take a UA
+     default of about 13px. Without this, every em below sizes against that
+     instead of against the control bar. */
+  font: inherit;
+  /* The icon inside is 1.35em, so this is 0.43em of surround rather than
+     the 0.48em it was -- tighter chrome, same glyph. */
+  width: 2.2em;
+  height: 2.2em;
+  background: rgba(10, 10, 15, 0.78);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.45em;
+  transition: background 180ms, transform 180ms;
+}
+
+.pl-btn svg {
+  width: 1.35em;
+  height: 1.35em;
+  fill: currentColor;
+  display: block;
+}
+
+/* Only where there is a real pointer. On a touch screen :hover sticks
+   after a tap, which left the button sitting there purple. */
+@media (hover: hover) {
+  .pl-btn:hover {
+    background: var(--accent);
+    transform: scale(1.06);
+  }
+}
+
+/* Stepped volume for a pointer, a single mute toggle for touch -- see the
+   note in player.js's render. Both are in the markup; this picks one. */
+.pl-mute {
+  display: none;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .pl-vol-down,
+  .pl-vol-up {
+    display: none;
+  }
+
+  .pl-mute {
+    display: flex;
+  }
+}
+
+/* These need to out-specify `.pl-btn svg { display: block }` above, or both
+   states of the toggle render at once. */
+.pl-btn .pl-icon-pause,
+.player.is-playing .pl-btn .pl-icon-play {
+  display: none;
+}
+
+.player.is-playing .pl-btn .pl-icon-pause {
+  display: block;
+}
+
+/* The mute toggle, where the platform won't take a volume level. Same
+   two-icons-one-button pattern as play/pause above. */
+.pl-btn .pl-icon-muted,
+.player.is-muted .pl-btn .pl-icon-loud {
+  display: none;
+}
+
+.player.is-muted .pl-btn .pl-icon-muted {
+  display: block;
+}
+
+/* At either end of the range. Still legible, so the pair doesn't appear to
+   lose a button, but plainly not pressable. */
+.pl-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.pl-btn:disabled:hover {
+  background: rgba(10, 10, 15, 0.78);
+  transform: none;
+}
+
+/* Plain text: it is a readout, not a control, and a slab around it read as
+   something to press. */
+.pl-time {
+  font-size: 0.85em;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+  white-space: nowrap;
+  padding-left: 0.3em;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+}
+
+.pl-spacer {
+  flex: 1;
+}
+
+/* The standing invitation to turn the sound on. Deliberately not part of
+   .pl-controls: that bar retires after a few seconds, and muted video
+   with no visible way back to sound reads as broken rather than as a
+   choice. Up whenever the sound is off, down the moment it isn't. */
+.pl-unmute {
+  position: absolute;
+  top: 0.8em;
+  right: 0.8em;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  font: inherit;
+  font-size: calc(var(--ctl) * 0.72);
+  font-weight: 700;
+  color: var(--text);
+  background: rgba(10, 10, 15, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 2em;
+  padding: 0.5em 0.9em 0.5em 0.7em;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms var(--ease);
+}
+
+.pl-unmute svg {
+  width: 1.15em;
+  height: 1.15em;
+  fill: currentColor;
+  display: block;
+}
+
+.player.is-muted.has-started .pl-unmute {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* While the full bar is up it carries its own mute control; two speakers
+   on screen at once is just noise. */
+.player.show-controls .pl-unmute,
+.player:not(.is-playing) .pl-unmute {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pl-unmute {
+    transition: none;
+  }
+}
+
+/* Buffering spinner */
+.pl-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2.6em;
+  height: 2.6em;
+  margin: -1.3em 0 0 -1.3em;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 4;
+  animation: pl-spin 800ms linear infinite;
+}
+
+.player.is-busy .pl-spinner {
+  opacity: 1;
+}
+
+@keyframes pl-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.pl-error {
+  position: absolute;
+  inset: auto 0 0;
+  display: none;
+  padding: 1em;
+  text-align: center;
+  font-size: 0.9em;
+  background: rgba(0, 0, 0, 0.85);
+  color: var(--text);
+  z-index: 5;
+}
+
+.player.is-failed .pl-error {
+  display: block;
+}
+
+.player.is-failed .pl-spinner {
+  display: none;
+}
+
+/* --- Curriculum --- */
+
+
+.module-week {
+  font-size: 0.82em;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--warm);
+  white-space: nowrap;
+  display: block;
+}
+
+.curr-head .module-week {
+  margin-bottom: 0.3em;
+}
+
+.curr-slide h3 {
+  font-size: clamp(1.8em, 4vw, 2.8em);
+  font-weight: 700;
+  line-height: 1.1;
+  margin: 0.1em 0 0.5em;
+}
+
+.module-outcome {
+  font-size: 1.15em;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.9em;
+}
+
+.module-points {
+  list-style: none;
+  display: grid;
+  gap: 0.48em;
+}
+
+.module-points li {
+  position: relative;
+  padding-left: 1.4em;
+  color: var(--text-muted);
+  font-size: 1.1em;
+}
+
+.module-points li::before {
+  content: "\25B8";
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+}
+
+.module-points li.optional {
+  font-style: italic;
+}
+
+.module-points li.optional::before {
+  content: "+";
+  color: var(--warm);
+}
+
+.read-more {
+  margin-top: 1.3em;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: inherit;
+  /* The same size as the bullets it sits under, so the column reads as one
+     block of type rather than a list with a smaller footnote after it. */
+  font-size: 1.1em;
+  font-weight: 700;
+  padding: 0.5em 1.2em;
+  border-radius: 2em;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  transition: border-color 200ms, color 200ms;
+}
+
+.read-more:hover {
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* display:block matters: an inline SVG sits on the text baseline and
+   reserves descender space under it, so the chevron rode high by a couple
+   of pixels however the flexbox was aligned. As a block it is a plain box
+   and align-items centres it exactly.
+
+   The margin is the optical correction on top of that: centred on the box,
+   the chevron reads high against the word beside it. A margin on one side
+   only moves a centred item by half itself, so -0.1em drops it by 0.05em.
+   The sign is by eye, not by metrics -- the arithmetic of where the ink
+   sits inside the em box argues the other way, and the eye is the one
+   being served. */
+.read-more svg {
+  display: block;
+  margin-bottom: -0.1em;
+  width: 0.85em;
+  height: 0.85em;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+}
+
+/* Default (and the fallback on narrow screens or with reduced motion):
+   a plain stacked list. */
+.curr-slide {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 3em 2em;
+}
+
+/* Divided by --fit, not just set to it: a scaled slide is laid out at this
+   width and then shrunk by that same factor, so what lands on screen is
+   exactly --band-w whatever the scale. Without the division, a module long
+   enough to need scaling also came out a few pixels narrower than the
+   timeline above it, with its heading a few pixels inside "Oct 1". */
+.curr-scroll.is-scroller .curr-slide-inner {
+  max-width: calc(var(--band-w) / var(--fit, 1));
+  /* Scale away from the top edge, not the middle. About the middle, a slide
+     scaled to fit also moves its own top down by half of what it lost --
+     which put the headings of the longer modules a good 25px below the
+     short ones on a phone, exactly the drift that top-aligning them was
+     meant to remove. "center" is still the horizontal half, so the column
+     stays centred. */
+  transform-origin: top center;
+}
+
+.curr-slide-inner {
+  width: 100%;
+  /* Set by curriculum.js when a slide's copy is taller than the screen it
+     has to fit in. 1 in every ordinary case. */
+  transform: scale(var(--fit, 1));
+  /* Pinned slides are inset:0 on the full viewport, which overrides the
+     wrapper's max-width, so the content column is constrained here. */
+  max-width: 1140px;
+  margin: 0 auto;
+}
+
+/* The week, title and outcome run the full width above; only the video and
+   the bullets are columns. */
+.curr-head {
+  text-align: left;
+  margin-bottom: 1.7em;
+}
+
+.curr-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 3em;
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  .curr-cols {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5em;
+  }
+
+  .curr-head {
+    margin-bottom: 1.2em;
+  }
+}
+
+/* The timeline names the week wherever it is pinned, so the slide doesn't
+   repeat it. Only the stacked fallback -- which has no timeline -- needs to
+   say which week it is. */
+.module-week {
+  display: none;
+}
+
+.curr-scroll:not(.is-scroller) .module-week {
+  display: block;
+}
+
+/* Switching into pinned mode would otherwise animate all eight slides from
+   their stacked-list state down to hidden — a visible flash on load. */
+.curr-scroll.is-initialising .curr-slide,
+.curr-scroll.is-initialising .curr-media,
+.curr-scroll.is-initialising .module-points li,
+.curr-scroll.is-initialising .read-more,
+.curr-scroll.is-initialising .curr-head>*,
+.curr-scroll.is-initialising .curr-copy>* {
+  transition: none !important;
+}
+
+/* Pinned mode. The region is tall; a sticky stage holds one slide in place
+   while the scroll offset inside it selects which module is showing. */
+.curr-scroll.is-scroller {
+  /* --step viewports of pinned travel per week, plus the whole viewport
+     the sticky child itself occupies. Without that extra one the region
+     only travels (slides - 1) steps, and the last week becomes active
+     exactly as the region releases -- so it is never seen except on its
+     way out.
+
+     Both --slides and --step are written by curriculum.js, which is the
+     one place the step is decided: the same number sizes this box, picks
+     which week is showing, and paces the timeline's cursor. */
+  height: calc((var(--slides) * var(--step, 0.5) + 1) * var(--vh, 1vh) * 100);
+  position: relative;
+}
+
+.curr-scroll.is-scroller .curr-stage {
+  position: sticky;
+  top: 0;
+  height: calc(var(--vh, 1vh) * 100);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.curr-scroll.is-scroller .curr-slides {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.curr-scroll.is-scroller .curr-slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  /* Top, not centre. Centred, every module started at a different height
+     -- a long one rode up towards the dates and a short one sat well below
+     them -- so eight slides swapping in place never agreed on where the
+     heading lived. Anchored to the top they all begin on the same line,
+     and what varies is the space left underneath, which is the harmless
+     end to vary. */
+  align-items: flex-start;
+  /* Top padding clears the timeline and then sets that line. --tl-space is
+     where the bar's underside actually is -- its sticky offset plus its
+     own height -- measured and written by timeline.js, so growing the bar
+     (numbering the dots, or dropping the dates to a second row on a phone)
+     carries the headings down with it rather than letting one turn up
+     underneath it. The em on the end is the gap itself, and it is the only
+     number to touch to move every heading at once.
+
+     No side padding: the column is set by --band-w on the inner, which is
+     the timeline's width exactly, so the heading starts under "Oct 1"
+     rather than a couple of em inside it. */
+  padding: calc(var(--tl-space, 8.5em) + 3.5em) 0 3em;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 420ms var(--ease), visibility 420ms;
+}
+
+.curr-scroll.is-scroller .curr-slide.is-active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* --- How a slide arrives and leaves ---
+   Every part of it does the same thing: up from below and fading in when
+   it is the slide you are on, up and away when it is behind you, down and
+   away when it is still ahead. One movement, one direction, so eight
+   modules swapping in place read as one mechanism rather than as a video
+   doing one thing and its copy doing another.
+
+   The video used to peel sideways with a scale and a rotate while the text
+   rose -- two unrelated gestures at once, which is what made the section
+   feel inconsistent depending on which part you happened to watch.
+
+   The order is the reading order, staggered: heading, outcome, video, then
+   the bullets one after another, then the button. */
+.curr-scroll.is-scroller .curr-head>*,
+.curr-scroll.is-scroller .curr-media,
+.curr-scroll.is-scroller .module-points li,
+.curr-scroll.is-scroller .read-more {
+  transform: translateY(1.3em);
+  opacity: 0;
+  transition: transform 520ms var(--ease), opacity 360ms var(--ease);
+}
+
+/* Behind you, so it leaves upward -- the mirror of how it arrived. This is
+   the whole of the direction-awareness: which way a slide travels changes
+   with the scroll, the order its parts arrive in does not. Staggering in
+   reverse as well was tried and read as strange: the eye still reads top to
+   bottom whichever way the page is moving, so a heading arriving after its
+   own bullets fights the reading rather than the scrolling. */
+.curr-scroll.is-scroller .curr-slide.is-before .curr-head>*,
+.curr-scroll.is-scroller .curr-slide.is-before .curr-media,
+.curr-scroll.is-scroller .curr-slide.is-before .module-points li,
+.curr-scroll.is-scroller .curr-slide.is-before .read-more {
+  transform: translateY(-1.3em);
+}
+
+.curr-scroll.is-scroller .curr-slide.is-active .curr-head>*,
+.curr-scroll.is-scroller .curr-slide.is-active .curr-media,
+.curr-scroll.is-scroller .curr-slide.is-active .module-points li,
+.curr-scroll.is-scroller .curr-slide.is-active .read-more {
+  transform: none;
+  opacity: 1;
+}
+
+.curr-scroll.is-scroller .curr-slide.is-active h3 {
+  transition-delay: 50ms;
+}
+
+.curr-scroll.is-scroller .curr-slide.is-active .module-outcome {
+  transition-delay: 110ms;
+}
+
+.curr-scroll.is-scroller .curr-slide.is-active .curr-media {
+  transition-delay: 170ms;
+}
+
+/* Each bullet a beat after the one above it. Written out rather than
+   counted from a custom property, because these are static list items and
+   there is no scroll handler that should ever have to touch them. */
+.curr-scroll.is-scroller .curr-slide.is-active .module-points li:nth-child(1) {
+  transition-delay: 240ms;
+}
+
+.curr-scroll.is-scroller .curr-slide.is-active .module-points li:nth-child(2) {
+  transition-delay: 310ms;
+}
+
+.curr-scroll.is-scroller .curr-slide.is-active .module-points li:nth-child(3) {
+  transition-delay: 380ms;
+}
+
+.curr-scroll.is-scroller .curr-slide.is-active .module-points li:nth-child(4) {
+  transition-delay: 450ms;
+}
+
+
+.curr-scroll.is-scroller .curr-slide.is-active .read-more {
+  transition-delay: 580ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .curr-scroll .curr-media,
+  .curr-scroll .curr-copy>*,
+  .curr-scroll .module-points li,
+  .curr-scroll .read-more,
+  .curr-scroll .curr-head>*,
+  .pl-controls {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  .pl-spinner {
+    animation-duration: 2s;
+  }
+}
+
+/* --- Course timeline ---
+   The footer of the curriculum title and then the header of the week
+   slides, as one element rather than a copy in each -- a handoff between
+   two copies shows a seam however carefully they are aligned.
+
+   It is sticky inside .curr-band, which is the whole of the mechanism. In
+   flow it sits just under the title and its paragraph, because it belongs
+   to them; it holds under the nav for as long as the weeks are on screen,
+   because there it is their header; and it leaves with the band's bottom
+   edge the way a section header stops sticking at the end of its section.
+   Scrolling back up reverses all three for free.
+
+   This used to be position: fixed with its vertical position written from
+   a scroll handler, which meant JavaScript reimplementing sticky, badly:
+   it hovered at the foot of the viewport over content it had nothing to do
+   with, and needed an opacity of its own to be told when to stop. Being
+   genuinely in flow is what makes it read as part of this section.
+
+   --t is its progress, still set by timeline.js, because that is the one
+   thing about it the document's own layout cannot say. */
+
+.timeline {
+  position: sticky;
+  /* Clear of the fixed nav. --nav-h is measured and written by timeline.js;
+     the fallback is close enough to be unremarkable for the one frame
+     before it lands. */
+  top: calc(var(--nav-h, 3.4em) + 18px);
+  /* Wider than the band by exactly what the end dots hang over it, with
+     that difference given back as padding -- see the note on the clip
+     below. The content box is still the band. */
+  width: calc(var(--band-w) + 2 * var(--dot-reach));
+  padding-inline: var(--dot-reach);
+  margin: 0 auto 4em;
+  /* The dot's outer diameter and its ring, in one place, because the
+     cursor is cut from them: it is exactly the interior, so when it is
+     over a mark it fills it rather than covering it. */
+  /* Week eight's spark burst is the grand finale, its particles are
+     thrown furthest, and the rightmost dot is already at the edge of the
+     band. Measured on a 390px phone they took the document to 414px for
+     about half a second -- and mobile Safari answers a document wider than
+     the viewport by zooming out to fit it, so the whole page quietly got
+     smaller and stayed that way. It reads as the page resizing on arrival
+     at whatever section comes next, which is why it took a while to pin on
+     a firework eight modules earlier.
+
+     Clipped here rather than anywhere further up. The first attempt put
+     overflow-x: clip on .sheet, which is correct in theory -- clip is not
+     a scroll container, so sticky still resolves against the viewport --
+     but it re-drew the paint tree around the pinned curriculum and the
+     slides picked up a vertical shake while scrolling. This bar is the
+     thing overflowing, so this bar is what gets clipped, and nothing
+     upstream of it has to change.
+
+     x only: the sparks are supposed to fly above and below the bar, and
+     clipping those would be clipping the effect rather than the bug.
+
+     The room the outermost dots need is taken as padding rather than as
+     overflow-clip-margin, which is what this used to do and what cut weeks
+     one and eight in half on an iPhone. Safari applies overflow: clip and
+     ignores the margin, so the cut landed on the band edge -- which is
+     exactly where the first and last marks are centred, so each lost half
+     its circle. Chrome honours the margin, which is why it looked right
+     everywhere it was checked.
+
+     Padding cannot be ignored. With border-box the content box is still
+     the band, so the track, the dates and every mark sit precisely where
+     they did; the padding box is what grows, and overflow clips against
+     that. On a phone it reaches to within 4px of the screen -- still short
+     of the viewport, so the spark burst below cannot widen the document
+     and set Safari zooming out to fit. */
+  overflow: clip;
+  --dot-size: 28px;
+  --dot-border: 3px;
+  /* Grab room around the dot. Part of the button, not of the circle. */
+  --tap-pad: 8px;
+  /* How far a mark hangs past the end of the track it is centred on: half
+     the circle, plus the tap padding that is part of the button. The one
+     number the width and the padding are both cut from, so they cannot
+     drift apart -- and it follows the two overrides on a phone. */
+  --dot-reach: calc(var(--dot-size) / 2 + var(--tap-pad));
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  /* Wide enough to clear the outermost dots, which sit centred on the ends
+     of the track and so hang half their width plus their tap padding into
+     this gap. */
+  gap: 1.45em;
+}
+
+/* The stacked fallback gives every week its own heading, so there is
+   nothing here for this to be the header of, and its progress would track
+   a pinned region that is not pinned. */
+.timeline.is-off {
+  display: none;
+}
+
+/* --- Where the band stops holding the timeline ---
+   Sticky releases an element when its container's bottom edge reaches it,
+   and left alone the band's bottom is the region's bottom -- a whole
+   viewport after the last slide has started scrolling away. The bar would
+   stay pinned at the top through all of that, heading a section that had
+   already left, hovering over the next one.
+
+   So the band is told to end early. A negative bottom margin on its last
+   child pulls the band's own bottom edge up without moving any content:
+   the region still occupies exactly the space it did, but the box that
+   governs the sticky timeline now ends one viewport-minus-a-bar sooner --
+   which is precisely the moment week eight begins to scroll away. From
+   there the heading pushes the timeline up the screen, as a heading does.
+
+   This was a scroll handler writing a transform every frame, and it read
+   as jitter for the reason those always do: on a phone, scroll events do
+   not keep up with the compositor, so the bar was chasing the content it
+   was supposed to be attached to. Nothing to chase if the browser is doing
+   the moving. */
+.curr-band > .curr-scroll.is-scroller {
+  margin-bottom: calc(var(--tl-space, 8.5em) - var(--vh, 1vh) * 100);
+}
+
+/* flow-root, so that negative margin stays inside the band. Left to
+   collapse, a last child's bottom margin becomes the parent's own, and it
+   then sums with the break's compensating top margin below -- the two
+   cancel, and the break lands most of a screen above the end of the
+   curriculum instead of below it. A block formatting context keeps the
+   margin where it was written. */
+.curr-band {
+  display: flow-root;
+}
+
+/* ...and whatever follows gets that distance back, so it sits exactly
+   where it did.
+
+   Named as the next sibling rather than as a break, because it is not one
+   any more: the instructor band follows the curriculum directly now. It
+   brings its own air in the form of 8em of padding, which is why there is
+   no additional gap in here the way there was when a rule sat between the
+   two and needed one. */
+.curr-band:has(> .is-scroller) + * {
+  margin-top: calc(var(--vh, 1vh) * 100 - var(--tl-space, 8.5em));
+}
+
+/* --- The build ---
+   Oct 1 lands, the line draws all the way to Nov 19, and the numbers chase
+   it -- each one arriving a beat after the drawn end has passed the place
+   it belongs. The chase is arithmetic, not feel: the line sweeps at a
+   constant rate from 200ms to 1100ms, so it reaches mark i at
+   200 + (i/7) x 900ms, and mark i lands 120ms after that. Which is exactly
+   the stagger below, 320ms + i x 129ms. Change the line's window and that
+   stagger has to move with it or the numbers stop chasing anything.
+
+   It runs every time the bar arrives and backwards every time it leaves,
+   so the delays come in two sets. The ones under .is-built build it. The
+   ones on the resting state take it apart last-in-first-out -- cursor, then
+   the numbers right to left, Nov 19, the line retracting to where it
+   started, Oct 1 last -- and about half again as quick, because a teardown
+   that takes as long as the build is a teardown you wait for. */
+
+.tl-cap {
+  opacity: 0;
+  transition: opacity 380ms var(--ease);
+  /* Leaving: Oct 1 is the last thing out, as it was the first thing in. */
+  transition-delay: 1000ms;
+}
+
+.tl-end {
+  transition-delay: 200ms;
+}
+
+.timeline.is-built .tl-cap {
+  opacity: 1;
+  transition-duration: 420ms;
+  transition-delay: 0ms;
+}
+
+/* Nov 19 arrives as the line reaches it. */
+.timeline.is-built .tl-end {
+  transition-delay: 1080ms;
+}
+
+.tl-line {
+  transform: translateY(-50%) scaleX(0);
+  transform-origin: left center;
+  /* Leaving: retracts to the left, back the way it was drawn. */
+  transition: transform 500ms var(--ease);
+  transition-delay: 560ms;
+}
+
+.timeline.is-built .tl-line {
+  transform: translateY(-50%) scaleX(1);
+  /* 200ms to 1100ms, at a constant rate -- the numbers are timed off it. */
+  transition: transform 900ms linear;
+  transition-delay: 200ms;
+}
+
+.tl-mark {
+  opacity: 0;
+  transition: opacity 240ms var(--ease);
+  /* Leaving: right to left, the mirror of the chase. */
+  transition-delay: calc(60ms + (7 - var(--i, 0)) * 62ms);
+}
+
+.tl-mark .tl-fill,
+.tl-mark .tl-ring {
+  transform: scale(0.4);
+  transition-delay: calc(60ms + (7 - var(--i, 0)) * 62ms);
+}
+
+.timeline.is-built .tl-mark {
+  opacity: 1;
+  transition-duration: 300ms;
+  /* 120ms behind the drawn end of the line, all the way along. */
+  transition-delay: calc(320ms + var(--i, 0) * 129ms);
+}
+
+.timeline.is-built .tl-mark .tl-fill,
+.timeline.is-built .tl-mark .tl-ring {
+  transform: scale(1);
+  transition-delay: calc(320ms + var(--i, 0) * 129ms);
+}
+
+/* The scroll-driven pair join once there is a track for them to sit on.
+   Only opacity transitions -- their transforms are rewritten every frame,
+   and a transition on those would put them permanently behind the scroll. */
+.tl-progress {
+  opacity: 0;
+  /* Leaving: first out, since it was last in. */
+  transition: opacity 240ms var(--ease);
+  transition-delay: 0ms;
+}
+
+.timeline.is-built .tl-progress {
+  opacity: 1;
+  transition-duration: 400ms;
+  transition-delay: 1320ms;
+}
+
+/* --- Handing the comet to the compositor ---
+   The two scroll-driven pieces -- the comet's position and the length of
+   the progress fill -- are declared again here as animations on a scroll
+   timeline, which since Safari 26.4 runs on the compositor thread rather
+   than the main one. Nothing about the movement changes; who evaluates it
+   does.
+
+   That is the whole of the jitter. Driven from JavaScript, the position is
+   recomputed in requestAnimationFrame, and rAF is throttled to 60Hz on a
+   ProMotion phone while the compositor scrolls the page at 120. The
+   content moves at twice the rate of the comet on top of it, and the eye
+   reads the difference as stutter even when our own frames are perfectly
+   even. On the compositor there is no second clock to disagree with.
+
+   Two things this depends on, both easy to break:
+
+   - The keyframes animate `transform` directly. Routing through a custom
+     property would be tidier and would defeat the entire point: custom
+     properties do not composite, registered or not, so the animation would
+     move to the timeline and stay on the main thread.
+   - `animation-timeline` is a reset-only value in the `animation`
+     shorthand, so it has to come after it. Above it, it is silently reset
+     to `auto` and these animations run once on load instead.
+
+   The range is where the curriculum starts and where its last week
+   arrives, in document pixels, written by timeline.js whenever the page
+   changes shape. Browsers without this keep the --t path below. */
+@supports (animation-timeline: scroll()) {
+  @keyframes tl-travel {
+    from {
+      transform: translateX(0);
+    }
+
+    to {
+      transform: translateX(100%);
+    }
+  }
+
+  @keyframes tl-extend {
+    from {
+      transform: translateY(-50%) scaleX(0);
+    }
+
+    to {
+      transform: translateY(-50%) scaleX(1);
+    }
+  }
+
+  .timeline .tl-rail {
+    animation: tl-travel linear both;
+    animation-timeline: scroll(root block);
+    animation-range: var(--tl-from, 0px) var(--tl-to, 100%);
+  }
+
+  .timeline .tl-progress {
+    animation: tl-extend linear both;
+    animation-timeline: scroll(root block);
+    animation-range: var(--tl-from, 0px) var(--tl-to, 100%);
+  }
+}
+
+/* Reduced motion, and after a reload deep in the page: no sweep. */
+.timeline.no-build .tl-line,
+.timeline.no-build .tl-mark,
+.timeline.no-build .tl-cap,
+.timeline.no-build .tl-progress,
+.timeline.no-build .tl-cursor,
+.timeline.no-build .tl-fill,
+.timeline.no-build .tl-ring,
+.timeline.no-build .tl-rail {
+  transition: none;
+  transition-delay: 0ms;
+}
+
+.tl-cap {
+  font-size: 0.82em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.tl-track {
+  position: relative;
+  flex: 1;
+  height: 2.6em;
+  min-width: 0;
+}
+
+.tl-line,
+.tl-progress {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: 2px;
+  transform-origin: left center;
+}
+
+.tl-line {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* Full width and scaled down, rather than a width of --t * 100%: the paint
+   is identical and the update is not a layout. */
+.tl-progress {
+  background: linear-gradient(90deg, var(--accent), var(--warm));
+  transform: translateY(-50%) scaleX(var(--t, 0));
+}
+
+/* Rides the track continuously, so the scroll always has something to show
+   for itself even between checkpoints. The rail is the width of the track,
+   which is what makes a percentage translate land exactly -- a percentage
+   on the cursor itself would resolve against the cursor.
+
+   That translate is also why the rail needs clipping of its own. Moved to
+   the far end it sticks a whole track-width past the right edge, and an
+   overflowing box widens the document: on a phone the page could be panned
+   sideways as soon as the reader was a week or two into the course. The
+   clip cannot go on .tl-track, which has to let the outermost dots hang
+   over its ends, so the rail gets a wrapper that clips nothing else. Both
+   ends of the travel put the cursor behind a dot anyway, so there is
+   nothing visible to lose at the edges. */
+/* Threaded between a mark's fill and its ring. Widened by half a dot at
+   each end, because clipped flush to the track the cursor was sliced in
+   half while sitting on the first mark and the last -- exactly where it
+   spends most of its time. The rail inside stays track-width so the
+   percentage translate still lands on the marks. */
+.tl-rail-clip {
+  position: absolute;
+  inset: 0 calc(var(--dot-size) / -2);
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.tl-rail {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--dot-size) / 2);
+  right: calc(var(--dot-size) / 2);
+  height: 0;
+  transform: translateX(calc(var(--t, 0) * 100%));
+}
+
+/* A comet, not a dot. It belongs to the line rather than to the marks now
+   -- the marks say how far along you are by filling, so the head only has
+   to say where the scroll is this instant. Small enough to read as a light
+   running along the track, with the tail behind it. */
+.tl-cursor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0.5em 0.1em rgba(255, 255, 255, 0.75),
+    0 0 1.1em 0.35em rgba(255, 150, 80, 0.35);
+  /* Hidden until the scroll actually starts moving it. Parked on the
+     first mark it was a small white blob sitting behind a ring whose
+     interior had not filled yet, which read as a half-filled number --
+     the one state on the whole bar that had to look deliberate, since it
+     is the one everybody sees first. So week one simply fills, and the
+     comet emerges from it on the way to week two. */
+  transform: scale(0);
+  transition: transform 260ms cubic-bezier(0.34, 1.4, 0.5, 1);
+}
+
+/* Settled, not merely built: the comet is the last thing to arrive, and on
+   a reload with the scroll already deep in the course it otherwise turned
+   up on the first frame -- ahead of the line it is supposed to be running
+   along, and ahead of every number. Keyed on .is-running alone it also
+   survived a teardown and sat there on its own, a lit head and a tail with
+   no timeline under them. */
+.timeline.is-settled.is-running .tl-cursor {
+  transform: scale(1);
+}
+
+/* The tail, lying along the line behind the head. Taller than the 2px
+   track and near-white for most of its length: at the track's own height
+   and in the track's own colours it was invisible, because the thing it
+   lies on top of is a purple-to-orange gradient of exactly that size. It
+   has to stand proud of the line to read as something travelling along it
+   rather than as a piece of it. */
+.tl-cursor::before {
+  content: "";
+  position: absolute;
+  right: 50%;
+  top: 50%;
+  width: 4.2em;
+  height: 4px;
+  margin-top: -2px;
+  border-radius: 4px;
+  background: linear-gradient(270deg,
+      rgba(255, 255, 255, 0.95),
+      rgba(255, 214, 180, 0.55) 35%,
+      rgba(255, 150, 80, 0) 100%);
+  pointer-events: none;
+}
+
+/* A mark is two layers with the cursor threaded between them: an opaque
+   fill underneath, so the track's line does not show through the numeral,
+   and the ring and digit on top, so the cursor reads as filling the dot
+   rather than covering it.
+
+   Which is why there is no transform here. A transform -- any transform,
+   including a scale of 1 -- makes an element a stacking context, and a
+   stacking context is a sealed envelope: nothing outside it can be
+   layered between things inside it. So the mark is placed with calc(),
+   the build's scale lives on the two layers instead, and all three take
+   their place in the timeline's own stacking order. */
+.tl-mark {
+  position: absolute;
+  left: calc(var(--at) - var(--dot-size) / 2 - var(--tap-pad));
+  top: calc(50% - var(--dot-size) / 2 - var(--tap-pad));
+  width: calc(var(--dot-size) + var(--tap-pad) * 2);
+  height: calc(var(--dot-size) + var(--tap-pad) * 2);
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tl-fill,
+.tl-ring {
+  position: absolute;
+  left: var(--tap-pad);
+  top: var(--tap-pad);
+  width: var(--dot-size);
+  height: var(--dot-size);
+  border-radius: 50%;
+  /* The build's scale only. Nothing here eases anything scroll-driven. */
+  transition: transform 300ms var(--ease), border-color 240ms,
+    box-shadow 240ms;
+}
+
+/* Under the comet. Opaque, so the line stops at the edge of a dot. */
+.tl-fill {
+  z-index: 1;
+  background: var(--bg);
+}
+
+/* The white interior, growing from the middle when the comet reaches this
+   mark.
+   
+   Triggered, not tracked -- and that distinction is the whole of the
+   jitter. Bound to --t the fill was a function of scroll position, so it
+   could only be as smooth as the scroll events feeding it, which on a
+   phone means coarse and uneven steps that no amount of easing hides.
+   Triggered, the scroll decides only *when*; the growing itself runs on
+   the compositor at its own even rate, and looks identical whether the
+   reader crept up on the mark or flung past it.
+   
+   Short and slightly overshooting, so it reads as a snap rather than a
+   fade -- the earlier version eased a background colour over 240ms, which
+   is what made it feel like it was arriving late. Reverses on the way back
+   up for free. */
+.tl-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: #fff;
+  transform: scale(0);
+  /* Emptying: a plain curve. The overshoot below belongs only to the way
+     in -- run backwards it undershoots past zero into a negative scale,
+     which is a flip, invisible at that size but not a thing to leave in. */
+  transition: transform 150ms var(--ease);
+}
+
+/* --- The spark ---
+   A small burst of orange and purple pixels when a week fills, the way
+   Twitter's heart bursts. Twitter does it with a 29-frame sprite sheet and
+   steps() -- unbeatable for a single famous heart, not worth authoring for
+   this. The same read comes out of a dozen 3px squares, and because every
+   one of them only ever animates transform and opacity, the whole burst is
+   handed to the compositor: no layout, no repaint, nothing that can stutter
+   under a scroll.
+
+   Only on the way in. The animation is declared under .is-filled, so
+   removing that class removes the animation rather than reversing it --
+   the pixels simply stop existing, which is what you want going backwards.
+   Re-adding it starts a fresh burst.
+
+   Each pixel's direction, distance, size and delay are written once by
+   timeline.js and never touched again. */
+.tl-spark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.tl-spark i {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--sz, 3px);
+  height: var(--sz, 3px);
+  margin: calc(var(--sz, 3px) / -2) 0 0 calc(var(--sz, 3px) / -2);
+  background: var(--warm);
+  opacity: 0;
+}
+
+.tl-spark i.is-cool {
+  background: var(--accent);
+}
+
+.tl-spark i.is-hot {
+  background: #ffd9c2;
+}
+
+/* .is-burst, not .is-filled: the burst belongs to the week just reached,
+   not to every week behind it. See setFilled in timeline.js. Still gated on
+   .is-settled so it waits for the bar to finish drawing itself. */
+.timeline.is-settled .tl-mark.is-burst .tl-spark i {
+  animation: tl-spark var(--sdur, 560ms) cubic-bezier(0.15, 0.75, 0.3, 1)
+    var(--sdel, 0ms) both;
+}
+
+@keyframes tl-spark {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.5);
+  }
+
+  12% {
+    opacity: 1;
+  }
+
+  70% {
+    opacity: 0.9;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx, 0), var(--dy, 0)) scale(0.75);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tl-spark {
+    display: none;
+  }
+}
+
+.tl-mark.is-filled .tl-fill::after {
+  transform: scale(1);
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.32, 1.5, 0.5, 1);
+}
+
+/* Over the cursor. */
+.tl-ring {
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: var(--dot-border) solid var(--accent);
+  color: var(--warm);
+  font-size: calc(var(--dot-size) * 0.52);
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* The week being read. The fill is continuous and says how far along the
+   comet is; this says which module is actually on screen. */
+.tl-mark[aria-current="true"] .tl-ring {
+  box-shadow: 0 0 0.75em rgba(255, 255, 255, 0.45);
+}
+
+.tl-mark:hover .tl-ring {
+  border-color: #c05ce8;
+}
+
+.tl-mark:focus-visible {
+  outline: none;
+}
+
+.tl-mark:focus-visible .tl-ring {
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px #fff;
+}
+
+/* Eight numbered dots and two dates do not fit across a phone in one
+   line -- not with dots big enough to read a numeral in, which is the
+   point of numbering them. So the dates drop below and the track takes the
+   full width: eight dots across 342px is 49px between centres, which is
+   room to spare, where sharing the line left about seven. Reordered rather
+   than reworded, so it is still one element and still says the same thing.
+
+   .tl-cap comes first and last in the source because that is the reading
+   order; -1 puts the track on the row above without disturbing it. */
+@media (max-width: 780px) {
+  .tl-track {
+    order: -1;
+    flex: 0 0 100%;
+    height: 2.4em;
+  }
+
+  .tl-cap {
+    flex: 1;
+    font-size: 0.72em;
+    letter-spacing: 0.06em;
+  }
+
+  .tl-end {
+    text-align: right;
+  }
+
+  /* Whole pixels, both of them. A fractional border renders rounded but
+     still computes at its written value, so the cursor -- cut from these
+     two numbers -- came out a pixel short of the interior it is supposed
+     to fill. */
+  .timeline {
+    --dot-size: 26px;
+    --dot-border: 2px;
+    --tap-pad: 7px;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 0;
+    row-gap: 0.2em;
+  }
+}
+
+/* Pinned on a phone: the same slide-by-slide sequence as on a desktop,
+   but the copy has to fit one screen without scrolling inside it. These
+   only apply while pinned -- the stacked fallback keeps its roomier
+   setting. */
+@media (max-width: 900px) {
+  /* Much tighter than the desktop's 3.5em. There is less screen to spend,
+     the bar is two rows tall here so its underside is already well down
+     the page, and the dates directly above read as the module heading's
+     own kicker -- a wide gap made them look like they belonged to
+     something else. */
+  .curr-scroll.is-scroller .curr-slide {
+    padding: calc(var(--tl-space, 8.5em) + 0.6em) 0 2em;
+    /* The bullets' size on a phone, and the button matches them. Declared
+       once here because two rules below need the same number; see the note
+       on .curr-cols. */
+    --read-more-size: 1.01em;
+  }
+
+  .curr-scroll.is-scroller .curr-head {
+    margin-bottom: 0.9em;
+  }
+
+  .curr-scroll.is-scroller .curr-slide h3 {
+    font-size: clamp(1.55em, 7vw, 2.1em);
+    margin: 0.05em 0 0.35em;
+  }
+
+  /* The bullets are short noun phrases now rather than sentences, which
+     gives back enough height to let this line carry more weight -- it is
+     the promise of the module, and it was set smaller than the copy under
+     it. */
+  .curr-scroll.is-scroller .module-outcome {
+    font-size: 1.16em;
+    line-height: 1.38;
+    margin-bottom: 0;
+  }
+
+  /* The gap under the video, and it is deliberately the same distance as
+     the gap above the Learn more button below the bullets -- so the two
+     things that bracket the bullet list sit off it by an equal amount.
+
+     Stated as two numbers that happen to agree would be a coincidence
+     waiting to break, so they are written to agree by construction. Both
+     sides read --read-more-size off the slide: the button takes it as its
+     font-size and adds a margin-top of one em of its own, and this takes
+     it as the gap. An em in a var() resolves against whichever element
+     uses it, and .curr-copy sets no size of its own, so both land on the
+     same number of slide ems. Retune --read-more-size and the pair stays
+     matched. */
+  .curr-scroll.is-scroller .curr-cols {
+    gap: var(--read-more-size);
+  }
+
+  /* Full width, so the video's edges land on the timeline's dates the way
+     the heading above it does. This used to be 84% to buy back vertical
+     space at 16:9, and that space is genuinely wanted -- the cost comes out
+     of fitSlides(), which scales a long module down a few percent on a
+     short phone to pay for it. Alignment was judged worth more than those
+     few percent. */
+  .curr-scroll.is-scroller .curr-media {
+    width: 100%;
+    margin: 0;
+  }
+
+  .curr-scroll.is-scroller .module-points {
+    gap: 0.24em;
+  }
+
+  .curr-scroll.is-scroller .module-points li {
+    font-size: 1.01em;
+    line-height: 1.4;
+  }
+
+  .curr-scroll.is-scroller .read-more {
+    /* One line of its own type. See the note on .curr-cols above -- this
+       is the other half of that pair. */
+    font-size: var(--read-more-size);
+    margin-top: 1em;
+    padding: 0.55em 1em;
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* --- Instructor ---
+   The one place on the page where the person teaching the course is the
+   page, rather than a thumbnail beside it. A full-bleed band: the room he
+   actually plays in on the right, the copy over the purple haze on the
+   left, no frame around either.
+
+   It is a room the page walks into and back out of, so it is built in
+   three layers -- the purple it is lit by, the photograph, and a scrim
+   that returns both to the page's black at the top and bottom edges. The
+   transition is the same one the final CTA makes, for the same reason: an
+   image band with hard edges reads as a banner dropped on the page, and
+   one that arrives out of the black reads as somewhere the page went. */
+
+.instructor-band {
+  position: relative;
+  max-width: none;
+  /* 0.75 of the 8em it carried; see the note on `section` in headroom.css. */
+  padding: 6em 2em;
+  /* Its own stacking context. The layers below are ordered against each
+     other and nothing outside should be able to interleave with them --
+     the sticky timeline in particular passes over this band on its way
+     down the page. */
+  isolation: isolate;
+  /* The photograph is sized to the band's height, so on a narrow-but-tall
+     band it is wider than the band is. It hangs off the left, under the
+     copy, and is clipped here rather than allowed to widen the document
+     the way the timeline's cursor once did. */
+  overflow: hidden;
+  /* The light in the room, carrying on past where the photograph stops.
+     Sampled from the photograph's own left edge (#432abd at the middle of
+     it, cooler and darker toward the corners) so the feathered seam has
+     nothing to give away. */
+  background:
+    radial-gradient(120% 90% at 78% 42%, #4a26ab 0%, rgba(74, 38, 171, 0) 62%),
+    linear-gradient(105deg, #190a3f 0%, #2a1268 42%, #3a1c8c 78%, #35197f 100%);
+}
+
+/* The photograph. Height-fitted and anchored right rather than covering
+   the band, because the source is portrait and a cover would crop it to a
+   letterbox slice of his chest at any width worth having. Fitted to the
+   height instead, it keeps its whole composition -- ball, face, shoulders
+   -- and simply occupies however much of the right side that comes to.
+   What is left is the copy's half, and it is real photograph there too,
+   feathered rather than cut.
+
+   An element and not a background, which matters for one reason above the
+   others: the feather has to reach fully transparent exactly at the
+   photograph's left edge, and that edge is wherever the band's height puts
+   it. As a background on a full-width layer the mask could only be
+   measured against the band, so the ramp reached the edge already part
+   opaque and drew a soft vertical seam down the whole section -- visible,
+   and in a different place at every width. On the image's own box the
+   percentages are the image's, so the feather starts where it starts.
+   Being an element also gets the man in the picture an alt attribute back,
+   which a CSS background could never have given him. */
+.instructor-band picture {
+  display: contents;
+}
+
+.instructor-photo {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: -2;
+  height: 100%;
+  width: auto;
+  max-width: none;
+  object-fit: cover;
+  /* Two fifths of the picture, which lands the fully-lit part just left of
+     his shoulder at every width the band is laid out at. */
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 40%);
+  mask-image: linear-gradient(to right, transparent 0%, #000 40%);
+}
+
+/* The edges. Top and bottom return to the page's own background so the
+   band has no border -- the rules above and below it land on black, and
+   measure the same as the other three. The left is a gentle darkening for
+   the copy; the photograph's haze is already dark enough for white text on
+   its own, so this is insurance against the bright bokeh, not a curtain. */
+.instructor-band::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(to right,
+      rgba(16, 7, 44, 0.34) 0%,
+      rgba(16, 7, 44, 0.16) 38%,
+      rgba(16, 7, 44, 0) 62%),
+    linear-gradient(to bottom,
+      var(--bg) 0%,
+      rgba(10, 10, 15, 0) 15%,
+      rgba(10, 10, 15, 0) 82%,
+      var(--bg) 100%);
+}
+
+.instructor-inner {
+  position: relative;
+  max-width: 1140px;
+  margin: 0 auto;
+}
+
+/* Narrower than the band by a good margin: the copy has to stay clear of
+   him, and the measure is better for it anyway. */
+.instructor-copy {
+  max-width: 30em;
+}
+
+.instructor-copy p+p {
+  margin-top: 1em;
+}
+
+/* On the photograph, the muted grey the rest of the page uses for a lead
+   goes flat and slightly dirty. Everything in here is white, at the
+   weights the mockup had. */
+.instructor-band h2 {
+  font-size: 2.4em;
+  text-shadow: 0 2px 14px rgba(8, 3, 24, 0.55);
+}
+
+.instructor-band .section-lead {
+  color: var(--text);
+  font-size: 1.22em;
+  max-width: 26em;
+  margin-bottom: 1.6em;
+  text-shadow: 0 1px 10px rgba(8, 3, 24, 0.6);
+}
+
+.instructor-band .instructor-copy p {
+  color: rgba(255, 255, 255, 0.88);
+  text-shadow: 0 1px 10px rgba(8, 3, 24, 0.6);
+}
+
+.instructor-band .instructor-copy a {
+  color: #fff;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 0.2em;
+}
+
+/* Glass rather than the page's dark card: on a lit background a panel of
+   --surface reads as a hole punched in the photograph. */
+.instructor-band .credential {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.1);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  backdrop-filter: blur(14px) saturate(1.3);
+}
+
+.instructor-band .credential .label {
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 0.74em;
+  /* Uppercase and letterspaced at three quarters size goes thin on a lit
+     background in a way it doesn't on the page's black. 600 is the next
+     weight the family is loaded at, and it is enough. */
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  line-height: 1.35;
+}
+
+/* --- The stats, lit by the room they are sitting in ---
+   Every colour below is sampled out of the photograph itself: the sky blue
+   off the ceiling wash (#69A7DF), the mirror ball's pale lavender
+   (#D3BEF6), the violet and magenta of the lights behind him (#9957E6,
+   #9C40C5). Lit rather than tinted -- the point is that the figures look
+   like they are catching what is falling on them, not like they have been
+   recoloured.
+
+   Lightened by raising each one's lightness and leaving its saturation
+   alone, rather than by mixing it toward white. Mixing with white is the
+   obvious way to do it and it takes the colour out on the way: the first
+   pass came back a row of greys with a hint of lilac, near enough
+   identical to each other, and the differences between the three stops
+   stopped being visible at text size. Holding the saturation and moving
+   only the lightness keeps them pale and keeps them coloured.
+
+   The three are windows on to one field rather than three unrelated
+   gradients. It runs sky -> lavender -> violet -> magenta, and each stat
+   takes the next slice of it, so read left to right along the row they
+   hand off to each other; read alone, each is its own colour. The angle
+   walks round with them, which is what stops the row looking like one
+   gradient photocopied three times.
+
+   Against the band's brightest purple the palest of these is 7.9:1 and the
+   deepest 3.3:1. These are 1.8em at weight 900, so even the bottom of that
+   clears the 3:1 that large text needs -- and the deep stops are endpoints
+   that only ever land on a few glyphs, never a whole figure.
+
+   Both halves inside the @supports, following the pill's shimmer: an
+   engine that has the gradient but not the clip would paint a block of
+   lavender behind the digits, and colour: transparent without a gradient
+   to fill the glyphs would lose the figures altogether. Either both apply
+   or neither does, and neither leaves the number unreadable. */
+@supports (-webkit-background-clip: text) or (background-clip: text) {
+  .instructor-band .credential .number {
+    /* Only as wide as the digits. Left as a block the gradient would be
+       laid across the whole card and the text would sample whatever
+       happened to be behind it -- a different slice in each stat depending
+       on how long the words are, which is the one kind of variation not
+       wanted here. */
+    width: fit-content;
+    background-image: linear-gradient(var(--stat-angle),
+        var(--stat-from) 0%,
+        var(--stat-lift) 46%,
+        var(--stat-to) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Off-square on purpose. A flat 90deg would blend across only, and the
+     vertical fall of the light in the photograph is half of what makes it
+     read as light. */
+  .instructor-band .credential:nth-child(1) .number {
+    --stat-angle: 104deg;
+    --stat-from: #82baed;
+    --stat-lift: #e1d2f9;
+    --stat-to: #c9a2f6;
+  }
+
+  .instructor-band .credential:nth-child(2) .number {
+    --stat-angle: 120deg;
+    --stat-from: #ceb7f5;
+    --stat-lift: #ede4fb;
+    --stat-to: #b37bf4;
+  }
+
+  .instructor-band .credential:nth-child(3) .number {
+    --stat-angle: 136deg;
+    --stat-from: #c399f5;
+    --stat-lift: #e4d7f9;
+    --stat-to: #c67fe6;
+  }
+}
+
+@media (max-width: 1250px) {
+  .instructor-band {
+    padding: 7em 2em;
+  }
+
+  /* Where the photograph stops fitting. It is 1.25 times as wide as it is
+     tall and it is sized to the band's height, so it runs off the left of
+     the screen once the viewport is narrower than 1.25 band-heights --
+     about 1250px, which is where this starts. Off the left it takes the
+     feather with it, and the copy ends up on a fully opaque photograph:
+     at 1024 the lead ran straight across the lit mirror ball.
+
+     Capped, the image crops toward its own right instead, which is where
+     he is, and the feather stays on screen where the copy needs it. */
+  .instructor-photo {
+    max-width: 74%;
+    object-position: 72% center;
+  }
+
+  /* And the copy pulls in to meet it, so the measure ends before the
+     feather has finished. */
+  .instructor-copy {
+    max-width: 26em;
+  }
+
+  .instructor-band::after {
+    background:
+      linear-gradient(to right,
+        rgba(16, 7, 44, 0.72) 0%,
+        rgba(16, 7, 44, 0.5) 45%,
+        rgba(16, 7, 44, 0.15) 78%),
+      linear-gradient(to bottom,
+        var(--bg) 0%,
+        rgba(10, 10, 15, 0) 15%,
+        rgba(10, 10, 15, 0) 82%,
+        var(--bg) 100%);
+  }
+}
+
+/* A phone has no left half to give him, so the band stops being a
+   side-by-side and becomes a stack: the photograph across the top at the
+   portrait crop it was shot in, dissolving downward into the purple, and
+   the copy underneath on the same light. Still one room, entered the same
+   way. */
+@media (max-width: 640px) {
+  .instructor-band {
+    padding: 0 0 5em;
+  }
+
+  .instructor-photo {
+    left: 0;
+    width: 100%;
+    max-width: none;
+    /* The one length the phone layout is built on. The picture gets this
+       much of the screen, and the copy starts far enough down it to sit in
+       the part that has already dissolved.
+
+       The locked unit, not raw vh: a phone's toolbar sliding away changes
+       vh mid-scroll, and here that would re-cut the photograph and move
+       the copy up its face while it was being read. */
+    height: calc(var(--vh, 1vh) * 60);
+    object-position: center 18%;
+    -webkit-mask-image: linear-gradient(to bottom, #000 46%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 46%, transparent 100%);
+  }
+
+  /* The band runs to two or three screens here, so a percentage fade would
+     be a fade several screens long at the bottom and none at all at the
+     top. Stated as a distance instead, which is what it is: the page goes
+     from black to the room over about a tenth of a screen, and back. */
+  .instructor-band::after {
+    background:
+      linear-gradient(to bottom,
+        var(--bg) 0,
+        rgba(10, 10, 15, 0) calc(var(--vh, 1vh) * 11),
+        rgba(10, 10, 15, 0) calc(100% - var(--vh, 1vh) * 14),
+        var(--bg) 100%);
+  }
+
+  /* Where the copy starts, and therefore how much of him is above it.
+     Measured against the same 60 the photograph is given: at 48 the
+     heading lands where the picture is about a third of the way through
+     dissolving, which is clear of his chin and still on him. Both move
+     together on a short phone as well as a tall one. */
+  .instructor-inner {
+    padding: calc(var(--vh, 1vh) * 48) 1.5em 0;
+  }
+
+  .instructor-copy {
+    max-width: none;
+  }
+
+  .instructor-band h2 {
+    font-size: 2em;
+  }
+
+  .instructor-band .section-lead {
+    font-size: 1.1em;
+  }
+}
+
+/* Three of them, and they say short things, so they go in a row wherever
+   there is room for one -- 2+1 only once the row would start truncating.
+   Wider than the copy above them on purpose: they are the section's
+   receipts, and reading as a band across the bottom is the point. */
+.credential-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11em, 1fr));
+  gap: 1em;
+  margin-top: 2em;
+  max-width: 40em;
+}
+
+.credential {
+  border: 1px solid var(--border);
+  border-radius: 0.5em;
+  padding: 1.2em;
+  background: var(--surface);
+}
+
+.credential .number {
+  font-size: 1.8em;
+  font-weight: 900;
+  line-height: 1;
+  margin-bottom: 0.15em;
+}
+
+.credential .label {
+  font-size: 0.92em;
+  color: var(--text-muted);
+}
+
+/* --- Format --- */
+
+.format-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.5em;
+}
+
+.format-item {
+  border-left: 2px solid var(--accent);
+  padding-left: 1.2em;
+}
+
+.format-item .value {
+  font-size: 1.3em;
+  font-weight: 700;
+}
+
+.format-item .desc {
+  font-size: 0.95em;
+  color: var(--text-muted);
+}
+
+/* --- Guarantee ---
+
+   The guarantee is the last format cell's promise made whole: the fourth
+   item ends on "money-back guarantee", and this panel is what that means.
+   So it sits as close to the grid as the grid sits to the lead paragraph,
+   rather than the full section break the two would otherwise get -- 5em of
+   padding from each of them, which read as the grid having finished with
+   the subject.
+
+   2.75em is .section-lead's 2.5em measured at its own 1.1em font size.
+   If that margin changes, this is the number that has to follow it. */
+
+.section-format {
+  padding-bottom: 0;
+}
+
+.section-guarantee {
+  padding-top: 2.75em;
+}
+
+.guarantee {
+  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: 0.75em;
+  padding: 3em 2em;
+  background: var(--surface);
+}
+
+.guarantee h2 {
+  font-size: 1.5em;
+}
+
+.guarantee p {
+  color: var(--text-muted);
+  max-width: 520px;
+  margin: 0.5em auto 0;
+}
+
+/* --- Modal --- */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 2em 1.2em;
+}
+
+.modal.is-open {
+  display: flex;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(5, 5, 8, 0.8);
+  backdrop-filter: blur(0.4em);
+  border: none;
+  cursor: pointer;
+}
+
+.modal-panel:focus {
+  outline: none;
+}
+
+.modal-panel {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.9em;
+  max-width: 720px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 2.4em;
+  box-shadow: 0 1.5em 4em rgba(0, 0, 0, 0.6);
+}
+
+@media (max-width: 640px) {
+  /* The close button used to need its own inset here to stay level with
+     the label under the smaller padding. It is laid out in the row now, so
+     it follows this on its own. */
+  .modal-panel {
+    padding: 1.8em 1.3em;
+    max-height: 88vh;
+  }
+}
+
+/* The week label and the close button share a row rather than the button
+   being positioned over the corner. Laid out, its right edge lands on the
+   panel's content edge -- the same line the heading and body text end on --
+   instead of on a hand-set inset that has to be re-tuned every time the
+   panel's padding changes. align-items centres the two against each other,
+   whichever is taller. */
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+}
+
+.modal-week {
+  font-size: 0.82em;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--warm);
+}
+
+.modal-panel h3 {
+  font-size: 1.8em;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0.15em 0 0.8em;
+}
+
+.modal-body p {
+  color: var(--text-muted);
+  margin-bottom: 1em;
+}
+
+/* The panel's own padding is what should sit under the last line. A
+   trailing margin on top of it reads as a stray gap, and worse, it is
+   inside the scroll area, so a body that only just overflows can scroll by
+   a centimetre of nothing. Any last child, not just a paragraph -- some
+   modules end on the assignment block. */
+.modal-body > :last-child {
+  margin-bottom: 0;
+}
+
+.modal-body h4 {
+  font-size: 0.88em;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text);
+  margin: 1.8em 0 0.6em;
+}
+
+.modal-body .assignment {
+  border-left: 2px solid var(--accent);
+  padding-left: 1.1em;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+/* Smaller ring, larger glyph. Placed by .modal-head, not by inset, so it
+   cannot drift out of line with the week label or the content edge.
+   flex-shrink because the label is the part that should give if the row
+   ever runs out of room -- a squashed circle would be the more obvious
+   failure. */
+.modal-close {
+  flex: 0 0 auto;
+  width: 1.9em;
+  height: 1.9em;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15em;
+  line-height: 1;
+}
+
+/* Two lines in a square viewBox, not a glyph. An X typed as a character
+   sits wherever the font's metrics put it inside the em square -- side
+   bearings, ascender, descender -- and flexbox can only centre the box
+   that glyph lives in, never the marks themselves. So it reads a pixel or
+   two off however the box is aligned, and no combination of line-height or
+   vertical-align fixes it, because the offset belongs to the typeface.
+   Drawn instead, the strokes are symmetric about the viewBox centre by
+   construction, and centring the box centres the X. */
+.modal-close svg {
+  display: block;
+  width: 0.68em;
+  height: 0.68em;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  fill: none;
+}
+
+.modal-close:hover {
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* The canvas colour while the hero is on screen, and the whole of the notch
+   arrangement in four moves:
+
+     1. the top 25px of the hero fades to --hero-top, so the photograph's top
+        edge is that flat colour rather than whatever pixel row the crop
+        happened to land on;
+     2. the body is the same colour, so at rest the strip behind the notch --
+        which Safari fills from the body when nothing fixed is up there to
+        sample -- matches the top of the picture exactly;
+     3. scrolling slides that band up under the notch, and because both sides
+        of the seam are the same colour there is no seam to see;
+     4. past the hero, hero.js adds .is-past-hero and this returns to the
+        page's black, and the strip goes black with it.
+
+   Nothing samples a translucent surface and nothing depends on a safe-area
+   inset. The nav's glass sits on an absolutely positioned child precisely so
+   that Safari keeps reading the body here and step 4 stays true.
+
+   Both of these live in this file rather than headroom.css because both are
+   about the hero. A page without one has no reason to start purple, and every
+   glossary entry is such a page. */
+body {
+  background: var(--hero-top);
+}
+
+/* No transition between the two, and this is the whole of a bug worth writing
+   down. There used to be a 220ms linear fade here, so for a fifth of a second
+   as the header arrived the body was neither colour but a blend of the two --
+   and Safari samples the strip behind the notch once and keeps what it got.
+   Sampled a third of the way through that fade, purple to black gives
+   #200F4A, which is exactly the dark indigo that kept showing up above the
+   header instead of black.
+
+   The swap is instantaneous, so whenever Safari looks, the only two answers
+   available are the two correct ones. Nothing is lost visually either: the
+   header slides in over 340ms across the same moment, which is far more
+   motion than a background step behind it. */
+body.is-past-hero {
+  background: var(--bg);
+}
+
+body.modal-open {
+  overflow: hidden;
+}
+
+/* --- Final CTA + signup form --- */
+
+
+/* Narrower than the paragraph above it. A stacked form is a short column
+   of three identical bars, and it wants to be about as wide as one of them
+   should be rather than as wide as the text it sits under -- a 640px-wide
+   text field reads as a page element, not as something to type a first
+   name into. Centred under the copy instead of edge-matched to it. */
+.signup {
+  position: relative;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* One column at every width. It was two fields and a button in a row on
+   desktop, which put three different jobs on one line and left each of
+   them narrower than it wanted; stacked, they are the same shape and the
+   eye runs straight down them. The fields stretch to the column, and so
+   does the button -- a grid item fills its track unless told not to. */
+.signup-fields {
+  display: grid;
+  gap: 0.6em;
+}
+
+.signup input[type="text"],
+.signup input[type="email"] {
+  font-family: inherit;
+  font-size: 1em;
+  padding: 0.75em 1.1em;
+  border-radius: 2em;
+  border: 1px solid var(--border);
+  background: rgba(10, 10, 15, 0.75);
+  color: var(--text);
+  min-width: 0;
+}
+
+.signup input::placeholder {
+  color: var(--text-muted);
+}
+
+.signup input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+/* No size of its own: it takes .btn-primary's type and padding, the same
+   as the hero's, so the two really are one button in two places rather
+   than two that resemble each other. Its padding no longer competes with
+   anything now that it has a row to itself. nowrap so a narrow phone
+   breaks the column before it breaks the label. */
+.signup button[type="submit"] {
+  white-space: nowrap;
+}
+
+.signup button[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.signup-status {
+  margin-top: 1em;
+  font-size: 0.95em;
+  min-height: 1.5em;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+}
+
+.signup-status.ok {
+  color: #6ee7a8;
+}
+
+.signup-status.err {
+  color: #ff8a6b;
+}
+
+/* Honeypot: hidden from people, tempting to bots. */
+.signup .hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+
+
+/* --- Background art ---
+   Only the matching rule's image is ever fetched, so each device
+   downloads exactly one file per background.
+
+   The hero is `cover` over a full viewport, which on a portrait phone
+   means a landscape photo is scaled to fill the *height* and then hangs
+   off both sides -- a 430x932 screen at 3x would need a 4194px-wide
+   landscape file to be sharp, two thirds of which is cropped away
+   unseen. A portrait crop of the same picture shows the same thing at
+   1400x3043, which is native detail for a 3x phone at a sixth of the
+   pixels. Hence the shape change rather than just a bigger file.
+
+   Keyed on orientation as well as width so a narrow desktop *window*
+   still gets a landscape file; only actual portrait screens get the
+   tall crop. */
+@media (max-width: 799px) and (orientation: portrait) {
+  .hero-bg {
+    background-image: linear-gradient(to bottom, rgba(10, 10, 15, 0.55) 0%, rgba(10, 10, 15, 0.85) 80%, var(--bg) 100%), url('hero-bg-portrait.webp');
+  }
+}
+
+@media (min-width: 800px) {
+  .hero-bg {
+    background-image: linear-gradient(to bottom, rgba(10, 10, 15, 0.55) 0%, rgba(10, 10, 15, 0.85) 80%, var(--bg) 100%), url('hero-bg-2560.webp');
+  }
+}
+
+/* Retina desktop: a 1512pt laptop at 2x is 3024 real pixels wide. */
+@media (min-width: 800px) and (min-resolution: 2dppx) {
+  .hero-bg {
+    background-image: linear-gradient(to bottom, rgba(10, 10, 15, 0.55) 0%, rgba(10, 10, 15, 0.85) 80%, var(--bg) 100%), url('hero-bg-3200.webp');
+  }
+
+  /* The instructor photograph is fitted to the band's height, not the
+     viewport's width, so what it needs is set by how tall the band is --
+     about 1050 CSS px across on a desktop, which is 2100 real ones here.
+     1780 is the whole crop; past that there is no more picture. */
+  .instructor-band::before {
+    background-image: url('instructor-1780.webp');
+  }
+}
+
+/* The phone's portrait crop, at the density a phone actually has. Sits
+   after the layout rule that names the 760, so it replaces it. */
+@media (max-width: 640px) and (min-resolution: 2dppx) {
+  .instructor-band::before {
+    background-image: url('instructor-tall-1400.webp');
+  }
+}

@@ -109,56 +109,11 @@ section: Concepts
     white-space: nowrap;
   }
 
-  .final-cta {
-    text-align: center;
-    padding: 6em 2em;
-    position: relative;
-    background:
-      linear-gradient(to bottom, var(--bg) 0%, rgba(10, 10, 15, 0.5) 30%, rgba(10, 10, 15, 0.5) 70%, var(--bg) 100%),
-      url('/headroom/djvibe-studiox-dt_UuLU_foM-unsplash.jpg') center bottom / cover no-repeat;
-  }
-
-  .final-cta::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    box-shadow: inset 0 0 8em 2em var(--bg);
-    pointer-events: none;
-  }
-
-  .final-cta h2 {
-    font-size: 2em;
-    margin-bottom: 0.4em;
-    position: relative;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
-  }
-
-  .final-cta p {
-    color: var(--text-muted);
-    font-size: 1.1em;
-    position: relative;
-    max-width: 500px;
-    margin: 0 auto 2em;
-  }
-
-  .btn-primary {
-    display: inline-block;
-    background: var(--accent);
-    color: white;
-    text-decoration: none;
-    font-weight: 700;
-    font-size: 1em;
-    padding: 0.75em 2.5em;
-    border-radius: 2em;
-    transition: box-shadow 200ms, transform 200ms;
-    box-shadow: 0 0 1.5em var(--accent-glow);
-    position: relative;
-  }
-
-  .btn-primary:hover {
-    box-shadow: 0 0 2.5em var(--accent-glow);
-    transform: translateY(-1px);
-  }
+  /* .final-cta and .btn-primary come from headroom.css now, the same rules the
+     landing page's call to action uses. The copies that stood here pointed at
+     a photograph the landing page stopped using and which was deleted from the
+     repo, so this block rendered against a 404. Inheriting also brings the
+     responsive backgrounds these never had. */
 
   @media (max-width: 640px) {
     .page-header,
@@ -594,5 +549,5 @@ section: Concepts
     Headroom is an 8-week course covering the technical foundations every
     serious DJ should know — signal flow, equipment, mixing, and more.
   </p>
-  <a class="btn-primary" href="/headroom/#book">Learn about the course</a>
+  <a class="btn-primary btn-comet" href="/headroom/#cta">Learn more about Headroom</a>
 </div>

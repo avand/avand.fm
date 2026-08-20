@@ -1,0 +1,311 @@
+#!/usr/bin/env bash
+#
+# Serve avand.fm locally, and over the tunnel if one is available.
+#
+#   bin/dev              site on :8100, plus the tunnel
+#   NO_TUNNEL=1 bin/dev  local only
+#
+# The Headroom pages are Jekyll now -- front matter and a shared layout -- so
+# this builds the site before serving it, and keeps building as files change.
+# Serving the repo directly, which is what this used to do, would hand the
+# browser raw templates: front matter printed at the top of the page and no
+# nav, footer, or stylesheet, because those live in _layouts/headroom.html and
+# nothing has run to put them there.
+#
+# Video is not served from here. It comes from https://video.avand.fm in
+# preview exactly as in production, so any machine can show the page without
+# first building 400MB of renditions it has no sources for.
+#
+# Both background processes -- jekyll and the web server -- log to .dev.log.
+# Anything that looks like an error is echoed to the terminal as it happens;
+# the file is there for the rest, including the request log.
+#
+# If a stale asset ever bites -- an edit that does not show up, most likely on
+# a phone where you cannot open devtools -- it is the browser's heuristic
+# caching, not this script. Hard-reload, or add a ?v=2 to the URL.
+#
+# A tunnel only exists while a cloudflared process is running: it holds an
+# outbound connection to Cloudflare, and requests for the hostname are routed
+# down that live connection. No process, no tunnel.
+#
+# This uses its own tunnel, separate from The Intern's. Separate tunnels never
+# compete, so both projects can run at once and neither affects the other --
+# where sharing one meant The Intern's idle watchdog would take this down after
+# thirty minutes of *its* inactivity.
+
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+SITE_PORT="${SITE_PORT:-8100}"
+HOSTNAME_FM="fm.avand.dev"
+TUNNEL_CONFIG="$HOME/.cloudflared/avand-fm.yml"
+SITE_DIR="_site"
+# Both background processes log here instead of /dev/null. They used to be
+# silenced, which is fine right up until one of them has something to say.
+LOG=".dev.log"
+
+started_tunnel=""
+jekyll_pid=""
+
+# A dead child stays in the process table as a zombie until it is waited on,
+# and `kill -0` on a zombie still succeeds -- so it cannot tell "running" from
+# "finished a minute ago". The process state can.
+alive() {
+  case "$(ps -o stat= -p "$1" 2>/dev/null || true)" in
+    "" | Z*) return 1 ;;
+    *) return 0 ;;
+  esac
+}
+
+cleanup() {
+  # Only ever stop what this script started.
+  [ -n "${server_pid:-}" ] && kill "$server_pid" 2>/dev/null || true
+  [ -n "${jekyll_pid:-}" ] && kill "$jekyll_pid" 2>/dev/null || true
+  if [ -n "$started_tunnel" ]; then
+    kill "$started_tunnel" 2>/dev/null || true
+  fi
+}
+trap cleanup EXIT INT TERM
+
+# A run that loses its terminal -- a closed tab, a laptop asleep long enough --
+# leaves its web server behind, still holding the port. The next run cannot
+# bind, and since this script waits on that server, it exits about a second
+# after printing its URLs. That reads as "bin/dev quits by itself"; it is
+# really the old copy still standing. Clear our own leftovers. For anything
+# else on the port, say what it is rather than dying quietly.
+holder="$(lsof -nP -iTCP:"$SITE_PORT" -sTCP:LISTEN -t 2>/dev/null | head -1 || true)"
+if [ -n "$holder" ]; then
+  if ps -p "$holder" -o command= 2>/dev/null | grep -q -- "- $SITE_PORT $SITE_DIR"; then
+    echo "  reclaiming port $SITE_PORT from an earlier bin/dev (pid $holder)"
+    kill "$holder" 2>/dev/null || true
+    # Killing it also ends the script that was waiting on it, which runs its
+    # own cleanup -- its jekyll and its tunnel go with it. Give that a moment
+    # to finish before starting a tunnel of our own.
+    for _ in $(seq 1 10); do
+      lsof -nP -iTCP:"$SITE_PORT" -sTCP:LISTEN -t >/dev/null 2>&1 || break
+      sleep 0.5
+    done
+  else
+    echo "port $SITE_PORT is already in use by pid $holder:" >&2
+    ps -p "$holder" -o command= >&2
+    echo "  stop it, or run with SITE_PORT=8101 bin/dev" >&2
+    exit 1
+  fi
+fi
+
+# Jekyll says what went wrong in one line -- the file, and what is wrong with
+# it -- and then prints a page of Ruby backtrace through its own internals.
+# Only the first line is about anything you can fix, so the rest is dropped:
+# every backtrace line names a .rb file, and none of the useful ones do.
+problems() {
+  grep -aE "Exception:|Error:|Warning:" | grep -av "\.rb:" || true
+}
+
+# Jekyll first, and it has to finish once before anything is served -- an empty
+# _site would otherwise be a 404 for however long the first build takes.
+# --watch then keeps it current in the background; edits appear on the next
+# reload rather than needing this script restarted.
+# Through Bundler, always. GitHub's classic Pages builder -- which is what
+# builds avand.fm -- uses its own fixed gem versions, and the Gemfile pins the
+# same set via the github-pages gem. A bare `jekyll` would be whatever version
+# happens to be installed, currently 4.x against production's 3.10: close
+# enough to look right, different enough to render wrong.
+if ! bundle exec jekyll --version >/dev/null 2>&1; then
+  echo "jekyll is not available through Bundler." >&2
+  echo "  bundle install         (needs a Ruby newer than the one Apple ships;" >&2
+  echo "                          mise.toml pins one for this repo)" >&2
+  exit 1
+fi
+
+start_jekyll() {
+  # Fresh log each time, so the error reported below is always this run's.
+  : >"$LOG"
+  bundle exec jekyll build --quiet --destination "$SITE_DIR" --watch >>"$LOG" 2>&1 &
+  jekyll_pid=$!
+  jekyll_started="$(date +%s)"
+}
+
+echo "  building ..."
+bundle exec jekyll build --quiet --destination "$SITE_DIR"
+start_jekyll
+
+# Python's stock static server, binding every interface so a phone on the LAN
+# and the tunnel can both reach it. The site is plain files, and the video it
+# references is fetched from R2 by the browser, not served here.
+#
+# Two things are added on top of the stock handler, both about the same
+# problem: an edit that does not show up on a phone, where there is no
+# devtools and no real hard-reload.
+#
+# First, Cache-Control: no-store. The stock server sends no caching headers at
+# all, so Safari falls back to heuristic freshness and picks its own expiry.
+#
+# Second, every local .js/.css reference in an HTML page is stamped with that
+# file's modification time on the way out. no-store only governs responses
+# served after it was added -- anything a browser already stored under an
+# unchanged URL stays there, which is how an afternoon went into debugging
+# JavaScript the device was not running. A URL that changes whenever the file
+# changes cannot be answered from cache at all, and needs no hand-maintained
+# version numbers to do it.
+python3 - "$SITE_PORT" "$SITE_DIR" >>"$LOG" 2>&1 <<'PY' &
+import io
+import os
+import re
+import sys
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+
+ASSET = re.compile(rb'(src|href)="([^":?]+\.(?:js|css))(?:\?[^"]*)?"')
+
+
+class Dev(SimpleHTTPRequestHandler):
+    def end_headers(self):
+        self.send_header("Cache-Control", "no-store, must-revalidate")
+        self.send_header("Pragma", "no-cache")
+        self.send_header("Expires", "0")
+        super().end_headers()
+
+    def send_header(self, keyword, value):
+        # The parent adds its own Last-Modified/ETag, which is what a cache
+        # revalidates against; dropping them keeps it from ever getting a 304.
+        if keyword in ("Last-Modified", "ETag"):
+            return
+        super().send_header(keyword, value)
+
+    def send_head(self):
+        path = self.translate_path(self.path)
+
+        if os.path.isdir(path):
+            if not self.path.split("?", 1)[0].endswith("/"):
+                return super().send_head()  # let the parent redirect
+            index = os.path.join(path, "index.html")
+            if not os.path.exists(index):
+                return super().send_head()
+            path = index
+        elif not path.endswith((".html", ".htm")):
+            return super().send_head()
+
+        try:
+            with open(path, "rb") as f:
+                body = f.read()
+        except OSError:
+            return super().send_head()
+
+        body = ASSET.sub(lambda m: self._stamp(m, os.path.dirname(path)), body)
+
+        self.send_response(200)
+        self.send_header("Content-type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        return io.BytesIO(body)
+
+    @staticmethod
+    def _stamp(match, base):
+        attr, url = match.group(1), match.group(2)
+        # Someone else's file: not ours to version, and not ours to break.
+        if url.startswith((b"http:", b"https:", b"//")):
+            return match.group(0)
+        # A leading slash means the site root, not this page's directory. The
+        # shared stylesheet is referenced that way -- it has to be, since a
+        # concept page sits two directories below the file -- and stripping the
+        # slash and joining it to the page's own directory looked for
+        # _site/headroom/headroom/headroom.css, missed, and silently left the
+        # reference unstamped. Which is the one case this whole mechanism
+        # exists for: an edit to the CSS that does not show up.
+        ref = url.decode("utf-8")
+        if ref.startswith("/"):
+            local = os.path.join(os.getcwd(), ref.lstrip("/"))
+        else:
+            local = os.path.join(base, ref)
+        try:
+            stamp = int(os.path.getmtime(local))
+        except OSError:
+            return match.group(0)
+        return attr + b'="' + url + b"?d=" + str(stamp).encode() + b'"'
+
+
+os.chdir(sys.argv[2])
+ThreadingHTTPServer(("", int(sys.argv[1])), Dev).serve_forever()
+PY
+server_pid=$!
+
+echo "  local   http://localhost:$SITE_PORT/headroom/"
+
+if [ "${NO_TUNNEL:-}" = "1" ]; then
+  echo "  tunnel  skipped (NO_TUNNEL=1)"
+else
+  if pgrep -f "cloudflared tunnel --config $TUNNEL_CONFIG" >/dev/null 2>&1; then
+    echo "  tunnel  https://$HOSTNAME_FM/headroom/  (already running)"
+  elif ! command -v cloudflared >/dev/null 2>&1; then
+    echo "  tunnel  unavailable (cloudflared not installed)"
+  elif [ ! -f "$TUNNEL_CONFIG" ]; then
+    echo "  tunnel  unavailable (no $TUNNEL_CONFIG)"
+  else
+    cloudflared tunnel --config "$TUNNEL_CONFIG" run >/dev/null 2>&1 &
+    started_tunnel=$!
+    # Give it a moment to register before claiming it works.
+    for _ in $(seq 1 20); do
+      sleep 1
+      if curl -sS -m 5 -o /dev/null "https://$HOSTNAME_FM/headroom/" 2>/dev/null; then break; fi
+    done
+    echo "  tunnel  https://$HOSTNAME_FM/headroom/"
+  fi
+fi
+
+echo
+echo "Ctrl-C to stop."
+
+# Watch both children, not just the server. Everything below is about the same
+# complaint -- an edit that does not show up -- and its two causes. A broken
+# file mid-session only makes jekyll log the error and skip that page; the same
+# file when jekyll starts is fatal, and the watcher exits. Both used to happen
+# into /dev/null, so the script stayed up looking healthy either way. Now the
+# error is printed, and a watcher that died comes back on its own.
+log_pos=0
+while :; do
+  sleep 1
+
+  # Say what jekyll only wrote down. A bad tag or a broken bit of front matter
+  # does not stop the watcher -- it logs the error, keeps the last good copy of
+  # that page in _site, and carries on. On screen that is nothing at all: the
+  # page just stops changing, and you go looking at the browser, the cache, the
+  # tunnel. Everything new in the log that reads like an error goes to the
+  # terminal, where it can be seen.
+  size="$(wc -c <"$LOG" 2>/dev/null || echo 0)"
+  if [ "$size" -lt "$log_pos" ]; then log_pos=0; fi   # restarted; log truncated
+  if [ "$size" -gt "$log_pos" ]; then
+    tail -c "+$((log_pos + 1))" "$LOG" | problems | sed "s/^ */    /"
+    log_pos="$size"
+  fi
+
+  if ! alive "$server_pid"; then
+    echo
+    echo "The web server stopped:" >&2
+    tail -20 "$LOG" >&2
+    exit 1
+  fi
+  if ! alive "$jekyll_pid"; then
+    wait "$jekyll_pid" 2>/dev/null || true
+
+    problem="$(problems <"$LOG" | head -1)"
+    if [ -n "$problem" ] && [ "$problem" != "${last_problem:-}" ]; then
+      echo
+      echo "  jekyll stopped:"
+      printf "%s\n" "$problem" | sed "s/^ */    /"
+      echo "  watching again -- fix that and the next save rebuilds."
+      echo
+      last_problem="$problem"
+    fi
+
+    # A file that is still broken kills the new watcher as fast as it starts,
+    # which is a relaunch a second for as long as it takes to fix. Back off
+    # when that happens, and drop back to an instant restart once one lives.
+    if [ "$(($(date +%s) - jekyll_started))" -lt 10 ]; then
+      retry_wait="$((${retry_wait:-1} * 2))"
+      if [ "$retry_wait" -gt 30 ]; then retry_wait=30; fi
+    else
+      retry_wait=1
+    fi
+    sleep "$retry_wait"
+    start_jekyll
+  fi
+done
