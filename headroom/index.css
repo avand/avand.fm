@@ -2051,7 +2051,11 @@ h2 {
      the fallback is close enough to be unremarkable for the one frame
      before it lands. */
   top: calc(var(--nav-h, 3.4em) + 18px);
-  width: var(--band-w);
+  /* Wider than the band by exactly what the end dots hang over it, with
+     that difference given back as padding -- see the note on the clip
+     below. The content box is still the band. */
+  width: calc(var(--band-w) + 2 * var(--dot-reach));
+  padding-inline: var(--dot-reach);
   margin: 0 auto 4em;
   /* The dot's outer diameter and its ring, in one place, because the
      cursor is cut from them: it is exactly the interior, so when it is
@@ -2074,16 +2078,32 @@ h2 {
      upstream of it has to change.
 
      x only: the sparks are supposed to fly above and below the bar, and
-     clipping those would be clipping the effect rather than the bug. The
-     clip margin is the gap between the band and the edge of the screen,
-     so on a phone the cut lands exactly at the viewport edge -- as far out
-     as they can go without costing anything. */
+     clipping those would be clipping the effect rather than the bug.
+
+     The room the outermost dots need is taken as padding rather than as
+     overflow-clip-margin, which is what this used to do and what cut weeks
+     one and eight in half on an iPhone. Safari applies overflow: clip and
+     ignores the margin, so the cut landed on the band edge -- which is
+     exactly where the first and last marks are centred, so each lost half
+     its circle. Chrome honours the margin, which is why it looked right
+     everywhere it was checked.
+
+     Padding cannot be ignored. With border-box the content box is still
+     the band, so the track, the dates and every mark sit precisely where
+     they did; the padding box is what grows, and overflow clips against
+     that. On a phone it reaches to within 4px of the screen -- still short
+     of the viewport, so the spark burst below cannot widen the document
+     and set Safari zooming out to fit. */
   overflow: clip;
-  overflow-clip-margin: 1.5em;
   --dot-size: 28px;
   --dot-border: 3px;
   /* Grab room around the dot. Part of the button, not of the circle. */
   --tap-pad: 8px;
+  /* How far a mark hangs past the end of the track it is centred on: half
+     the circle, plus the tap padding that is part of the button. The one
+     number the width and the padding are both cut from, so they cannot
+     drift apart -- and it follows the two overrides on a phone. */
+  --dot-reach: calc(var(--dot-size) / 2 + var(--tap-pad));
   z-index: 50;
   display: flex;
   align-items: center;
