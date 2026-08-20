@@ -1,0 +1,145 @@
+---
+layout: headroom
+title: "Controller — Headroom DJ Glossary"
+description: "A controller is DJ hardware that gives you physical decks, faders, and knobs, but needs a laptop running DJ software to do the actual work."
+section: Concepts
+section_url: /headroom/concepts/
+subsection: Controller
+---
+
+<div class="entry-header">
+  <div class="breadcrumb">
+    <a href="/headroom/">Headroom</a>
+    <span>/</span>
+    <a href="/headroom/concepts/">Concepts</a>
+    <span>/</span>
+    Controller
+  </div>
+  <h1>Controller</h1>
+  <p class="lead">
+    DJ hardware that gives you real jog wheels, faders, and knobs, but has no
+    computer of its own — it needs a laptop running DJ software to make any
+    sound at all.
+  </p>
+</div>
+
+<div class="entry-content">
+
+  <p>
+    The name is honest. A controller <em>controls</em> software; it does not
+    play music. Every knob and platter on it is a sensor wired to a small chip
+    that reports what you did — "channel two fader is now at 87," "jog wheel
+    moved 14 ticks counter-clockwise" — over USB, as MIDI or HID messages. Your
+    laptop reads those messages, does the real work (decoding the file,
+    stretching it to tempo, applying EQ and effects, summing the channels), and
+    sends finished audio back down the same cable to the sound card built into
+    the controller, which converts it to analog for the speakers.
+  </p>
+
+  <p>
+    So the audio makes a round trip you can't see: hardware to laptop as control
+    data, laptop to hardware as sound. Unplug the USB cable and the controller
+    keeps lighting up and spinning, and produces exactly nothing. That's the
+    line between a controller and an
+    <a href="/headroom/concepts/all-in-one/">all-in-one</a>, which carries its
+    own computer inside and plays straight off a USB stick.
+  </p>
+
+  <div class="callout">
+    <p>
+      It's a steering wheel, not a car. Beautifully weighted, satisfying to
+      hold, and it will take you precisely nowhere without the engine bolted on
+      behind it. The engine, in this case, has a keyboard and needs charging.
+    </p>
+  </div>
+
+  <h2>What's actually in the box</h2>
+
+  <ul>
+    <li><strong>Controls</strong> — jog wheels, pitch faders, performance pads, EQ and filter knobs, a crossfader. All of it is sensors, not signal path.</li>
+    <li><strong>An audio interface</strong> (sound card) with the master output and, on most units, a separate headphone output so you can cue in private.</li>
+    <li><strong>A USB connection</strong> carrying control data one way and audio the other.</li>
+    <li><strong>No processor doing DJ work.</strong> The EQ knob doesn't touch the audio — it tells the software to move a digital filter.</li>
+  </ul>
+
+  <p>
+    That last point has a real consequence: what the mixer section sounds like
+    is decided by the software, not the hardware. Two controllers running the
+    same software behave identically. The same controller running Serato instead
+    of rekordbox can have different filter and EQ curves entirely.
+  </p>
+
+  <h2>Examples</h2>
+
+  <ul>
+    <li><strong>Pioneer DJ DDJ-FLX4</strong> — the standard entry point: two channels, bundled with rekordbox and Serato, cheap enough to be a first purchase rather than a commitment.</li>
+    <li><strong>Pioneer DJ DDJ-FLX6-GT and DDJ-FLX10</strong> — four-channel units with club-style layouts, aimed at people practicing for <a href="/headroom/concepts/standalone-player/">CDJ</a> booths.</li>
+    <li><strong>Rane ONE</strong> — motorized platters that spin like turntables, built for Serato and for scratch DJs.</li>
+    <li><strong>Native Instruments Traktor Kontrol S4 MK3</strong> — four decks, motorized haptic jogs, tied to Traktor Pro.</li>
+    <li><strong>Numark Mixtrack Platinum FX</strong> — a budget mainstay, and a good example of how much a controller can include (jog displays, pads, FX) while still being a shell around your laptop.</li>
+  </ul>
+
+  <h2>Why it matters in the booth</h2>
+
+  <p>
+    Controllers win on price, features, and library convenience. You mix from
+    the same library that lives on your laptop, with no export step, and the
+    software gets new features whenever it updates. Per dollar, no other format
+    gives you as many faders and pads.
+  </p>
+
+  <p>
+    They lose on reliability, and the reason is architectural rather than
+    unlucky. Audio playback is a hard real-time deadline: the sound card must be
+    handed the next buffer of samples before the current one runs out, every few
+    milliseconds, forever. A laptop is a general-purpose machine that will
+    happily preempt your DJ software to index a folder or check for updates.
+    Miss the deadline and the buffer runs dry, which you hear as a click, a
+    crackle, or a horrifying half-second of silence. Every "turn off Wi-Fi
+    before you play" ritual is really about protecting that deadline.
+  </p>
+
+  <div class="callout">
+    <p>
+      Buying a controller is not a dead end. The layout, the muscle memory, and
+      the mixing skills all carry over to CDJs and standalone gear — what
+      doesn't carry is the laptop. Learn the fundamentals on cheap hardware, and
+      the club rig becomes a matter of finding the buttons, not learning to DJ
+      again.
+    </p>
+  </div>
+
+  <h2>In the context of Headroom</h2>
+
+  <p>
+    <a href="/headroom/#curriculum">Module 3: Gear</a> covers the tradeoffs
+    between laptop-only, controller, all-in-one, and CDJ setups — including how
+    a controller's <a href="/headroom/concepts/signal-flow/">signal flow</a>
+    differs from a hardware mixer's, and what that means when you plug into a
+    club's system.
+  </p>
+
+  <div class="related">
+    <h3>Related terms</h3>
+    <div class="related-list">
+      <a href="/headroom/concepts/all-in-one/">All-In-One</a>
+      <a href="/headroom/concepts/signal-flow/">Signal Flow</a>
+      <a href="/headroom/concepts/beat-sync/">Beat Sync</a>
+      <a href="/headroom/concepts/hot-cues/">Hot Cues</a>
+      <a href="/headroom/concepts/beat-grid/">Beat Grid</a>
+      <a href="/headroom/concepts/line-level/">Line Level</a>
+      <a href="/headroom/concepts/waveform/">Waveform</a>
+      <a href="/headroom/concepts/standalone-player/">Standalone Player</a>
+    </div>
+  </div>
+
+</div>
+
+<div class="final-cta">
+  <h2>Want to go deeper?</h2>
+  <p>
+    Headroom is an 8-week course covering the technical foundations every
+    serious DJ should know — signal flow, equipment, mixing, and more.
+  </p>
+  <a class="btn-primary btn-comet" href="/headroom/#cta">Learn more about Headroom</a>
+</div>
