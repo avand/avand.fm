@@ -4036,6 +4036,15 @@
       margin-bottom: 1em;
     }
 
+    /* The panel's own padding is what should sit under the last line. A
+       trailing margin on top of it reads as a stray gap, and worse, it is
+       inside the scroll area, so a body that only just overflows can scroll by
+       a centimetre of nothing. Any last child, not just a paragraph -- some
+       modules end on the assignment block. */
+    .modal-body > :last-child {
+      margin-bottom: 0;
+    }
+
     .modal-body h4 {
       font-size: 0.88em;
       font-weight: 700;
@@ -4949,8 +4958,8 @@
                 <span class="module-week">Week 7</span>
                 <h3>Attunement</h3>
                 <p class="module-outcome">
-                Develop the awareness, communication, and etiquette to navigate high-stakes, shared performance spaces
-                with confidence and ease.
+                Learn how to connect with your audience from the moment you start playing and navigate the booth with
+                other DJs.
                 </p>
               </header>
 
@@ -4961,10 +4970,10 @@
                 </div>
                 <div class="curr-copy">
                   <ul class="module-points">
-                  <li>Equipment as an extension of the body</li>
-                  <li>Consent &amp; clean hand-offs</li>
-                  <li>Reputation &amp; being easy to work with</li>
                   <li>Reading the crowd &amp; earning trust</li>
+                  <li>DJ booth etiquette</li>
+                  <li>Clean hand-offs</li>
+                  <li>Playing what you want vs. what they want</li>
                 </ul>
                   <button class="read-more">
                   Learn more
@@ -5010,10 +5019,10 @@
                 </div>
                 <div class="curr-copy">
                   <ul class="module-points">
-                  <li>Pre-show routines &amp; riders</li>
-                  <li>Reading the room &amp; taking the reins</li>
-                  <li>Slot-appropriate sets &amp; promotion</li>
-                  <li>Closing, teardown, &amp; post-show care</li>
+                  <li>Pre-show routines, riders, and self-care</li>
+                  <li>How to take the stage</li>
+                  <li>Audience engagement &amp; using the mic</li>
+                  <li>Closing, teardown, &amp; post-show routines</li>
                 </ul>
                   <button class="read-more">
                   Learn more
