@@ -23,3 +23,6 @@ _site/
 .sass-cache/
 .bundle/
 vendor/
+
+# bin/dev keeps its background processes' output here.
+.dev.log

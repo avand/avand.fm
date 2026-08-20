@@ -15,3 +15,9 @@ source "https://rubygems.org"
 # Bump this version when GitHub bumps theirs; the Ruby they build on is in
 # that same versions.json, and mise.toml tracks it.
 gem "github-pages", "~> 232", group: :jekyll_plugins
+
+# Not part of the Pages gem set, and not needed to build the site. Octokit
+# reaches for Faraday's retry middleware, which moved out of Faraday itself in
+# v2, and without it every local build opens with a warning about a gem the
+# site does not use. Installing it is quieter than reading past it.
+gem "faraday-retry", group: :jekyll_plugins

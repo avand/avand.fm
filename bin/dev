@@ -16,6 +16,10 @@
 # preview exactly as in production, so any machine can show the page without
 # first building 400MB of renditions it has no sources for.
 #
+# Both background processes -- jekyll and the web server -- log to .dev.log.
+# Anything that looks like an error is echoed to the terminal as it happens;
+# the file is there for the rest, including the request log.
+#
 # If a stale asset ever bites -- an edit that does not show up, most likely on
 # a phone where you cannot open devtools -- it is the browser's heuristic
 # caching, not this script. Hard-reload, or add a ?v=2 to the URL.
@@ -36,9 +40,22 @@ SITE_PORT="${SITE_PORT:-8100}"
 HOSTNAME_FM="fm.avand.dev"
 TUNNEL_CONFIG="$HOME/.cloudflared/avand-fm.yml"
 SITE_DIR="_site"
+# Both background processes log here instead of /dev/null. They used to be
+# silenced, which is fine right up until one of them has something to say.
+LOG=".dev.log"
 
 started_tunnel=""
 jekyll_pid=""
+
+# A dead child stays in the process table as a zombie until it is waited on,
+# and `kill -0` on a zombie still succeeds -- so it cannot tell "running" from
+# "finished a minute ago". The process state can.
+alive() {
+  case "$(ps -o stat= -p "$1" 2>/dev/null || true)" in
+    "" | Z*) return 1 ;;
+    *) return 0 ;;
+  esac
+}
 
 cleanup() {
   # Only ever stop what this script started.
@@ -49,6 +66,40 @@ cleanup() {
   fi
 }
 trap cleanup EXIT INT TERM
+
+# A run that loses its terminal -- a closed tab, a laptop asleep long enough --
+# leaves its web server behind, still holding the port. The next run cannot
+# bind, and since this script waits on that server, it exits about a second
+# after printing its URLs. That reads as "bin/dev quits by itself"; it is
+# really the old copy still standing. Clear our own leftovers. For anything
+# else on the port, say what it is rather than dying quietly.
+holder="$(lsof -nP -iTCP:"$SITE_PORT" -sTCP:LISTEN -t 2>/dev/null | head -1 || true)"
+if [ -n "$holder" ]; then
+  if ps -p "$holder" -o command= 2>/dev/null | grep -q -- "- $SITE_PORT $SITE_DIR"; then
+    echo "  reclaiming port $SITE_PORT from an earlier bin/dev (pid $holder)"
+    kill "$holder" 2>/dev/null || true
+    # Killing it also ends the script that was waiting on it, which runs its
+    # own cleanup -- its jekyll and its tunnel go with it. Give that a moment
+    # to finish before starting a tunnel of our own.
+    for _ in $(seq 1 10); do
+      lsof -nP -iTCP:"$SITE_PORT" -sTCP:LISTEN -t >/dev/null 2>&1 || break
+      sleep 0.5
+    done
+  else
+    echo "port $SITE_PORT is already in use by pid $holder:" >&2
+    ps -p "$holder" -o command= >&2
+    echo "  stop it, or run with SITE_PORT=8101 bin/dev" >&2
+    exit 1
+  fi
+fi
+
+# Jekyll says what went wrong in one line -- the file, and what is wrong with
+# it -- and then prints a page of Ruby backtrace through its own internals.
+# Only the first line is about anything you can fix, so the rest is dropped:
+# every backtrace line names a .rb file, and none of the useful ones do.
+problems() {
+  grep -aE "Exception:|Error:|Warning:" | grep -av "\.rb:" || true
+}
 
 # Jekyll first, and it has to finish once before anything is served -- an empty
 # _site would otherwise be a 404 for however long the first build takes.
@@ -66,10 +117,17 @@ if ! bundle exec jekyll --version >/dev/null 2>&1; then
   exit 1
 fi
 
+start_jekyll() {
+  # Fresh log each time, so the error reported below is always this run's.
+  : >"$LOG"
+  bundle exec jekyll build --quiet --destination "$SITE_DIR" --watch >>"$LOG" 2>&1 &
+  jekyll_pid=$!
+  jekyll_started="$(date +%s)"
+}
+
 echo "  building ..."
 bundle exec jekyll build --quiet --destination "$SITE_DIR"
-bundle exec jekyll build --quiet --destination "$SITE_DIR" --watch >/dev/null 2>&1 &
-jekyll_pid=$!
+start_jekyll
 
 # Python's stock static server, binding every interface so a phone on the LAN
 # and the tunnel can both reach it. The site is plain files, and the video it
@@ -89,7 +147,7 @@ jekyll_pid=$!
 # JavaScript the device was not running. A URL that changes whenever the file
 # changes cannot be answered from cache at all, and needs no hand-maintained
 # version numbers to do it.
-python3 - "$SITE_PORT" "$SITE_DIR" >/dev/null 2>&1 <<'PY' &
+python3 - "$SITE_PORT" "$SITE_DIR" >>"$LOG" 2>&1 <<'PY' &
 import io
 import os
 import re
@@ -195,4 +253,59 @@ fi
 
 echo
 echo "Ctrl-C to stop."
-wait "$server_pid"
+
+# Watch both children, not just the server. Everything below is about the same
+# complaint -- an edit that does not show up -- and its two causes. A broken
+# file mid-session only makes jekyll log the error and skip that page; the same
+# file when jekyll starts is fatal, and the watcher exits. Both used to happen
+# into /dev/null, so the script stayed up looking healthy either way. Now the
+# error is printed, and a watcher that died comes back on its own.
+log_pos=0
+while :; do
+  sleep 1
+
+  # Say what jekyll only wrote down. A bad tag or a broken bit of front matter
+  # does not stop the watcher -- it logs the error, keeps the last good copy of
+  # that page in _site, and carries on. On screen that is nothing at all: the
+  # page just stops changing, and you go looking at the browser, the cache, the
+  # tunnel. Everything new in the log that reads like an error goes to the
+  # terminal, where it can be seen.
+  size="$(wc -c <"$LOG" 2>/dev/null || echo 0)"
+  if [ "$size" -lt "$log_pos" ]; then log_pos=0; fi   # restarted; log truncated
+  if [ "$size" -gt "$log_pos" ]; then
+    tail -c "+$((log_pos + 1))" "$LOG" | problems | sed "s/^ */    /"
+    log_pos="$size"
+  fi
+
+  if ! alive "$server_pid"; then
+    echo
+    echo "The web server stopped:" >&2
+    tail -20 "$LOG" >&2
+    exit 1
+  fi
+  if ! alive "$jekyll_pid"; then
+    wait "$jekyll_pid" 2>/dev/null || true
+
+    problem="$(problems <"$LOG" | head -1)"
+    if [ -n "$problem" ] && [ "$problem" != "${last_problem:-}" ]; then
+      echo
+      echo "  jekyll stopped:"
+      printf "%s\n" "$problem" | sed "s/^ */    /"
+      echo "  watching again -- fix that and the next save rebuilds."
+      echo
+      last_problem="$problem"
+    fi
+
+    # A file that is still broken kills the new watcher as fast as it starts,
+    # which is a relaunch a second for as long as it takes to fix. Back off
+    # when that happens, and drop back to an instant restart once one lives.
+    if [ "$(($(date +%s) - jekyll_started))" -lt 10 ]; then
+      retry_wait="$((${retry_wait:-1} * 2))"
+      if [ "$retry_wait" -gt 30 ]; then retry_wait=30; fi
+    else
+      retry_wait=1
+    fi
+    sleep "$retry_wait"
+    start_jekyll
+  fi
+done
