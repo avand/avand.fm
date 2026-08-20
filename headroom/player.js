@@ -32,6 +32,8 @@
      a fresh clone, got a site with no video and no hint why. A new video is a
      new asset: upload it, then preview it. */
   var VIDEO_BASE = "https://video.avand.fm/";
+  // Bumped when a captions.vtt is re-uploaded. See loadCaptions.
+  var CAPTIONS_V = 2;
 
   var HLS_LIB = "hls.min.js";
 
@@ -338,7 +340,13 @@
     this.captionsLoaded = true;
 
     var self = this;
-    fetch(VIDEO_BASE + this.slug + "/captions.vtt")
+    /* Captions upload to R2 with a year's cache, at a URL that never changes.
+       A corrected file therefore does not reach anyone who already has the old
+       one -- including this browser -- until the URL does. Bump CAPTIONS_V
+       whenever a captions.vtt is re-uploaded; it is the same trick as the ?v=
+       on the script tags in index.html, and the same discipline: the edit is
+       not shipped until the number moves. */
+    fetch(VIDEO_BASE + this.slug + "/captions.vtt?v=" + CAPTIONS_V)
       .then(function (res) {
         if (!res.ok) throw new Error("no captions");
         return res.text();
@@ -394,14 +402,25 @@
    * Two lines rather than one because the cues are short fragments broken
    * mid-sentence ("I think most people think that DJs are" / "sort of
    * mystical or magical"), so a single line would read as half a thought. The
-   * pair also means there is always something on screen: the cues here run
-   * end-to-start with no gaps, and before playback begins the opening two sit
-   * there unhighlighted rather than leaving a hole in the page.
+   * pair also means there is always something on screen: the line selected is
+   * the last one to have *started*, so it stays up through any gap after it,
+   * and before playback begins the opening two sit there unhighlighted rather
+   * than leaving a hole in the page.
    *
    * The word highlight is interpolated, not measured -- a cue carries only a
    * start and an end, so its words are spread evenly across that span. It
    * tracks the voice closely enough to read as following along, and nothing
    * here is load-bearing if it drifts.
+   *
+   * That interpolation is only as good as the cue's end time, which is worth
+   * knowing when one looks wrong. Whisper originally wrote this file with each
+   * cue ending exactly where the next begins, so every pause in the delivery
+   * was absorbed by the line before it: "they have to get that message out to
+   * their audience" is said by 26.8s but its cue ran to 31.0s, and ten words
+   * spread over the longer span left the highlight seconds behind the voice.
+   * The fix was in the caption file, not here -- those ends were pulled back to
+   * where the speech actually stops. If a line ever lags again, check its end
+   * time against the audio before reaching for this code.
    */
   // Matches the transition on .cc-frame in the stylesheet; the outgoing lines
   // are removed once it has run.

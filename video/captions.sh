@@ -85,7 +85,19 @@ for entry in "${VIDEOS[@]}"; do
     perl -pi -e "$fix" "$WORK/$slug.vtt"
   done
 
-  cp "$WORK/$slug.vtt" "dist/$slug/captions.vtt"
+  # A hand-edited file wins. brand's cues were re-broken by hand so lines end
+  # on whole thoughts, and four of its end times were pulled back to where the
+  # speech actually stops -- Whisper writes each cue ending where the next
+  # begins, which hands every pause to the line before it and leaves the word
+  # highlight crawling seconds behind the voice. Without this check, a re-run
+  # here plus an upload would quietly undo that work, and the only symptom
+  # would be captions drifting again on the page.
+  if [ -f "$slug-captions-merged.vtt" ]; then
+    echo "    using hand-edited $slug-captions-merged.vtt (generated copy at $WORK/$slug.vtt)"
+    cp "$slug-captions-merged.vtt" "dist/$slug/captions.vtt"
+  else
+    cp "$WORK/$slug.vtt" "dist/$slug/captions.vtt"
+  fi
   lines=$(grep -c '^[0-9][0-9]:' "dist/$slug/captions.vtt" || true)
   echo "    $lines caption cues"
 done

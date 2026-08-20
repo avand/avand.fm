@@ -132,3 +132,28 @@ Transcription is accurate on ordinary speech but unreliable on proper nouns, so
 CDJs, AlphaTheta, Mixed In Key). Read the text before shipping. Note the fixups
 run through `perl`, not `sed`: BSD sed reads basic regular expressions, where
 `?` is a literal and `\b` means nothing, so the patterns silently match nothing.
+
+### Hand-edited captions
+
+If `<slug>-captions-merged.vtt` sits next to the script, `captions.sh` copies
+that into `dist/` instead of what it just transcribed. Only `brand` has one, and
+it is tracked because it is the file that actually ships.
+
+Two things were fixed there by hand, and both are invisible until you watch the
+page. The lines were re-broken so each ends on a whole thought rather than
+mid-sentence, which matters because the brand video renders its captions as
+page text rather than an overlay. And four cue end times were pulled back to
+where the speech stops.
+
+That second one is the subtle one. Whisper writes each cue ending exactly where
+the next begins, so a pause in the delivery gets absorbed by the line *before*
+it. The player spreads a line's words evenly across its span, so a stretched cue
+leaves the highlight crawling behind the voice -- "they have to get that message
+out to their audience" is said by 26.8s but its cue ran to 31.0s, and the
+highlight finished about four seconds late. If a caption ever looks out of sync,
+check its end time against the audio before suspecting the player.
+
+**Re-uploading a captions file needs a version bump.** They are cached for a
+year at a URL that never changes, so the player requests `captions.vtt?v=N`;
+`CAPTIONS_V` in `headroom/player.js` is that N. Change the file, bump the
+number, or nobody sees the change -- including you.
