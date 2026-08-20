@@ -1085,8 +1085,12 @@
 .hero-video {
   position: relative;
   max-width: min(calc(100vw - 3em), 1140px, calc((var(--vh, 1vh) * 100 - 8em) * 16 / 9));
-  /* The captions below carry the gap to whatever follows. */
-  margin: 0 auto 1.4em;
+  /* The captions below carry the gap to whatever follows. Not the full
+     gap: .brand-captions now opens with 0.55em of its own top padding
+     (headroom for the outgoing line to rise into before the clip), so
+     that much comes off here to leave the space between the two as it
+     was. */
+  margin: 0 auto 0.85em;
 }
 
 /* This video's captions, as page text rather than an overlay -- the line
@@ -1111,13 +1115,31 @@
      everywhere else, and adjacent margins collapse to the larger of the
      two, so it would have quietly won. */
   margin: 0 auto;
-  padding: 0 1.5em;
+  --cc-pad-x: 1.5em;
+  /* Top padding, not a margin: the outgoing lines rise 0.55em before they
+     are gone, and the clip below happens at the padding edge, so this is
+     the room they rise into without being sliced. */
+  padding: 0.55em var(--cc-pad-x) 0;
   text-align: center;
   font-size: clamp(1.03em, 2.15vw, 1.3em);
   line-height: 1.5;
-  /* Room for all three, so a longer line turning over doesn't shove the
-     rest of the page down and back. */
-  min-height: 6.4em;
+  /* Fixed, not a minimum. Three cues are three lines on a wide screen but
+     four, five or six once they start turning over, and a box that grew
+     and shrank with them moved the whole page under the reader every time
+     a line changed -- visible as a jitter while the video plays and you
+     are reading something further down.
+
+     So the height is set and whatever does not fit is cut. The cut is not
+     a hard edge: the mask fades the last 1.6em out, and the read-ahead
+     lines are already the faintest thing here, so a fourth or fifth line
+     dissolves into the page rather than being chopped. Anything past that
+     was unreadable grey anyway.
+
+     4.5em of that is the three lines; the rest is the fade's room. */
+  height: 7em;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 1.6em), transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 1.6em), transparent 100%);
 }
 
 /* One turn of the lines. The outgoing set rises and fades while the
@@ -1133,12 +1155,15 @@
 
 .cc-frame.is-out {
   /* Out of flow so the incoming lines take this space straight away
-     rather than waiting for the transition to finish. */
+     rather than waiting for the transition to finish. Offset by the
+     box's own top padding, which is where the in-flow lines start. */
   position: absolute;
-  left: 1.5em;
-  right: 1.5em;
-  top: 0;
-  transform: translateY(-0.75em);
+  left: var(--cc-pad-x);
+  right: var(--cc-pad-x);
+  top: 0.55em;
+  /* The rise is the same length as that padding on purpose -- the box
+     clips now, and this is what keeps the rise inside it. */
+  transform: translateY(-0.55em);
   opacity: 0;
   pointer-events: none;
 }
@@ -1245,6 +1270,22 @@
 
   .hero-video .player {
     box-shadow: 0 1em 2em rgba(0, 0, 0, 0.6);
+  }
+
+  /* A phone is the one place these lines turn over. The cues run up to 64
+     characters and fitting that on a 390px screen would mean type around
+     11px, which is not worth reading -- so this does not chase the longest
+     line. Smaller type and a narrower gutter buy roughly 44 characters to
+     54, which holds most of the file (the median cue is 45) and leaves the
+     long tail to wrap into the fade below.
+
+     Taller here for the same reason: what does wrap needs somewhere to go,
+     and the empty column under the video on a phone is the one place there
+     is room for it. */
+  .brand-captions {
+    --cc-pad-x: 0.85em;
+    font-size: 0.92em;
+    height: 8.5em;
   }
 }
 
@@ -2315,7 +2356,7 @@ h2 {
    The range is where the curriculum starts and where its last week
    arrives, in document pixels, written by timeline.js whenever the page
    changes shape. Browsers without this keep the --t path below. */
-@supports (animation-timeline: scroll()) {
+@supports (animation-timeline: diagnostic-off()) {
   @keyframes tl-travel {
     from {
       transform: translateX(0);

@@ -38,10 +38,7 @@
      stylesheet drives both scroll-bound transforms from a scroll timeline and
      this file does not write --t at all -- the value would be recomputed every
      frame for two elements that had stopped reading it. */
-  var COMPOSITED =
-    window.CSS &&
-    CSS.supports &&
-    CSS.supports("animation-timeline", "scroll()");
+  var COMPOSITED = false; /* TEMPORARY diagnostic -- restore before committing */
 
   var marks = Array.prototype.slice.call(el.querySelectorAll(".tl-mark"));
   var nav = document.querySelector(".site-nav");
