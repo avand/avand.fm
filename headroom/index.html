@@ -950,27 +950,33 @@ description: "Advanced DJ training for aspiring performers. An eight-week, end-t
       /* Once per visit, on the first field somebody touches. Reaching the
          form is a pageview; starting to fill it in is the thing that says
          they meant it, and it is what the submit and success counts below are
-         worth reading against. */
+         worth reading against.
+
+         Named for the section it is in -- #cta -- and not for the form, the
+         same way every other name here is the place rather than the feature.
+         The offer has already changed once, from an announcement list to a
+         free sample class; the anchor was renamed for that reason and these
+         names would have had to be too. */
       form.addEventListener("focusin", function () {
-        if (window.Track) Track.once("headroom / signup / focus");
+        if (window.Track) Track.once("headroom / cta / focus");
       });
 
       form.addEventListener("submit", function (e) {
         e.preventDefault();
-        if (window.Track) Track.event("headroom / signup / submit");
+        if (window.Track) Track.event("headroom / cta / submit");
 
         var name = form.elements.firstName.value.trim();
         var email = form.elements.email.value.trim();
 
         if (!name) {
           say("What should I call you?", "err");
-          if (window.Track) Track.event("headroom / signup / error / missing-name");
+          if (window.Track) Track.event("headroom / cta / error / missing-name");
           form.elements.firstName.focus();
           return;
         }
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
           say("That email doesn't look right.", "err");
-          if (window.Track) Track.event("headroom / signup / error / invalid-email");
+          if (window.Track) Track.event("headroom / cta / error / invalid-email");
           form.elements.email.focus();
           return;
         }
@@ -1023,11 +1029,11 @@ description: "Advanced DJ training for aspiring performers. An eight-week, end-t
             if (!data || !data.ok) throw new Error(data && data.error);
             say("You're in. I'll send the class dates shortly.", "ok");
             form.reset();
-            if (window.Track) Track.event("headroom / signup / success");
+            if (window.Track) Track.event("headroom / cta / success");
           })
           .catch(function () {
             say("That didn't go through. Email me at " + FALLBACK_EMAIL + " and I'll add you.", "err");
-            if (window.Track) Track.event("headroom / signup / error / network");
+            if (window.Track) Track.event("headroom / cta / error / network");
           })
           .finally(function () {
             button.disabled = false;

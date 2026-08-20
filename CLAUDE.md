@@ -79,6 +79,10 @@ were an event.
 The naming scheme, and why the name has to carry everything Fathom cannot, is
 documented at the top of `events.js`. Read it before inventing a name.
 
+**Only the landing page fires events.** The concept pages did, briefly, and the
+eleven names it took were noise next to the pageviews those pages already
+produce. `events.js` still loads on them, because it is what loads Fathom.
+
 Where JavaScript is unavoidable, call through the guard: `if (window.Track)
 Track.event("…")`. The guard is not superstition — the file is same-origin but
 ad blockers match on filenames, which is also why it is not called

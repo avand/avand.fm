@@ -19,8 +19,14 @@
 {% comment %}
   The event-name prefix for every event on this page: the page's own path, so
   a name in the Fathom dashboard says where it happened without being told.
-  The landing page is /headroom/; everything else here is a concept page. See
-  the naming note at the top of events.js.
+  See the naming note at the top of events.js.
+
+  Only the landing page carries any. A concept page's whole story is which
+  entry somebody read and where they went next, and the first half of that is
+  already a pageview -- so a breadcrumb and a nav link firing events on
+  forty-three pages was eleven names buying almost nothing. The area is still
+  set for both, because it names an outbound link that carries no attribute of
+  its own, and because a concept page may yet earn an event worth having.
 {% endcomment %}{% if page.landing %}{% assign area = "headroom" %}{% else %}{% assign area = "headroom / concepts" %}{% endif %}
 <html lang="en" dir="ltr"{% if page.landing %} class="has-hero"{% endif %}>
 
@@ -203,8 +209,8 @@
 <body data-track-area="{{ area }}">
   <nav class="site-nav">
     <div class="brand">
-      <a href="/" data-track="{{ area }} / nav / avand-fm">avand.fm</a> <span class="brand-sep">/</span>
-      {% if page.landing %}<span class="brand-here">headroom</span>{% else %}<a class="brand-here" href="/headroom/" data-track="{{ area }} / nav / headroom">headroom</a>{% endif %}
+      <a href="/"{% if page.landing %} data-track="headroom / nav / avand-fm"{% endif %}>avand.fm</a> <span class="brand-sep">/</span>
+      {% if page.landing %}<span class="brand-here">headroom</span>{% else %}<a class="brand-here" href="/headroom/">headroom</a>{% endif %}
     </div>
     <!-- The CTA is an in-page jump to #cta, so it only belongs on a page that
          has one. The glossary keeps its own lighter call to action at the foot
@@ -234,9 +240,9 @@
       {% endif %}
       <p class="footer-signoff">Built with passion and purpose.</p>
       <div class="colophon">
-        <a href="/" data-track="{{ area }} / footer / avand-fm">avand.fm</a> &middot;
-        {% if page.landing %}Headroom{% else %}<a href="/headroom/" data-track="{{ area }} / footer / headroom">Headroom</a>{% endif %}
-        {% if page.section %}&middot; {% if page.section_url %}<a href="{{ page.section_url }}" data-track="{{ area }} / footer / {{ page.section | downcase }}">{{ page.section }}</a>{% else %}{{ page.section }}{% endif %}{% endif %}
+        <a href="/"{% if page.landing %} data-track="headroom / footer / avand-fm"{% endif %}>avand.fm</a> &middot;
+        {% if page.landing %}Headroom{% else %}<a href="/headroom/">Headroom</a>{% endif %}
+        {% if page.section %}&middot; {% if page.section_url %}<a href="{{ page.section_url }}">{{ page.section }}</a>{% else %}{{ page.section }}{% endif %}{% endif %}
         {% if page.subsection %}&middot; {{ page.subsection }}{% endif %}
         &middot; 2026
       </div>
