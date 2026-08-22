@@ -128,11 +128,31 @@ this repo. Its own header comment covers what it does and why it is shaped that
 way; this is about moving it.
 
 ```sh
-bin/apps-script status   # who you are, which script, which deployment
+bin/apps-script status   # who you are, which script, which deployment, and any drift
+bin/apps-script check    # does the live form match apps-script/? exit 1 if not
 bin/apps-script pull     # bring the live editor's code down (do this in a fresh clone)
 bin/apps-script push     # upload -- does NOT change what the form hits
 bin/apps-script deploy   # push, cut a version, advance the form's deployment
 ```
+
+**Deploy the script before merging the page, always.** These are two separate
+releases — merging to `master` publishes the site, and nothing about that touches
+Google — so there is a window where one is new and the other is old. Which
+window you get is the only part you control.
+
+There is no version of this where they change together. Pages caches for ten
+minutes and browsers hold copies for longer, so at every merge there are people
+running last week's page against whatever is deployed right now. That is why the
+endpoint has to stay backward compatible with the page before it — the `kind`
+check in `doPost` exists for exactly that reason. Deploy-first is just the
+ordering that keeps the gap inside a guarantee the endpoint already has to make:
+new script, old page. Merge-first is the other one, old script and new page, and
+nothing protects that.
+
+`bin/apps-script check` is what makes a forgotten deploy visible. It does not
+compare version numbers — it pulls the version the form is actually serving and
+diffs it against `apps-script/`, so it answers the real question, which is
+whether visitors are running this code. Run it before merging.
 
 **Push and deploy are not the same thing, and the difference is silent.** A push
 replaces the code in Google's online editor. The form does not run that code --

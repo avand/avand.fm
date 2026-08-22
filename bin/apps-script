@@ -6,6 +6,7 @@
 #   bin/apps-script pull     bring the live editor's code back down
 #   bin/apps-script push     upload the code -- does NOT change what the form hits
 #   bin/apps-script deploy   push, cut a version, point the form's URL at it
+#   bin/apps-script check    does the live form match apps-script/? (exit 1 if not)
 #   bin/apps-script logs     open the executions view in a browser
 #   bin/apps-script open     the Apps Script editor, in a browser
 #
@@ -81,6 +82,45 @@ deployment_id() {
   printf '%s' "$id"
 }
 
+# What is actually in front of the form, byte for byte.
+#
+# Not a version number comparison -- the interesting question is not "is the
+# deployment behind HEAD", it is "does the code visitors are hitting differ
+# from the code in this working tree", and only a diff answers that. Pulls the
+# deployed version into a scratch directory so it cannot touch apps-script/.
+deployed_version() {
+  clasp list-deployments --json \
+    | jq -r --arg d "$(deployment_id)" '.[] | select(.deploymentId == $d) | .versionNumber // empty'
+}
+
+drift() {
+  local version scratch
+  version=$(deployed_version)
+  [ -n "$version" ] || die "The deployment in $ENDPOINT_FILE is serving @HEAD or does not exist."
+
+  scratch=$(mktemp -d)
+  trap 'rm -rf "$scratch"' RETURN
+  mkdir -p "$scratch/src"
+  jq --arg r src '.rootDir = $r' .clasp.json > "$scratch/.clasp.json"
+  (cd "$scratch" && clasp pull --versionNumber "$version" >/dev/null 2>&1) \
+    || die "Could not fetch deployed version $version."
+
+  # The deployed file may still carry its original name; compare content only.
+  local live repo
+  live=$(cat "$scratch"/src/*.gs 2>/dev/null)
+  repo=$(cat apps-script/*.gs 2>/dev/null)
+
+  if [ "$live" = "$repo" ] && diff -q "$scratch/src/appsscript.json" apps-script/appsscript.json >/dev/null 2>&1; then
+    say "In sync: version $version is what apps-script/ says."
+    return 0
+  fi
+
+  printf '\033[33m%s\033[0m\n' "DRIFT: the form is running version $version, which is not what apps-script/ says."
+  diff <(printf '%s' "$live") <(printf '%s' "$repo") | head -40
+  printf '\033[33m%s\033[0m\n' "bin/apps-script deploy to close it."
+  return 1
+}
+
 case "${1:-}" in
   status)
     require_script_id
@@ -90,6 +130,8 @@ case "${1:-}" in
     say "Deployment: $(deployment_id)  (from $ENDPOINT_FILE)"
     echo
     clasp show-file-status
+    echo
+    drift || true
     ;;
 
   pull)
@@ -127,11 +169,17 @@ case "${1:-}" in
   # clasp tail-logs wants a linked Cloud project, and this script uses the
   # hidden one Apps Script creates for you -- so it answers "GCP project ID is
   # not set" and stops. The editor's own Executions view needs nothing.
+  check)
+    require_script_id
+    require_manifest
+    drift
+    ;;
+
   logs)  require_script_id; open "https://script.google.com/home/projects/$(script_id)/executions" ;;
   open)  require_script_id; clasp open-script ;;
 
   *)
-    sed -n '3,10p' "$0" | sed 's/^# \{0,1\}//'
+    sed -n '3,11p' "$0" | sed 's/^# \{0,1\}//'
     exit 1
     ;;
 esac
