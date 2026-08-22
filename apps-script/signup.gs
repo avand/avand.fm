@@ -69,6 +69,53 @@
  * changing this one does not touch it.
  *
  * ---------------------------------------------------------------------------
+ * WHY oauthScopes IS WRITTEN OUT
+ * ---------------------------------------------------------------------------
+ * Apps Script will work the scopes out from the code by itself, and that is
+ * the usual way. It is not the way here, for two reasons found the hard way.
+ *
+ * Detection is quiet when it is wrong. Adding a MailApp call did not produce
+ * an authorization prompt; the function ran, threw at the call, and the throw
+ * was caught, so the editor reported a clean run that had done nothing. A
+ * declared scope prompts because it is declared, not because something was
+ * noticed.
+ *
+ * And detection grants whatever the code happens to imply, which for mail is
+ * a lot. See below.
+ *
+ * gmail.send is listed and nothing sends yet. That is deliberate -- the
+ * confirmation email is next, and the scope is already consented.
+ *
+ * ---------------------------------------------------------------------------
+ * SENDING AS headroom@avand.fm TAKES THE GMAIL API, NOT MailApp
+ * ---------------------------------------------------------------------------
+ * Mail from here has to come from headroom@avand.fm. It is a verified send-as
+ * alias on the account this runs as, and there are three ways to use it. Two
+ * of them do not work, and neither says so.
+ *
+ * MailApp.sendEmail takes a `from` option, it is documented, and it is
+ * ignored. No error, no warning -- the mail simply goes out from the account's
+ * primary address. Every send during a morning of testing looked successful
+ * and none of them had the right sender. That is the failure to watch for: the
+ * only thing that ever revealed it was reading the From line of a delivered
+ * message.
+ *
+ * GmailApp.sendEmail does honour `from`, and wants https://mail.google.com/ --
+ * read, send, and permanently delete anything in the mailbox -- to do it.
+ * A signup confirmation does not need the keys to the mailbox.
+ *
+ * Gmail.Users.Messages.send takes a raw RFC 822 message, so the From header is
+ * written here rather than substituted by anything, and it needs only
+ * gmail.send: send, and no read of any kind. That is the one to use, and it is
+ * why the Gmail advanced service is switched on in appsscript.json.
+ *
+ * A diagnostic worth keeping, if the sender ever looks wrong again:
+ * Gmail.Users.Settings.SendAs.list("me") reports every alias with its
+ * verificationStatus and treatAsAlias, which distinguishes a misconfigured
+ * alias from an ignored From header. It needs gmail.settings.basic, so add
+ * that scope for the duration and take it out again.
+ *
+ * ---------------------------------------------------------------------------
  * WHY THE FORM POSTS text/plain
  * ---------------------------------------------------------------------------
  * This is the one thing that reliably breaks this integration, so it is
