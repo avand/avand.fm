@@ -71,9 +71,31 @@ var SHEET_NAME = "";
 /** Columns, in order. Changing this changes new rows only. */
 var HEADERS = ["Timestamp", "First name", "Email", "Source", "Page"];
 
+/**
+ * Privacy requests -- access, correction, deletion -- from the form on
+ * /headroom/privacy/. They land on their own tab, created on first use, and
+ * never in with the mailing list: somebody asking to be deleted is the
+ * opposite of a signup, and a request sitting in the middle of the CRM is one
+ * that gets missed.
+ *
+ * The form exists because the alternative is a mailto: link, and publishing an
+ * address on a page is publishing it to every scraper that reads the page too.
+ * The law wants a contact route that works, not specifically an inbox.
+ */
+var REQUEST_SHEET_NAME = "Privacy requests";
+var REQUEST_HEADERS = ["Timestamp", "Email", "Request", "Message", "Page"];
+
+/** What the form may ask for. Anything else is recorded as "other". */
+var REQUEST_KINDS = ["copy", "correct", "delete", "other"];
+
 function doPost(e) {
   try {
     var payload = parseBody(e);
+
+    // One endpoint, two forms. Absent kind means the mailing list, so the
+    // signup form keeps working unchanged and older cached copies of the page
+    // -- which send no kind at all -- are not broken by this.
+    if (String(payload.kind || "") === "privacy") return privacyRequest(payload);
 
     var name = String(payload.firstName || "").trim();
     var email = String(payload.email || "").trim();
@@ -96,8 +118,8 @@ function doPost(e) {
     if (!lock.tryLock(20000)) return json({ ok: false, error: "busy" });
 
     try {
-      var sheet = targetSheet();
-      ensureHeaders(sheet);
+      var sheet = targetSheet(SHEET_NAME);
+      ensureHeaders(sheet, HEADERS);
 
       // Capped because nothing upstream of a public URL limits the length of
       // what arrives, and a cell holding a novel is a nuisance to clean up.
@@ -141,20 +163,69 @@ function parseBody(e) {
   return (e && e.parameter) || {};
 }
 
-function targetSheet() {
+/**
+ * A privacy request. Only an email address is required -- it is the one thing
+ * needed to answer -- and the message is optional, because "delete everything"
+ * needs no elaboration.
+ *
+ * Deliberately never rejected for anything but a malformed address. A request
+ * that bounces off a validation rule is a person who now believes this site
+ * ignores them, which is precisely the failure the page promises will not
+ * happen.
+ */
+function privacyRequest(payload) {
+  var email = String(payload.email || "").trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return json({ ok: false, error: "email invalid" });
+  }
+
+  // Same honeypot as the signup form: answer as though it worked, write
+  // nothing.
+  if (String(payload.company || "").trim()) return json({ ok: true });
+
+  var kind = String(payload.request || "").trim();
+  if (REQUEST_KINDS.indexOf(kind) === -1) kind = "other";
+
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(20000)) return json({ ok: false, error: "busy" });
+
+  try {
+    var sheet = targetSheet(REQUEST_SHEET_NAME, true);
+    ensureHeaders(sheet, REQUEST_HEADERS);
+    sheet.appendRow([
+      new Date(),
+      email.slice(0, 254),
+      kind,
+      String(payload.message || "").slice(0, 2000),
+      String(payload.page || "").slice(0, 500),
+    ]);
+  } finally {
+    lock.releaseLock();
+  }
+
+  return json({ ok: true });
+}
+
+/**
+ * `create` makes the tab if it is missing, which the privacy tab needs and the
+ * signup tab must not have: a typo in SHEET_NAME should fail loudly rather
+ * than silently start a second, empty mailing list.
+ */
+function targetSheet(name, create) {
   var book = SpreadsheetApp.openById(SPREADSHEET_ID);
-  // A SHEET_NAME that matches nothing would otherwise return null and fail
-  // deeper in, on a stack that says nothing about the actual mistake.
-  var sheet = SHEET_NAME ? book.getSheetByName(SHEET_NAME) : book.getSheets()[0];
-  if (!sheet) throw new Error('No tab named "' + SHEET_NAME + '"');
+  // A name that matches nothing would otherwise return null and fail deeper
+  // in, on a stack that says nothing about the actual mistake.
+  var sheet = name ? book.getSheetByName(name) : book.getSheets()[0];
+  if (!sheet && name && create) sheet = book.insertSheet(name);
+  if (!sheet) throw new Error('No tab named "' + name + '"');
   return sheet;
 }
 
 /** Write the header row once, on the first submission into an empty sheet. */
-function ensureHeaders(sheet) {
+function ensureHeaders(sheet, headers) {
   if (sheet.getLastRow() > 0) return;
-  sheet.appendRow(HEADERS);
-  sheet.getRange(1, 1, 1, HEADERS.length).setFontWeight("bold");
+  sheet.appendRow(headers);
+  sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold");
   sheet.setFrozenRows(1);
 }
 

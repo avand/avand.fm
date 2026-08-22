@@ -3550,6 +3550,31 @@ body.modal-open {
   color: #ff8a6b;
 }
 
+/* The disclosure under the form. Quiet by design -- smaller and dimmer than
+   the status line above it, which is the one thing in this block that has to
+   be read. It sits over the hero's gradient like everything else here, hence
+   the same shadow the status line carries. */
+.signup-fineprint {
+  margin-top: 0.6em;
+  font-size: 0.8em;
+  line-height: 1.5;
+  color: var(--text-muted);
+  max-width: 34em;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+}
+
+.signup-fineprint a {
+  color: var(--text-muted);
+  /* Underlined rather than coloured: it is the only link in this block, and
+     accenting it would have it competing with the button beside it. */
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.signup-fineprint a:hover {
+  color: var(--text);
+}
+
 /* Honeypot: hidden from people, tempting to bots. */
 .signup .hp {
   position: absolute;

@@ -153,19 +153,20 @@
        cached the way the scripts are, and an un-bumped edit reaches nobody for
        ten minutes. -->
   <link rel="stylesheet" href="/headroom/headroom.css?v=7" />
-  {% if page.landing %}<link rel="stylesheet" href="/headroom/index.css?v=8" />{% endif %}
-  {% if page.subsection %}<link rel="stylesheet" href="/headroom/concepts/concepts.css?v=2" />{% endif %}
+  {% if page.landing %}<link rel="stylesheet" href="/headroom/index.css?v=9" />{% endif %}
+  {% if page.subsection %}<link rel="stylesheet" href="/headroom/concepts/concepts.css?v=4" />{% endif %}
 
-  <!-- Analytics. The Fathom snippet used to sit here; it is loaded by
-       events.js now, which is the one file that knows about Fathom at all --
-       including the rule that it only loads on avand.fm, so bin/dev and the
-       tunnel do not report into the live site.
+  <!-- Analytics. The Fathom snippet used to sit here; both vendors are loaded
+       by events.js now -- Fathom, and the OpenAI ads conversion pixel -- which
+       is the one file that knows either of them exists, including the rule
+       that they only load on avand.fm, so bin/dev and the tunnel do not report
+       into the live site or into the ad account.
 
        First of the deferred scripts, and deferred scripts run in document
        order, so window.Track exists before player.js and the rest of the
        landing page's own scripts. Bump ?v= in the same commit as any change
        to it, the same as the stylesheets above. -->
-  <script src="/headroom/events.js?v=1" defer></script>
+  <script src="/headroom/events.js?v=2" defer></script>
 
 {% if page.landing %}
   <script>
@@ -244,6 +245,13 @@
         {% if page.landing %}Headroom{% else %}<a href="/headroom/">Headroom</a>{% endif %}
         {% if page.section %}&middot; {% if page.section_url %}<a href="{{ page.section_url }}">{{ page.section }}</a>{% else %}{{ page.section }}{% endif %}{% endif %}
         {% if page.subsection %}&middot; {{ page.subsection }}{% endif %}
+        {% comment %}
+          Privacy is in the colophon on every page, landing and glossary alike,
+          because the thing it discloses -- the ads pixel -- initialises on all
+          of them. On the privacy page itself it is already sitting above as
+          the subsection, so it is not repeated as a link, the same way the
+          landing page renders "Headroom" as text rather than a link to itself.
+        {% endcomment %}{% unless page.url == "/headroom/privacy/" %}&middot; <a href="/headroom/privacy/">Privacy</a>{% endunless %}
         &middot; 2026
       </div>
     </div>

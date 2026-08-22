@@ -109,6 +109,24 @@
   font-size: 0.85em;
 }
 
+/* Inline literals -- a cookie name, a hostname, a fragment of a hash. The
+   glossary entries have never needed one; the privacy page, which shares this
+   stylesheet, is full of them, and unstyled <code> falls back to a browser
+   default monospace that sizes itself well below the surrounding text. em
+   rather than a fixed size so it tracks whatever it is sitting inside. */
+.entry-content code {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.88em;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.3em;
+  padding: 0.1em 0.35em;
+  /* These are identifiers, not prose: better to scroll one than to have
+     __oppref hyphenate itself across a line break on a phone. */
+  overflow-wrap: break-word;
+}
+
 .callout {
   border-left: 3px solid var(--accent);
   padding: 1em 1.4em;
@@ -120,6 +138,107 @@
 .callout p {
   margin: 0;
   font-size: 0.97em;
+}
+
+/* ---------------------------------------------------------------------------
+   The privacy request form.
+
+   Here rather than in index.css because the privacy page runs on the glossary
+   layout and never loads index.css -- which is also why .signup's rules,
+   including its honeypot, are unavailable and repeated in miniature below.
+   Deliberately plainer than the landing page's signup: this is a form somebody
+   fills in because they have to, not one being sold to them.
+   --------------------------------------------------------------------------- */
+.request {
+  max-width: 480px;
+  margin: 1.5em 0 0;
+}
+
+.request label {
+  display: block;
+  font-size: 0.85em;
+  font-weight: 700;
+  color: var(--text);
+  margin: 1.2em 0 0.4em;
+}
+
+.request label .optional {
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.request input[type="email"],
+.request select,
+.request textarea {
+  width: 100%;
+  padding: 0.7em 0.8em;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.4em;
+  color: var(--text);
+  /* Inputs do not inherit the page font, and 16px is the floor below which
+     iOS Safari zooms the viewport on focus and does not zoom back out. */
+  font-family: inherit;
+  font-size: 16px;
+}
+
+.request textarea {
+  resize: vertical;
+  min-height: 5em;
+}
+
+.request select {
+  /* Safari ignores the colours above on a select unless appearance is reset,
+     and then draws no arrow, so one is supplied. */
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--text-muted) 50%),
+    linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
+  background-position: calc(100% - 1.1em) 1.25em, calc(100% - 0.75em) 1.25em;
+  background-size: 0.35em 0.35em, 0.35em 0.35em;
+  background-repeat: no-repeat;
+  padding-right: 2.4em;
+}
+
+.request input:focus-visible,
+.request select:focus-visible,
+.request textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.request button {
+  margin-top: 1.4em;
+}
+
+.request button[disabled] {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.request-status {
+  margin-top: 1em;
+  font-size: 0.95em;
+  color: var(--text-muted);
+  min-height: 1.4em;
+}
+
+.request-status.ok {
+  color: var(--text);
+}
+
+.request-status.err {
+  color: var(--warm);
+}
+
+/* The honeypot. Off-screen rather than display:none, because a bot that reads
+   computed styles skips a hidden field and fills a visible one. */
+.request .hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
 }
 
 .related {

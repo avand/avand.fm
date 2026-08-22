@@ -27,6 +27,12 @@ case "$rel" in
   headroom/concepts/concepts.css) holder="_layouts/headroom.html"; pattern='concepts\.css\?v=[0-9]+' ;;
   video/dist/*/captions.vtt)      holder="headroom/player.js";     pattern='CAPTIONS_V = [0-9]+' ;;
   headroom/hls.min.js)            exit 0 ;;  # vendored, loaded by name from player.js
+  # events.js is the exception to the line below: it is loaded from the layout,
+  # not from index.html, so that is where its version lives. Without this case
+  # it falls through to headroom/*.js and gets checked against a number in
+  # index.html that has nothing to do with it -- which warns even when the
+  # layout was bumped correctly, and stays quiet when it was not.
+  headroom/events.js)             holder="_layouts/headroom.html"; pattern='events\.js\?v=[0-9]+' ;;
   headroom/*.js)                  holder="headroom/index.html";    pattern='\?v=[0-9]+' ;;
   *)                              exit 0 ;;
 esac

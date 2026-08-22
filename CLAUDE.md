@@ -53,9 +53,10 @@ links is load-bearing — `index.css` overrides `headroom.css`.
 
 ## Analytics
 
-Fathom. `headroom/events.js` is the only file that knows that — it loads the
-Fathom script itself, and only on `avand.fm`, so `bin/dev` and the tunnel do
-not report into the live site. Set `localStorage["track-debug"] = "1"` to see
+Two vendors, one file. `headroom/events.js` is the only place that knows either
+exists — it loads the Fathom script and the OpenAI ads conversion pixel itself,
+and only on `avand.fm`, so `bin/dev` and the tunnel report into neither the live
+site nor the ad account. Set `localStorage["track-debug"] = "1"` to see
 every event in the console; on any host but `avand.fm` that is the default.
 
 Most events need no JavaScript. A `data-track` attribute is one:
@@ -81,12 +82,40 @@ documented at the top of `events.js`. Read it before inventing a name.
 
 **Only the landing page fires events.** The concept pages did, briefly, and the
 eleven names it took were noise next to the pageviews those pages already
-produce. `events.js` still loads on them, because it is what loads Fathom.
+produce. `events.js` still loads on them, because it is what loads the vendors.
 
 Where JavaScript is unavoidable, call through the guard: `if (window.Track)
 Track.event("…")`. The guard is not superstition — the file is same-origin but
 ad blockers match on filenames, which is also why it is not called
-`analytics.js`.
+`analytics.js`. `window.Track` and nothing more: the failure it guards is
+all-or-nothing, so there is no state where `Track` exists but a method on it
+does not, and `if (window.Track && Track.lead)` would imply a hazard that
+cannot happen.
+
+Nothing in that guard, though, keeps a throw *inside* it from escaping. See
+the note at the signup form's success branch.
+
+## The OpenAI pixel is a different animal
+
+Fathom counts behaviour and nobody is billed by the answer. The OpenAI pixel
+exists to tell an ad account that money produced a signup, and it reports
+exactly one thing — `lead_created`, from `Track.lead()`, on the success branch
+of the signup form. Not on submit: a submission the Apps Script rejects is not
+a lead, and a campaign bidding toward a number that includes failures buys the
+wrong traffic.
+
+Its event names come from OpenAI's fixed vocabulary and have nothing to do with
+the `page / section / element` scheme above.
+
+It **initialises on the concept pages too**, which is not a violation of the
+rule above — initialising fires no event. OpenAI attributes a conversion
+through `oppref`, a parameter it appends to whatever URL the ad pointed at,
+read once at init and parked in a cookie. A page without the pixel is a click
+that can never be attributed.
+
+None of it can be exercised locally: it is inside the same `avand.fm` gate as
+Fathom, and `crypto.subtle` (used to hash the email) does not exist over plain
+http anyway. Verifying means one real signup on production.
 
 ## Cache-busting is manual, and forgetting is silent
 

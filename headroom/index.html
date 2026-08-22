@@ -735,6 +735,26 @@ description: "Advanced DJ training for aspiring performers. An eight-week, end-t
         <label>Company <input type="text" name="company" tabindex="-1" autocomplete="off" /></label>
       </div>
       <p class="signup-status" role="status" aria-live="polite"></p>
+      <!-- Required where it is required, and good manners everywhere else:
+           the disclosure has to be at the point the data is collected, not
+           only linked from the footer. Deliberately below the button, so it
+           informs without standing between somebody and the thing they came
+           to do.
+
+           It covers the email and only the email, on purpose. That agreement
+           is specific and is genuinely given by pressing the button. The ad
+           cookie is not mentioned because submission cannot be consent for it:
+           it is set at page load, when the ad reference arrives, long before
+           anybody reaches this form. Wording that implied otherwise would
+           describe something that already happened, and would weaken the half
+           that does work by bundling it with a half that cannot. The cookie is
+           disclosed on the linked page instead. -->
+      <p class="signup-fineprint">
+        By submitting this form you&rsquo;re agreeing to the
+        <a href="/headroom/privacy/" data-track="headroom / cta / privacy">Privacy Policy</a>.
+        Your email is only used to let you know about course offerings.
+        Unsubscribe at any time.
+      </p>
     </form>
   </div>
 
@@ -1029,7 +1049,27 @@ description: "Advanced DJ training for aspiring performers. An eight-week, end-t
             if (!data || !data.ok) throw new Error(data && data.error);
             say("You're in. I'll send the class dates shortly.", "ok");
             form.reset();
-            if (window.Track) Track.event("headroom / cta / success");
+            /* Same moment, two audiences: the first counts a signup, the
+               second tells the OpenAI ad account that a click it charged for
+               became one. Only success gets the pair -- the submit and error
+               events have no ad-side equivalent, because a lead is a lead only
+               once it lands.
+
+               try/catch because this runs INSIDE the success .then(), where an
+               exception is indistinguishable from a failed signup: it would
+               fall to the .catch below, replace "You're in" with "That didn't
+               go through, email me" for somebody already on the list, and
+               report a network error that did not happen. Nothing in here is
+               worth that. The throw above it is deliberate and must still
+               reach the .catch, which is why this wraps the analytics only. */
+            try {
+              if (window.Track) {
+                Track.event("headroom / cta / success");
+                Track.lead(name, email);
+              }
+            } catch (err) {
+              if (window.console) console.error(err);
+            }
           })
           .catch(function () {
             say("That didn't go through. Email me at " + FALLBACK_EMAIL + " and I'll add you.", "err");

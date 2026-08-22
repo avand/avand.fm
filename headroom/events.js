@@ -1,9 +1,10 @@
 /*
- * Analytics: the one place that knows about Fathom.
+ * Analytics: the one place that knows which vendors this site reports to.
  *
- * Two jobs. It loads Fathom, and it turns a `data-track` attribute into an
- * event -- so the ordinary case, "somebody pressed this thing", is markup
- * rather than a listener somebody has to remember to write.
+ * Three jobs. It loads Fathom, it loads the OpenAI ads pixel, and it turns a
+ * `data-track` attribute into an event -- so the ordinary case, "somebody
+ * pressed this thing", is markup rather than a listener somebody has to
+ * remember to write.
  *
  *   <a href="#cta" data-track="headroom / hero / cta">Join a free class</a>
  *
@@ -16,6 +17,30 @@
  * Loaded from the layout, so both the landing page and the concept pages get
  * it, and first in document order among the deferred scripts -- so window.Track
  * exists by the time player.js runs.
+ *
+ *
+ * THE TWO VENDORS ARE NOT THE SAME KIND OF THING
+ *
+ * Fathom counts behaviour: what people did on the page, named by the scheme
+ * below, and nobody is billed by the answer. The OpenAI pixel exists to tell
+ * an ad account that money spent produced a signup -- it reports ONE thing,
+ * `lead_created`, when the form succeeds.
+ *
+ * So they are gated differently, and deliberately:
+ *
+ *   - Fathom events fire from the landing page only. That rule stands.
+ *   - The pixel INITIALISES on every page under /headroom/, including the
+ *     forty-three glossary entries. That is not a violation of the rule --
+ *     initialising fires no event. It is there because OpenAI attributes a
+ *     conversion through `oppref`, a parameter it appends to whatever URL the
+ *     ad pointed at, which the SDK reads once at init and parks in a
+ *     first-party cookie. If an ad ever points at a glossary entry and the
+ *     pixel is not there to catch it, that click is unattributable forever.
+ *
+ * OpenAI's event names are a closed vocabulary from its docs and have nothing
+ * to do with the scheme below. `lead_created` is a standard name, which is
+ * what lets a campaign optimise bidding toward it; a custom name cannot be
+ * used that way, which is why this does not invent one.
  *
  *
  * NAMES
@@ -55,6 +80,11 @@
      hostname cannot go wrong that way. */
   var LIVE = location.hostname === "avand.fm";
   var SITE = "ITRXNPNT";
+
+  /* The OpenAI ads data source for avand.fm, from Tools > Conversions in Ads
+     Manager. Public by design -- it is in the page source of every site that
+     runs one, and it identifies where a conversion goes, not who may send it. */
+  var PIXEL = "4vwqTNei7uTQTgByJxxCfo";
 
   /* Fathom's snippet has no stub queue: window.fathom does not exist until the
      script has loaded, and anything fired before then is simply lost. Since
@@ -124,7 +154,7 @@
     event(name);
   }
 
-  window.Track = { event: event, once: once };
+  window.Track = { event: event, once: once, lead: lead };
 
   /* Which part of the site this page is. Set by the layout; used to name
      outbound links that carry no attribute of their own. */
@@ -180,12 +210,161 @@
     true
   );
 
-  /* Fathom itself, last: everything above is ready for it before it exists. */
+  /*
+   * ---------------------------------------------------------------------
+   * The OpenAI ads pixel
+   * ---------------------------------------------------------------------
+   *
+   * OpenAI's own snippet, kept in the shape they publish it so it stays
+   * diffable against their docs. The one change is `debug`, which is hardcoded
+   * true in the copy Ads Manager hands you -- here it follows the same
+   * localStorage switch as everything else in this file.
+   *
+   * Unlike Fathom, this has a stub queue built in: `oaiq` exists the moment
+   * this runs and buffers calls until the SDK arrives. So nothing above needs
+   * the pending/deadline machinery Fathom needs, and a blocked SDK -- which is
+   * likelier here, bzrcdn.openai.com being an ad-tech hostname that filter
+   * lists hit far harder than Fathom's CDN -- costs a conversion rather than
+   * throwing.
+   */
+  function loadPixel() {
+    (function (w, d, s, u) {
+      if (w.oaiq) return;
+      var q = function () {
+        q.q.push(arguments);
+      };
+      q.q = [];
+      w.oaiq = q;
+      var j = d.createElement(s);
+      j.async = 1;
+      j.src = u;
+      var f = d.getElementsByTagName(s)[0];
+      f.parentNode.insertBefore(j, f);
+    })(window, document, "script", "https://bzrcdn.openai.com/sdk/oaiq.min.js");
+
+    /* Reads `oppref` off location.search and parks it in a first-party cookie.
+       Note that the modal's close handler in index.html rebuilds the URL as
+       pathname + search precisely so the query survives -- dropping `.search`
+       from that line would not break anything visible, it would quietly end
+       attribution for every ad click that opened a module. */
+    window.oaiq("init", { pixelId: PIXEL, debug: debug() });
+  }
+
+  /* Lowercase, then strip whitespace and ASCII punctuation but keep accented
+     characters -- OpenAI's normalisation rule for name fields, verbatim. Their
+     rule for an email is only trim + lowercase, so it does not come through
+     here: running a name's rule over an address would eat the @ and the dot. */
+  function normalizeName(v) {
+    return String(v || "")
+      .toLowerCase()
+      .replace(/[\s!-\/:-@\[-`{-~]/g, "");
+  }
+
+  function sha256(v) {
+    /* crypto.subtle is secure-context only, so this is undefined over plain
+       http on localhost -- one more reason the pixel is production-only. */
+    if (!v || !window.crypto || !crypto.subtle || !window.TextEncoder) {
+      return Promise.resolve(null);
+    }
+    return crypto.subtle
+      .digest("SHA-256", new TextEncoder().encode(v))
+      .then(function (buf) {
+        return Array.prototype.map
+          .call(new Uint8Array(buf), function (b) {
+            return ("0" + b.toString(16)).slice(-2);
+          })
+          .join("");
+      })
+      .catch(function () {
+        return null;
+      });
+  }
+
+  function eventId() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return "lead-" + Date.now() + "-" + Math.random().toString(36).slice(2, 10);
+  }
+
+  /*
+   * The conversion. One per successful signup, and the only event this file
+   * sends OpenAI.
+   *
+   * `lead_created` because this is a lead form for a free class -- not
+   * `registration_completed` (nobody creates an account) and not
+   * `appointment_scheduled` (nobody picks a date). No amount and no currency:
+   * a free class has no revenue, and OpenAI only requires a currency when an
+   * amount is present.
+   *
+   * Called on SUCCESS, not on submit -- a submission that the Apps Script
+   * rejects is not a lead, and an ad account optimising toward bids on a
+   * number that includes failures will buy the wrong traffic.
+   *
+   * The hashed identifiers are belt-and-braces. OpenAI's automatic advanced
+   * matching is on by default and reads recognisable form fields, which this
+   * form has (type=email, autocomplete=email), so it would probably match
+   * without any of this. Doing it by hand makes it deterministic and visible
+   * in the console -- and the measure call is chained so that it still fires
+   * if hashing throws. A conversion matched poorly beats no conversion.
+   *
+   * event_id is here for a server side that does not exist yet. If the Apps
+   * Script ever posts the same conversion to OpenAI's Conversions API, it
+   * sends this same id as its `id` and OpenAI keeps whichever arrived first
+   * -- that is the whole dedup contract.
+   *
+   * Note what that will cost, because it is not visible from here: the id is
+   * minted below, AFTER the form's fetch has resolved, so it does not exist at
+   * the moment the POST goes out. Sending it to the Apps Script means minting
+   * it at submit time instead and passing it in -- `lead(name, email, id)` --
+   * alongside the `__oppref` cookie, which is first-party and readable from
+   * document.cookie. Plus two columns in signup.gs and the API key in Script
+   * Properties, never in this repo. Until then the id is browser-side only,
+   * where it is harmless and does nothing.
+   */
+  function lead(name, email) {
+    var id = eventId();
+
+    if (!LIVE || debug()) {
+      if (window.console) console.info("[track] openai lead_created " + id);
+      if (!LIVE) return;
+    }
+    if (!window.oaiq) return;
+
+    var addr = String(email || "").trim().toLowerCase();
+
+    Promise.all([sha256(addr), sha256(normalizeName(name))])
+      .then(function (h) {
+        var user = {};
+        if (h[0]) user.email_sha256 = h[0];
+        if (h[1]) user.first_name_sha256 = h[1];
+        /* User data attaches through init, not through measure -- OpenAI's
+           docs are explicit that it is request-scoped. pixelId is omitted
+           because only one pixel is on the page, which their docs allow. */
+        if (h[0] || h[1]) window.oaiq("init", { user: user });
+      })
+      .catch(function () {})
+      .then(function () {
+        window.oaiq(
+          "measure",
+          "lead_created",
+          { type: "customer_action" },
+          { event_id: id }
+        );
+      });
+  }
+
+  /* The vendors themselves, last: everything above is ready for them before
+     they exist. Both are live-site-only -- see LIVE at the top.
+
+     The pixel goes up on concept pages too, on purpose. See the note at the
+     top of this file about why initialising everywhere is not the same as
+     firing events everywhere. */
   if (LIVE) {
     var s = document.createElement("script");
     s.src = "https://cdn.usefathom.com/script.js";
     s.defer = true;
     s.setAttribute("data-site", SITE);
     document.head.appendChild(s);
+
+    if (PIXEL) loadPixel();
   }
 })();
