@@ -107,11 +107,14 @@ wrong traffic.
 Its event names come from OpenAI's fixed vocabulary and have nothing to do with
 the `page / section / element` scheme above.
 
-It **initialises on the concept pages too**, which is not a violation of the
-rule above — initialising fires no event. OpenAI attributes a conversion
-through `oppref`, a parameter it appends to whatever URL the ad pointed at,
-read once at init and parked in a cookie. A page without the pixel is a click
-that can never be attributed.
+It **initialises on the concept pages too, but only for visitors who arrived
+from an ad** — `fromAd()` in `events.js`. Both halves of that matter. An ad can
+point at a glossary entry, and a page without the pixel is a click that can
+never be attributed, so it cannot be landing-page-only. But it has no business
+running for anyone else: `init` sets `__obref`, a per-browser identifier with a
+**one year** lifetime, for every visitor it runs for — which the help-centre
+docs do not mention and the minified SDK does. Verify claims about that pixel
+against the SDK, not the docs.
 
 None of it can be exercised locally: it is inside the same `avand.fm` gate as
 Fathom, and `crypto.subtle` (used to hash the email) does not exist over plain

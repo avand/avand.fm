@@ -29,13 +29,12 @@
  * So they are gated differently, and deliberately:
  *
  *   - Fathom events fire from the landing page only. That rule stands.
- *   - The pixel INITIALISES on every page under /headroom/, including the
- *     forty-three glossary entries. That is not a violation of the rule --
- *     initialising fires no event. It is there because OpenAI attributes a
- *     conversion through `oppref`, a parameter it appends to whatever URL the
- *     ad pointed at, which the SDK reads once at init and parks in a
- *     first-party cookie. If an ad ever points at a glossary entry and the
- *     pixel is not there to catch it, that click is unattributable forever.
+ *   - The pixel initialises on every page under /headroom/, glossary entries
+ *     included, but ONLY for a visitor who arrived from an ad. An ad may
+ *     point at a glossary entry, and a page without the pixel is a click that
+ *     can never be attributed -- so it cannot be landing-page-only. But it
+ *     has no business running for anybody else, for reasons written out at
+ *     fromAd(). Initialising fires no event either way.
  *
  * OpenAI's event names are a closed vocabulary from its docs and have nothing
  * to do with the scheme below. `lead_created` is a standard name, which is
@@ -227,6 +226,32 @@
    * lists hit far harder than Fathom's CDN -- costs a conversion rather than
    * throwing.
    */
+  /*
+   * Whether this visitor has anything to do with an ad.
+   *
+   * The pixel used to initialise for everyone, which was wrong in a way the
+   * help-centre docs do not tell you and the minified SDK does: init sets
+   * __obref, a random per-browser identifier with a ONE YEAR lifetime, for
+   * every visitor regardless of where they came from. __oppref -- the click
+   * reference, thirty days -- behaves as documented and is only written when
+   * `oppref` is actually in the query string.
+   *
+   * So somebody arriving from Google to read a glossary entry about beat grids
+   * was being given a year-long identifier by an advertising company they have
+   * no relationship with. Nothing about that was needed to measure an ad.
+   *
+   * Gating on it costs nothing. The click reference outlives the landing page
+   * by thirty days, so a returning ad-clicker still initialises, still has
+   * their reference, and their conversion still attributes. What goes away is
+   * every visitor who never saw an ad -- no identifier, no cookie, no request.
+   */
+  function fromAd() {
+    return (
+      /[?&]oppref=/.test(location.search) ||
+      /(^|;\s*)__oppref=/.test(document.cookie)
+    );
+  }
+
   function loadPixel() {
     (function (w, d, s, u) {
       if (w.oaiq) return;
@@ -355,9 +380,10 @@
   /* The vendors themselves, last: everything above is ready for them before
      they exist. Both are live-site-only -- see LIVE at the top.
 
-     The pixel goes up on concept pages too, on purpose. See the note at the
-     top of this file about why initialising everywhere is not the same as
-     firing events everywhere. */
+     Fathom loads for everybody, because it is a cookieless counter. The pixel
+     loads only for people who arrived from an ad, on every page under
+     /headroom/ -- an ad may point at a glossary entry, and a page without the
+     pixel is a click that can never be attributed. See fromAd(). */
   if (LIVE) {
     var s = document.createElement("script");
     s.src = "https://cdn.usefathom.com/script.js";
@@ -365,6 +391,6 @@
     s.setAttribute("data-site", SITE);
     document.head.appendChild(s);
 
-    if (PIXEL) loadPixel();
+    if (PIXEL && fromAd()) loadPixel();
   }
 })();

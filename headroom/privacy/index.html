@@ -75,9 +75,17 @@ subsection: Privacy
 
   <ul>
     <li>
-      Clicking one of those ads adds a reference code to the web address. The
-      pixel stores that code in a cookie named <code>__oppref</code> on this
-      domain, so that it is still around if you sign up later.
+      <strong>It only runs if you came from one of those ads.</strong> Clicking
+      one adds a reference code to the web address, and that code — or a cookie
+      left by it on an earlier visit — is what switches the pixel on. Arrive
+      from a search engine, a link, or anywhere else, and none of the rest of
+      this happens: nothing is loaded, nothing is stored, nothing is sent.
+    </li>
+    <li>
+      When it does run, it stores two cookies on this domain: the reference
+      code itself, as <code>__oppref</code>, for thirty days; and
+      <code>__obref</code>, a random number identifying your browser to OpenAI,
+      for a year. Neither contains your name or your email address.
     </li>
     <li>
       If you then sign up, the pixel tells OpenAI that a signup happened, and
@@ -94,18 +102,20 @@ subsection: Privacy
 
   <p>
     This is the only part of the site that involves an advertising company, and
-    it is the only cookie the site sets. The legal basis is consent where the
-    law requires it.
+    those two cookies are the only ones it sets. Nothing else here stores
+    anything on your machine at all. The legal basis is consent where the law
+    requires it.
   </p>
 
   <div class="callout">
     <p>
-      <strong>To switch it off:</strong> block third-party or advertising
-      scripts in your browser, or use any ad blocker — the pixel is loaded from
-      <code>bzrcdn.openai.com</code> and blocking it stops all of the above.
+      <strong>To switch it off:</strong> not arriving from an ad is enough, and
+      is the usual case. Otherwise, block advertising scripts in your browser
+      or use any ad blocker — the pixel is loaded from
+      <code>bzrcdn.openai.com</code>, and blocking it stops all of the above.
       Nothing else on this site changes if you do; the signup form works
-      exactly the same. You can also delete the <code>__oppref</code> cookie
-      from your browser settings at any time.
+      exactly the same. You can also delete both cookies from your browser
+      settings at any time.
     </p>
   </div>
 
