@@ -9,8 +9,10 @@
  * ---------------------------------------------------------------------------
  * DEPLOYING
  * ---------------------------------------------------------------------------
- * 1. The Sheet is "Headroom CRM" -- SPREADSHEET_ID below. Rows land on its
- *    first tab, or on SHEET_NAME if that is set to a tab that exists.
+ * 1. The Sheet is "Headroom CRM" -- SPREADSHEET_ID below. Both tabs it writes
+ *    to are named in the constants below and must already exist under exactly
+ *    those names, capitals included. Renaming a tab in the Sheet without
+ *    changing the constant breaks that form.
  * 2. In that Sheet: Extensions > Apps Script. Delete the placeholder file and
  *    paste this one in. Save.
  * 3. Deploy > New deployment > type "Web app".
@@ -65,8 +67,19 @@
  */
 var SPREADSHEET_ID = "1NocCmYeAK2aqtpfxagIEvQCv7MV8VW0ZubOaO165Bz0";
 
-/** The tab to append to. Empty string means the first tab in the Sheet. */
-var SHEET_NAME = "";
+/**
+ * The tab signups append to, pinned by name.
+ *
+ * This was an empty string, which meant "whatever tab is first". That works
+ * until somebody drags a tab to the front, at which point signups start
+ * landing in it silently and correctly, as far as the script is concerned.
+ * A name cannot be reordered.
+ *
+ * Not created if it is missing, unlike the requests tab below: a typo here
+ * should fail loudly rather than quietly begin a second, empty mailing list
+ * that nobody knows to look in.
+ */
+var SHEET_NAME = "Sample Class Leads";
 
 /** Columns, in order. Changing this changes new rows only. */
 var HEADERS = ["Timestamp", "First name", "Email", "Source", "Page"];
@@ -82,7 +95,7 @@ var HEADERS = ["Timestamp", "First name", "Email", "Source", "Page"];
  * address on a page is publishing it to every scraper that reads the page too.
  * The law wants a contact route that works, not specifically an inbox.
  */
-var REQUEST_SHEET_NAME = "Privacy requests";
+var REQUEST_SHEET_NAME = "Privacy Requests";
 var REQUEST_HEADERS = ["Timestamp", "Email", "Request", "Message", "Page"];
 
 /** What the form may ask for. Anything else is recorded as "other". */
@@ -207,16 +220,18 @@ function privacyRequest(payload) {
 }
 
 /**
- * `create` makes the tab if it is missing, which the privacy tab needs and the
- * signup tab must not have: a typo in SHEET_NAME should fail loudly rather
- * than silently start a second, empty mailing list.
+ * Both tabs are found by name now -- there is no "first tab" fallback left, on
+ * purpose. `create` makes the tab if it is missing, which the requests tab
+ * needs and the signup tab must not have, for the reason given at SHEET_NAME.
  */
 function targetSheet(name, create) {
   var book = SpreadsheetApp.openById(SPREADSHEET_ID);
   // A name that matches nothing would otherwise return null and fail deeper
   // in, on a stack that says nothing about the actual mistake.
-  var sheet = name ? book.getSheetByName(name) : book.getSheets()[0];
-  if (!sheet && name && create) sheet = book.insertSheet(name);
+  // getSheetByName is case-sensitive, which is worth knowing before renaming
+  // a tab: "Privacy requests" and "Privacy Requests" are different tabs.
+  var sheet = book.getSheetByName(name);
+  if (!sheet && create) sheet = book.insertSheet(name);
   if (!sheet) throw new Error('No tab named "' + name + '"');
   return sheet;
 }
