@@ -6,7 +6,7 @@
 #   bin/apps-script pull     bring the live editor's code back down
 #   bin/apps-script push     upload the code -- does NOT change what the form hits
 #   bin/apps-script deploy   push, cut a version, point the form's URL at it
-#   bin/apps-script logs     recent executions
+#   bin/apps-script logs     open the executions view in a browser
 #   bin/apps-script open     the Apps Script editor, in a browser
 #
 # WHY PUSH AND DEPLOY ARE TWO DIFFERENT THINGS
@@ -71,6 +71,8 @@ require_manifest() {
 it brings down the project's real manifest instead of pushing a guess over it."
 }
 
+script_id() { grep -o '"scriptId": *"[^"]*"' .clasp.json | cut -d'"' -f4; }
+
 # The deployment id is the path segment in .../macros/s/<id>/exec.
 deployment_id() {
   local id
@@ -84,7 +86,7 @@ case "${1:-}" in
     require_script_id
     clasp show-authorized-user
     echo
-    say "Script:     $(grep -o '"scriptId": *"[^"]*"' .clasp.json | cut -d'"' -f4)"
+    say "Script:     $(script_id)"
     say "Deployment: $(deployment_id)  (from $ENDPOINT_FILE)"
     echo
     clasp show-file-status
@@ -122,7 +124,10 @@ case "${1:-}" in
     say "Deployed version $version to $dep. The form is now running this code."
     ;;
 
-  logs)  require_script_id; clasp tail-logs ;;
+  # clasp tail-logs wants a linked Cloud project, and this script uses the
+  # hidden one Apps Script creates for you -- so it answers "GCP project ID is
+  # not set" and stops. The editor's own Executions view needs nothing.
+  logs)  require_script_id; open "https://script.google.com/home/projects/$(script_id)/executions" ;;
   open)  require_script_id; clasp open-script ;;
 
   *)

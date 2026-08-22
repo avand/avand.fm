@@ -53,6 +53,13 @@
  * deployment that comes back as "Anyone with a Google account" does not error,
  * it just quietly rejects every visitor who is not signed in.
  *
+ * One other thing in that manifest: timeZone is Europe/Lisbon. Nothing here
+ * depends on it -- a Date appended to a Sheet is displayed in the *Sheet's*
+ * timezone, not the script's -- so the rows read correctly today. It is the
+ * timezone a time-driven trigger would fire on, though, so anything scheduled
+ * out of this project ("the morning before the class") runs eight or nine
+ * hours early until that value is changed.
+ *
  * ---------------------------------------------------------------------------
  * WHY THE FORM POSTS text/plain
  * ---------------------------------------------------------------------------
