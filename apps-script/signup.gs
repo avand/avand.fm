@@ -53,12 +53,20 @@
  * deployment that comes back as "Anyone with a Google account" does not error,
  * it just quietly rejects every visitor who is not signed in.
  *
- * One other thing in that manifest: timeZone is Europe/Lisbon. Nothing here
- * depends on it -- a Date appended to a Sheet is displayed in the *Sheet's*
- * timezone, not the script's -- so the rows read correctly today. It is the
- * timezone a time-driven trigger would fire on, though, so anything scheduled
- * out of this project ("the morning before the class") runs eight or nine
- * hours early until that value is changed.
+ * One other thing in that manifest: timeZone is America/Denver, which is the
+ * timezone the classes are scheduled in, not the one whoever is editing this
+ * happens to be sitting in. It was Europe/Lisbon -- Apps Script takes the
+ * value from wherever the browser was when the project was created, and never
+ * revisits it.
+ *
+ * Nothing in this file depends on it. A Date appended to a Sheet is displayed
+ * in the *Sheet's* timezone, not the script's, so the rows read the same
+ * either way. It is the timezone a time-driven trigger fires on, which is what
+ * makes it worth getting right before anything is scheduled out of here: a
+ * reminder set for "the morning before the class" runs on this value.
+ *
+ * The Sheet's own timezone is a separate setting, in File > Settings, and
+ * changing this one does not touch it.
  *
  * ---------------------------------------------------------------------------
  * WHY THE FORM POSTS text/plain

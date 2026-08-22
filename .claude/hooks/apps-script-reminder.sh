@@ -22,7 +22,10 @@ file=$(printf '%s' "$payload" | jq -r '.tool_response.filePath // .tool_input.fi
 [ -n "$file" ] || exit 0
 
 case "$file" in
-  */apps-script/*.gs)
+  # Anything in here, not just the .gs -- appsscript.json carries the web app's
+  # access settings and the timezone triggers fire on, and it needs deploying
+  # exactly as much as the code does.
+  */apps-script/*)
     printf '%s\n' \
       "apps-script/ edited. Nothing is live until: bin/apps-script deploy" \
       "Deploy before merging the page, not after -- bin/apps-script check confirms." >&2
