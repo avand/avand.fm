@@ -9,17 +9,28 @@
  * ---------------------------------------------------------------------------
  * DEPLOYING
  * ---------------------------------------------------------------------------
- * 1. The Sheet is "Headroom CRM" -- SPREADSHEET_ID below. Both tabs it writes
- *    to are named in the constants below and must already exist under exactly
- *    those names, capitals included. Renaming a tab in the Sheet without
- *    changing the constant breaks that form.
- * 2. In that Sheet: Extensions > Apps Script. Delete the placeholder file and
- *    paste this one in. Save.
- * 3. Deploy > New deployment > type "Web app".
+ * This file is the source of truth. Edit it here, then:
+ *
+ *   bin/apps-script deploy
+ *
+ * which uploads it, cuts a version, and moves the deployment the form posts to
+ * onto that version. `bin/apps-script push` uploads without deploying, which
+ * is worth knowing about mainly so that a push is not mistaken for a deploy:
+ * the code in Google's editor changes and the live form keeps running the old
+ * version, including in the execution log.
+ *
+ * Copying and pasting into the browser editor still works and is still how
+ * this got here originally. It is now the way to lose work: the next push
+ * overwrites it with whatever is in the repo, without asking.
+ *
+ * The Sheet is "Headroom CRM" -- SPREADSHEET_ID below. Both tabs it writes to
+ * are named in the constants below and must already exist under exactly those
+ * names, capitals included. Renaming a tab in the Sheet without changing the
+ * constant breaks that form.
+ *
+ * The deployment's own settings, made once and carried in appsscript.json:
  *      Execute as:      Me
  *      Who has access:  Anyone            <-- not "Anyone with Google account"
- *    Deploy, approve the permission prompt, and copy the /exec URL.
- * 4. Paste that URL into SIGNUP_ENDPOINT in index.html.
  *
  * ---------------------------------------------------------------------------
  * WHY THIS LETS STRANGERS WRITE WITHOUT LETTING THEM READ
@@ -37,9 +48,10 @@
  * answers with nothing but ok/error, and doGet deliberately returns nothing at
  * all. Nothing here ever calls getRange or getValues to read a row.
  *
- * Re-deploying: Deploy > Manage deployments > edit > Version: New version.
- * Editing the code alone changes nothing until a new version is deployed, and
- * the URL stays the same across versions.
+ * Those two are the whole reason a stranger's browser can write to a private
+ * Sheet, so they are worth checking after any change to appsscript.json: a
+ * deployment that comes back as "Anyone with a Google account" does not error,
+ * it just quietly rejects every visitor who is not signed in.
  *
  * ---------------------------------------------------------------------------
  * WHY THE FORM POSTS text/plain

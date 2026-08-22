@@ -943,10 +943,15 @@ description: "Advanced DJ training for aspiring performers. An eight-week, end-t
     (function () {
       /*
        * The Apps Script Web App that writes each signup into a Google Sheet.
-       * See signup.gs in this directory for the script itself and for how to
-       * deploy it; paste the /exec URL it gives you here. It looks like:
+       * The script itself is apps-script/signup.gs, and bin/apps-script
+       * deploys it. It looks like:
        *
        *   https://script.google.com/macros/s/<id>/exec
+       *
+       * That <id> is the deployment id, and this line is where it is recorded:
+       * bin/apps-script reads it back out of here rather than keeping its own
+       * copy, so the deployment it advances is by definition the one the form
+       * posts to. Changing this URL changes what gets deployed.
        *
        * Safe to ship in a page anyone can read the source of: the deployment
        * can only append rows to one Sheet, which is exactly what this form
