@@ -9,6 +9,12 @@
             "command": "bash \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/check-cache-bust.sh\"",
             "statusMessage": "Checking cache-bust versions",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/apps-script-reminder.sh\"",
+            "statusMessage": "Checking Apps Script deploy",
+            "timeout": 10
           }
         ]
       }

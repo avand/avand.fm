@@ -11,9 +11,16 @@ markdown: kramdown
 # but a local `bin/dev` did, and copied all of it into _site on every build.
 # The renditions are served from R2 in preview exactly as in production, so
 # none of it belongs in the site either way.
+# apps-script/ is the signup endpoint's source, deployed to Google by
+# bin/apps-script, not served from here. Left in, Jekyll copied it to
+# _site and GitHub Pages served it: https://avand.fm/headroom/signup.gs
+# returned the whole file. Nothing secret was in it -- the repo is public and
+# the API key lives in Script Properties -- but a marketing site handing out
+# its backend as a download is not a thing to leave working.
 exclude:
   - README.md
   - bin
+  - apps-script
   - video
   - mise.toml
   - Gemfile

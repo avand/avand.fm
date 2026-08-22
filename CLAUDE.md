@@ -120,6 +120,61 @@ None of it can be exercised locally: it is inside the same `avand.fm` gate as
 Fathom, and `crypto.subtle` (used to hash the email) does not exist over plain
 http anyway. Verifying means one real signup on production.
 
+## The signup endpoint lives in Google, and is deployed from here
+
+`apps-script/signup.gs` is the Apps Script Web App the signup form POSTs to. It
+writes into the "Headroom CRM" Sheet, and it is the only server-side code in
+this repo. Its own header comment covers what it does and why it is shaped that
+way; this is about moving it.
+
+```sh
+bin/apps-script status   # who you are, which script, which deployment, and any drift
+bin/apps-script check    # does the live form match apps-script/? exit 1 if not
+bin/apps-script pull     # bring the live editor's code down (do this in a fresh clone)
+bin/apps-script push     # upload -- does NOT change what the form hits
+bin/apps-script deploy   # push, cut a version, advance the form's deployment
+```
+
+**Deploy the script before merging the page, always.** These are two separate
+releases — merging to `master` publishes the site, and nothing about that touches
+Google — so there is a window where one is new and the other is old. Which
+window you get is the only part you control.
+
+There is no version of this where they change together. Pages caches for ten
+minutes and browsers hold copies for longer, so at every merge there are people
+running last week's page against whatever is deployed right now. That is why the
+endpoint has to stay backward compatible with the page before it — the `kind`
+check in `doPost` exists for exactly that reason. Deploy-first is just the
+ordering that keeps the gap inside a guarantee the endpoint already has to make:
+new script, old page. Merge-first is the other one, old script and new page, and
+nothing protects that.
+
+`bin/apps-script check` is what makes a forgotten deploy visible. It does not
+compare version numbers — it pulls the version the form is actually serving and
+diffs it against `apps-script/`, so it answers the real question, which is
+whether visitors are running this code. Run it before merging.
+
+**Push and deploy are not the same thing, and the difference is silent.** A push
+replaces the code in Google's online editor. The form does not run that code --
+it posts to a *deployment*, a frozen snapshot of an earlier version, and keeps
+running it until something advances it. So a push alone changes nothing a
+visitor can see, and the execution log will show the old code running while your
+new file sits right there. `deploy` is what closes that.
+
+It advances the **existing** deployment rather than making a new one: a new
+deployment means a new `/exec` URL, and the form would still be posting at the
+old one. `bin/apps-script` finds that deployment by reading `SIGNUP_ENDPOINT`
+out of `headroom/index.html` — the URL the site uses and the deployment that
+gets advanced are then the same fact, not two copies of it.
+
+`clasp`'s login is global, not per-repo. The Sheet and the script are both under
+`avand@avandamiri.com`; pushing as anyone else fails with a bare 404 on the
+script id, which reads like a wrong id rather than a wrong account.
+
+`apps-script/` is in `_config.yml`'s `exclude`. Left out of it, Jekyll copies it
+into `_site` and Pages serves it — `https://avand.fm/headroom/signup.gs` used to
+return the whole file.
+
 ## Cache-busting is manual, and forgetting is silent
 
 Assets are served at fixed URLs. GitHub Pages caches them for 10 minutes;
