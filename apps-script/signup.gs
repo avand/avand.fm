@@ -46,12 +46,19 @@
  * do, so the exposure is that somebody who finds the /exec URL can append rows
  * -- which is what the form does anyway. They cannot read a row back: doPost
  * answers with nothing but ok/error, and doGet deliberately returns nothing at
- * all. Nothing here ever calls getRange or getValues to read a row.
+ * all. Neither of them ever calls getRange or getValues to read a row.
  *
  * Those two are the whole reason a stranger's browser can write to a private
  * Sheet, so they are worth checking after any change to appsscript.json: a
  * deployment that comes back as "Anyone with a Google account" does not error,
  * it just quietly rejects every visitor who is not signed in.
+ *
+ * The claim above is about doPost and doGet, because those two are the whole
+ * of what the /exec URL can reach. Other functions in this file do read rows
+ * -- sendInvites_ reads the entire signup tab -- and that is not a hole in it:
+ * they run from the editor, under the owner's account, and no request can
+ * call them. What would open a hole is doPost calling one of them. See the
+ * note on sendInvites_ before wiring anything up that way.
  *
  * One other thing in that manifest: timeZone is America/Denver, which is the
  * timezone the classes are scheduled in, not the one whoever is editing this
@@ -83,8 +90,9 @@
  * And detection grants whatever the code happens to imply, which for mail is
  * a lot. See below.
  *
- * gmail.send is listed and nothing sends yet. That is deliberate -- the
- * confirmation email is next, and the scope is already consented.
+ * gmail.send is what the sample class invite at the bottom of this file goes
+ * out on. It was listed here before anything sent, deliberately, so that the
+ * consent was already in place when it did.
  *
  * ---------------------------------------------------------------------------
  * SENDING AS headroom@avand.fm TAKES THE GMAIL API, NOT MailApp
@@ -155,8 +163,49 @@ var SPREADSHEET_ID = "1NocCmYeAK2aqtpfxagIEvQCv7MV8VW0ZubOaO165Bz0";
  */
 var SHEET_NAME = "Sample Class Leads";
 
-/** Columns, in order. Changing this changes new rows only. */
-var HEADERS = ["Timestamp", "First name", "Email", "Source", "Page"];
+/**
+ * Columns, in order. Changing this changes new rows only -- ensureHeaders
+ * writes the header row once, into an empty Sheet, and never again.
+ *
+ * The last two are state, not data the form collects, and they are what makes
+ * the invite mail idempotent. See INVITE_COL below.
+ */
+var HEADERS = [
+  "Timestamp",
+  "First name",
+  "Email",
+  "Source",
+  "Page",
+  "Invited",
+  "Unsubscribed",
+];
+
+/**
+ * WHY THE SHEET IS THE QUEUE
+ *
+ * The invite mail is not addressed by row number and not addressed by a list
+ * passed in from somewhere. Its recipients are a *query*: every row with an
+ * email, an empty "Invited" cell, and an empty "Unsubscribed" cell. Sending
+ * stamps "Invited" with the time it went.
+ *
+ * Row numbers were the obvious alternative and they are a trap -- a sort, an
+ * inserted row, or a deleted one renumbers every row beneath it, so a number
+ * captured in one run means somebody else in the next.
+ *
+ * One consequence worth naming, because it is the whole point: this makes the
+ * three jobs the same job. Backfilling the people who signed up before any of
+ * this existed, retrying the ones whose automatic send failed, and mailing
+ * somebody who signed up ten seconds ago are all "run it again" -- the absent
+ * stamp *is* the retry queue, so nothing has to remember what went wrong.
+ *
+ * Resending to one person is clearing their cell. There is no other way to
+ * make this mail somebody twice, which is the property a key was wanted for
+ * in the first place.
+ */
+var INVITE_COL = HEADERS.indexOf("Invited") + 1;
+var UNSUB_COL = HEADERS.indexOf("Unsubscribed") + 1;
+var EMAIL_COL = HEADERS.indexOf("Email") + 1;
+var NAME_COL = HEADERS.indexOf("First name") + 1;
 
 /**
  * Privacy requests -- access, correction, deletion -- from the form on
@@ -204,8 +253,10 @@ function doPost(e) {
     var lock = LockService.getScriptLock();
     if (!lock.tryLock(20000)) return json({ ok: false, error: "busy" });
 
+    var sheet;
+    var rowNumber;
     try {
-      var sheet = targetSheet(SHEET_NAME);
+      sheet = targetSheet(SHEET_NAME);
       ensureHeaders(sheet, HEADERS);
 
       // Capped because nothing upstream of a public URL limits the length of
@@ -217,8 +268,27 @@ function doPost(e) {
         String(payload.source || "").slice(0, 200),
         String(payload.page || "").slice(0, 500),
       ]);
+      // Where that row landed. A position, not a value -- no row is read
+      // here, and see sendInvites_ for why that distinction is load-bearing.
+      rowNumber = sheet.getLastRow();
     } finally {
       lock.releaseLock();
+    }
+
+    // The mail goes out with the lock released. It is a network call to
+    // Gmail, and holding a script-wide lock across one means the next person
+    // to submit waits behind somebody else's SMTP.
+    //
+    // Wrapped, and deliberately not allowed to change the answer. The row is
+    // already written; a person who signed up successfully must not be told
+    // it failed because a send did. What a failure costs is the stamp, which
+    // is exactly what makes sendSampleClassInvites() pick this row up later
+    // -- the recovery is already built and needs nothing recorded here.
+    try {
+      sendOneInvite_(name, email);
+      stampInvited_(sheet, rowNumber, new Date());
+    } catch (mailErr) {
+      console.error(mailErr);
     }
 
     return json({ ok: true });
@@ -322,4 +392,326 @@ function json(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(
     ContentService.MimeType.JSON
   );
+}
+
+/* ===========================================================================
+ * THE SAMPLE CLASS INVITE
+ * ===========================================================================
+ * The signup form's button says "Send me the dates". This is what sends them.
+ *
+ * It goes out twice from two directions and they are the same mail, built by
+ * the same function, so the two cannot drift:
+ *
+ *   - automatically, from doPost, to somebody who just signed up
+ *   - in a batch, from the editor, to everybody not yet stamped "Invited"
+ *
+ * TO RUN THE BATCH: open the script editor, pick a function from the Run
+ * menu, press Run. Apps Script's Run button cannot pass arguments, which is
+ * why the two entry points below take none.
+ *
+ *   previewSampleClassInvites()   who would be mailed, mails nobody
+ *   sendSampleClassInvites()      mails them, stamps the Sheet
+ *
+ * Always run the preview first. It is the only thing standing between a typo
+ * in the template and every lead you have.
+ *
+ * The mail does NOT list the eight dates. The Zoom registration page lists
+ * them, that page is the one place they are true, and a copy here is a copy
+ * that goes stale the first time an occurrence moves.
+ */
+
+/** Who it comes from. See "SENDING AS headroom@avand.fm" at the top. */
+var FROM_NAME = "Avand Amiri";
+var FROM_EMAIL = "headroom@avand.fm";
+
+/**
+ * Replies go to the address a person actually reads, not to the sending
+ * alias. A reply to this mail is the most interested anybody has been so far.
+ */
+var REPLY_TO = "wave@avand.fm";
+
+/**
+ * The Zoom registration page, and the postal address the footer is required
+ * to carry. Both are empty on purpose: sendOneInvite_ throws if either is
+ * still blank, so a forgotten value stops the run instead of mailing a dead
+ * link and a missing address to the whole list.
+ */
+var REGISTER_URL = "";
+var MAILING_ADDRESS = "";
+
+/** How many one run will send. A cap, not a target -- see sendInvites_. */
+var INVITE_BATCH_LIMIT = 100;
+
+/* ------------------------------------------------------------------------ */
+/* Entry points. No arguments, because the Run menu cannot pass any.         */
+/* ------------------------------------------------------------------------ */
+
+/** Logs who the batch would mail, and mails nobody. Run this first. */
+function previewSampleClassInvites() {
+  var result = sendInvites_({ dryRun: true });
+  console.log(
+    "Would mail " + result.sent + " of " + result.considered + " rows:\n" +
+      result.recipients.join("\n")
+  );
+  return result;
+}
+
+/** Mails everybody not yet stamped "Invited", and stamps them. */
+function sendSampleClassInvites() {
+  var result = sendInvites_({ dryRun: false });
+  console.log(
+    "Mailed " + result.sent + ", skipped " + result.skipped +
+      ", failed " + result.failed.length
+  );
+  if (result.failed.length) console.warn(result.failed.join("\n"));
+  return result;
+}
+
+/* ------------------------------------------------------------------------ */
+/* The batch                                                                */
+/* ------------------------------------------------------------------------ */
+
+/**
+ * Reads the signup tab and mails every row that has an email, no "Invited"
+ * stamp and no "Unsubscribed" stamp.
+ *
+ * THIS READS ROWS, AND THE NOTE AT THE TOP OF THE FILE SAYS NOTHING HERE
+ * EVER DOES. Both are true, and the difference is what runs them. That note
+ * is about the *deployment* -- what a stranger's browser can reach through
+ * the /exec URL, which is doPost and doGet and nothing else. Neither of them
+ * calls this. It runs from the editor, under the owner's own account, where
+ * reading the Sheet is reading a Sheet you own.
+ *
+ * Keep it that way. The moment doPost calls something that reads a row, the
+ * web app gains a read surface, and the argument that makes "Who has access:
+ * Anyone" safe stops holding.
+ *
+ * Stamping happens after a send succeeds, never before. A crash in the gap
+ * between the two means somebody gets the mail twice on the next run, which
+ * is the right way round: a duplicate is a small embarrassment and a silent
+ * miss is a lead who never got what the button promised.
+ */
+function sendInvites_(opts) {
+  opts = opts || {};
+  var sheet = targetSheet(SHEET_NAME);
+  ensureInviteColumns_(sheet);
+
+  var lastRow = sheet.getLastRow();
+  var result = { considered: 0, sent: 0, skipped: 0, failed: [], recipients: [] };
+  if (lastRow < 2) return result;
+
+  var rows = sheet.getRange(2, 1, lastRow - 1, HEADERS.length).getValues();
+
+  // Within one run, an address that appears twice is mailed once. Two rows
+  // for the same person is a person who submitted the form twice, not two
+  // people, and both rows still get stamped so neither comes back next run.
+  var seen = {};
+
+  for (var i = 0; i < rows.length; i++) {
+    var row = rows[i];
+    var rowNumber = i + 2;
+    var email = String(row[EMAIL_COL - 1] || "").trim();
+    var name = String(row[NAME_COL - 1] || "").trim();
+
+    if (!email) continue;
+    result.considered++;
+
+    if (String(row[UNSUB_COL - 1] || "").trim()) { result.skipped++; continue; }
+    if (String(row[INVITE_COL - 1] || "").trim()) { result.skipped++; continue; }
+
+    var key = email.toLowerCase();
+    if (seen[key]) {
+      result.skipped++;
+      if (!opts.dryRun) stampInvited_(sheet, rowNumber, "duplicate of " + seen[key]);
+      continue;
+    }
+
+    if (result.sent >= INVITE_BATCH_LIMIT) break;
+
+    result.recipients.push(name + " <" + email + ">");
+    if (opts.dryRun) { result.sent++; seen[key] = rowNumber; continue; }
+
+    // One bad address must not halt the batch. A failure leaves the stamp
+    // empty, so the next run picks that row up again with nothing to
+    // remember.
+    try {
+      sendOneInvite_(name, email);
+      stampInvited_(sheet, rowNumber, new Date());
+      seen[key] = rowNumber;
+      result.sent++;
+    } catch (err) {
+      console.error(err);
+      result.failed.push(email + ": " + err.message);
+    }
+  }
+
+  return result;
+}
+
+/** Writes the "Invited" cell for one row. */
+function stampInvited_(sheet, rowNumber, value) {
+  sheet.getRange(rowNumber, INVITE_COL).setValue(value);
+}
+
+/**
+ * Adds the two state columns to a tab that predates them.
+ *
+ * ensureHeaders only ever writes into an empty Sheet, so the live tab -- which
+ * has rows in it -- would never grow these on its own. This fills in any
+ * header cell that is blank or wrong from HEADERS, and touches no row but the
+ * first.
+ */
+function ensureInviteColumns_(sheet) {
+  if (sheet.getLastRow() === 0) { ensureHeaders(sheet, HEADERS); return; }
+  var width = Math.max(sheet.getLastColumn(), HEADERS.length);
+  var header = sheet.getRange(1, 1, 1, width).getValues()[0];
+  for (var c = 0; c < HEADERS.length; c++) {
+    if (String(header[c] || "").trim() !== HEADERS[c]) {
+      sheet.getRange(1, c + 1).setValue(HEADERS[c]).setFontWeight("bold");
+    }
+  }
+}
+
+/* ------------------------------------------------------------------------ */
+/* One message                                                              */
+/* ------------------------------------------------------------------------ */
+
+/**
+ * Builds and sends the invite to one person.
+ *
+ * Gmail.Users.Messages.send and not MailApp or GmailApp, for the reasons at
+ * the top of the file: it is the only one of the three that both honours the
+ * From header and asks for nothing beyond gmail.send.
+ */
+function sendOneInvite_(name, email) {
+  if (!REGISTER_URL) throw new Error("REGISTER_URL is empty -- nothing sent");
+  if (!MAILING_ADDRESS) throw new Error("MAILING_ADDRESS is empty -- nothing sent");
+
+  var body = inviteBody_(name);
+  var raw = buildMime_({
+    to: email,
+    subject: "Your Headroom sample class dates",
+    text: body.text,
+    html: body.html,
+  });
+  Gmail.Users.Messages.send({ raw: raw }, "me");
+}
+
+/**
+ * The message, in both parts. One function, so the automatic send and the
+ * batch cannot say different things.
+ *
+ * List-Unsubscribe is in buildMime_ rather than here; the visible link below
+ * is the one the fine print on the site promises, and the header is what the
+ * big mailbox providers read.
+ */
+function inviteBody_(name) {
+  var hi = name ? "Hi " + name + "," : "Hi,";
+
+  var text = [
+    hi,
+    "",
+    "Thanks for signing up -- here are the dates, as promised.",
+    "",
+    "I'm running free one-hour sample classes through September. I'll teach",
+    "you the AI-powered workflow I use to find, buy, and import new music,",
+    "then open it up to your questions. It's a real class, not a sales call.",
+    "",
+    "Two times a week so you can pick what fits: Tuesdays at noon and",
+    "Thursdays at 6 PM Mountain. Pick your session here:",
+    "",
+    REGISTER_URL,
+    "",
+    "You'll get a Zoom link and a calendar invite as soon as you register.",
+    "",
+    "The course itself runs Thursdays 6-8 PM Mountain, Oct 1 to Nov 19 --",
+    "eight weeks, one small first cohort. I mention the time now because",
+    "it's the part people need to plan around, and the Thursday sample",
+    "class is that exact slot if you want to test drive it.",
+    "",
+    "Questions, just reply. This goes straight to me.",
+    "",
+    "Avand",
+    "",
+    "--",
+    "You're getting this because you signed up at avand.fm.",
+    "To unsubscribe, reply with UNSUBSCRIBE.",
+    MAILING_ADDRESS,
+  ].join("\n");
+
+  var html = [
+    "<p>" + esc_(hi) + "</p>",
+    "<p>Thanks for signing up &mdash; here are the dates, as promised.</p>",
+    "<p>I&rsquo;m running free one-hour sample classes through September. I&rsquo;ll teach you the AI-powered workflow I use to find, buy, and import new music, then open it up to your questions. It&rsquo;s a real class, not a sales call.</p>",
+    "<p>Two times a week so you can pick what fits: <strong>Tuesdays at noon</strong> and <strong>Thursdays at 6 PM Mountain</strong>.</p>",
+    '<p><a href="' + esc_(REGISTER_URL) + '">Pick your session &rarr;</a></p>',
+    "<p>You&rsquo;ll get a Zoom link and a calendar invite as soon as you register.</p>",
+    "<p>The course itself runs <strong>Thursdays 6&ndash;8 PM Mountain, Oct 1 &ndash; Nov 19</strong> &mdash; eight weeks, one small first cohort. I mention the time now because it&rsquo;s the part people need to plan around, and the Thursday sample class is that exact slot if you want to test drive it.</p>",
+    "<p>Questions, just reply. This goes straight to me.</p>",
+    "<p>Avand</p>",
+    "<hr />",
+    "<p><small>You&rsquo;re getting this because you signed up at avand.fm. " +
+      "To unsubscribe, reply with UNSUBSCRIBE.<br />" +
+      esc_(MAILING_ADDRESS) + "</small></p>",
+  ].join("\n");
+
+  return { text: text, html: html };
+}
+
+/**
+ * An RFC 822 message, multipart/alternative, base64url encoded for the API.
+ *
+ * Written out by hand because that is what Gmail.Users.Messages.send takes,
+ * and because it is the only route where the From header is the one written
+ * here rather than one substituted on the way out.
+ *
+ * Every part is base64 with an explicit UTF-8 charset. Apostrophes and dashes
+ * in the copy are not ASCII, and a message that declares 7bit and carries
+ * them arrives as mojibake in some clients and fine in others -- which is the
+ * worst way to find out.
+ */
+function buildMime_(msg) {
+  var boundary = "hr_" + Utilities.getUuid().replace(/-/g, "");
+  var b64 = function (text) {
+    return Utilities.base64Encode(text, Utilities.Charset.UTF_8);
+  };
+
+  var lines = [
+    "From: " + FROM_NAME + " <" + FROM_EMAIL + ">",
+    "To: " + msg.to,
+    "Reply-To: " + REPLY_TO,
+    // What Gmail and Outlook read to offer their own unsubscribe control.
+    // mailto only: a one-click List-Unsubscribe-Post needs a URL that
+    // actually unsubscribes somebody, and there isn't one yet.
+    "List-Unsubscribe: <mailto:" + REPLY_TO + "?subject=Unsubscribe>",
+    "Subject: " + msg.subject,
+    "MIME-Version: 1.0",
+    'Content-Type: multipart/alternative; boundary="' + boundary + '"',
+    "",
+    "--" + boundary,
+    'Content-Type: text/plain; charset="UTF-8"',
+    "Content-Transfer-Encoding: base64",
+    "",
+    b64(msg.text),
+    "",
+    "--" + boundary,
+    'Content-Type: text/html; charset="UTF-8"',
+    "Content-Transfer-Encoding: base64",
+    "",
+    b64(msg.html),
+    "",
+    "--" + boundary + "--",
+    "",
+  ].join("\r\n");
+
+  return Utilities.base64EncodeWebSafe(lines, Utilities.Charset.UTF_8);
+}
+
+/** Minimal escaping for the few values that reach the HTML part. */
+function esc_(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
