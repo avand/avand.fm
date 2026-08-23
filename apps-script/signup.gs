@@ -489,7 +489,10 @@ function json(obj) {
  */
 
 /** Who it comes from. See "SENDING AS headroom@avand.fm" at the top. */
-var FROM_NAME = "Avand Amiri";
+// Plain ASCII with no comma, quote or parenthesis in it, so it needs no
+// quoting in the From header buildMime_ writes by hand. A name that ever
+// gains one does.
+var FROM_NAME = "Avand at Headroom";
 var FROM_EMAIL = "headroom@avand.fm";
 
 /**
