@@ -657,13 +657,31 @@
    * being designed: worth knowing, because it means the guard below is doing
    * real work rather than belt and braces.)
    *
-   * Muted coverage is the same set, narrowed to the slots that were silent
-   * when they were watched, so it can only ever be a subset of the whole.
-   * A second watched muted and then again with sound counts in both, and
-   * neither count can go down -- which is what makes them safe to report
-   * through once().
+   * The two counts are disjoint: every second is filed by whether sound was on
+   * when it was watched, so watching the whole thing in silence reports the
+   * muted tenths and nothing else. Overlapping them -- one total, with muted
+   * as a subset of it -- reads worse than it sounds. A silent viewing shows up
+   * in both series at once, and the reader has to remember which of the two
+   * numbers contains the other to make any sense of either.
+   *
+   * The cost is that total coverage is no longer one name: somebody who
+   * watches half muted and half aloud reports two halves, and only a reader
+   * adding them gets to the whole. That is the right way round. How much of it
+   * they heard is the question worth answering precisely -- this is a video of
+   * somebody talking -- and a muted 90% is not the same finding as a 90% with
+   * the sound on, however much a combined number would like them to be.
+   *
+   * A second watched muted and later again with sound is in both, which is
+   * true of it. Neither count can fall, which is what makes them safe to
+   * report through once().
    */
-  var COVERAGE_STEP = 10;
+  // Five, not ten: the brand video runs three and a half minutes, where a
+  // tenth is twenty seconds and the difference between leaving at 50 and
+  // leaving at 59 is a paragraph of the argument. Twenty steps is also fine
+  // for a clip of half a minute -- a step is a second and a half there, and
+  // the slots underneath are whole seconds, so the buckets stay coarser than
+  // the data that fills them, which is the right way round.
+  var COVERAGE_STEP = 5;
 
   Player.prototype.trackProgress = function () {
     if (!this.root.hasAttribute("data-track-progress")) return;
@@ -699,18 +717,19 @@
       this.mutedSlots = 0;
     }
 
-    // 1: watched. 2: watched while silent. Both, for a second that was seen
+    // 1: watched with sound. 2: watched in silence. One or the other, never
+    // both at once -- a second can be in both only by being watched twice, once
     // each way.
-    var mark = 1 | (v.muted || v.volume === 0 ? 2 : 0);
+    var mark = v.muted || v.volume === 0 ? 2 : 1;
 
     /* From the slot the last sample was in, not only the one this sample is
        in. During playback the playhead moves continuously, so a second lying
        between two consecutive samples was genuinely played whether or not a
        timeupdate landed inside it -- and one that is missed costs a whole
-       tenth. timeupdate is specified as "about four times a second", which is
+       step. timeupdate is specified as "about four times a second", which is
        a promise about the common case and not a floor; a phone under load can
        leave a gap wider than a slot, and without this the video would report
-       90% to somebody who sat through all of it.
+       95% to somebody who sat through all of it.
        
        Bounded, because that reasoning only holds for playback. A jump the size
        of a seek fills nothing: it is the seek this whole function exists to
@@ -727,7 +746,7 @@
     for (var i = from; i <= slot; i++) {
       var seen = this.covered[i] || 0;
       if ((seen & mark) === mark) continue;
-      if (!(seen & 1)) this.watchedSlots++;
+      if (mark & 1 && !(seen & 1)) this.watchedSlots++;
       if (mark & 2 && !(seen & 2)) this.mutedSlots++;
       this.covered[i] = seen | mark;
     }
@@ -736,10 +755,12 @@
     this.reportCoverage("watched-muted", this.mutedSlots, slots);
   };
 
-  /* Every tenth up to where the coverage has got to, rather than only the one
-     just crossed. Coverage grows a second at a time so it cannot normally skip
-     a tenth, but "normally" is doing work there -- a video shorter than ten
-     seconds crosses several at once -- and once() makes the loop free. */
+  /* Every step up to where the coverage has got to, rather than only the one
+     just crossed. On a short clip a single second is worth more than one step
+     -- half a minute of video moves 3.3% at a time against 5% buckets -- so
+     stepping one at a time would leave gaps in the series that look like
+     somebody skipped a passage they actually watched. once() makes the loop
+     free. */
   Player.prototype.reportCoverage = function (name, count, slots) {
     var pct = Math.floor(((count / slots) * 100) / COVERAGE_STEP) * COVERAGE_STEP;
     for (var p = COVERAGE_STEP; p <= pct; p += COVERAGE_STEP) {
