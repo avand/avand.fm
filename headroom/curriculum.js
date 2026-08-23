@@ -118,6 +118,74 @@
     if (current) current.pause({ auto: true });
   }
 
+  /* Which modules were actually reached.
+   *
+   * Everything else this section reports is a deliberate act -- a play, a
+   * modal, a timeline dot -- and a week of traffic produced nine of them
+   * across all eight modules. That number cannot tell a module nobody found
+   * persuasive from one nobody laid eyes on, and those want opposite fixes.
+   * This is the involuntary half: the module was on screen, whatever the
+   * reader then did about it.
+   *
+   * The name is complete, in the markup, on the slide it belongs to, for the
+   * same reason the players carry their own stems -- see the note above
+   * Player.prototype.track. It is deliberately not data-track: that attribute
+   * is a click name and events.js delegates it down through the subtree, so a
+   * slide wearing one would report itself every time somebody pressed the
+   * play button inside it.
+   *
+   * Once per page load, and that is the whole answer to what happens when you
+   * scroll back up. Scroll position is not a decision -- a trackpad flick
+   * crosses three slides before it settles, and reading week 3 twice is one
+   * person who read week 3 -- so a count here would measure gestures. Fathom
+   * has no event properties either, which makes that count the only number
+   * the event has; spending it on scroll noise leaves nothing. The set of
+   * names that fired is the finding: reached m1, never reached m6. once()
+   * reports exactly that, and being idempotent it is safe to call from a
+   * scroll handler on every frame.
+   */
+  function report(index) {
+    var slide = slides[index];
+    var name = slide && slide.getAttribute("data-track-view");
+    if (name && window.Track) window.Track.once(name);
+  }
+
+  /* The stacked fallback has no active slide to report from, and it is not a
+     rare path: a phone held in landscape is under the 620px floor, and so is
+     anybody who asked for reduced motion. Left uninstrumented, "nobody got to
+     module 4" would be partly a statement about who was measured rather than
+     about the module.
+
+     The heading is what is watched, not the slide. Unpinned, a slide can be
+     taller than a small screen, so a fraction-of-the-whole threshold might
+     never be met on the very devices this path exists for; the week and its
+     title arriving is the same moment pinning reports. Both paths go through
+     the same once(), so switching modes on a resize cannot double-count. */
+  var watcher = null;
+
+  function watchStacked() {
+    if (watcher || !window.IntersectionObserver) return;
+    watcher = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          report(slides.indexOf(entry.target.closest(".curr-slide")));
+        });
+      },
+      { threshold: 0.5 }
+    );
+    slides.forEach(function (slide) {
+      var head = slide.querySelector(".curr-head");
+      if (head) watcher.observe(head);
+    });
+  }
+
+  function unwatchStacked() {
+    if (!watcher) return;
+    watcher.disconnect();
+    watcher = null;
+  }
+
   function measure() {
     // A step of scrolling per module, with the last one getting a step of
     // dwell before the page moves on.
@@ -196,7 +264,15 @@
        showing, so they measure against the viewport -- the sticky stage is a
        whole one however little scrolling a week costs. */
     var vh = viewport();
-    scroller.classList.toggle("is-pinned", rect.top <= 0 && rect.bottom > vh);
+    var holding = rect.top <= 0 && rect.bottom > vh;
+    scroller.classList.toggle("is-pinned", holding);
+
+    /* Reported from here rather than from setActive, which runs once on init
+       with index 0 however far below the fold the region still is -- module 1
+       would have been credited to every visitor, including the ones who
+       bounced off the hero. Holding the screen is the takeover itself, so it
+       is also the honest moment to say the module was seen. */
+    if (holding) report(index);
 
     // Scrolled clear of the region entirely: stop the video rather than leave
     // it playing and pulling segments off screen.
@@ -211,6 +287,7 @@
 
   function enablePinned() {
     pinned = true;
+    unwatchStacked();
     scroller.classList.add("is-scroller", "is-initialising");
     measure();
     active = -1;
@@ -253,6 +330,7 @@
       if (player) player.watchViewport(true);
     });
     active = -1;
+    watchStacked();
   }
 
   function apply() {
