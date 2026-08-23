@@ -692,8 +692,13 @@
     var silent = opts && opts.muted;
 
     /* Read by the "play" listener below. The muted autoplay is the page
-       deciding; everything else is somebody pressing something. */
-    this.deliberate = !silent;
+       deciding; everything else is somebody pressing something.
+
+       A resume is neither, so it leaves the flag alone: putting back playback
+       that something interrupted must not relabel how that playback began.
+       Without this, restoring a video the viewer had pressed would report it
+       as an autoplay. */
+    if (!(opts && opts.resume)) this.deliberate = !silent;
 
     // Only one video at a time; two soundtracks at once is never what anyone
     // wanted. A muted autoplay should not interrupt something already audible.
@@ -722,8 +727,28 @@
       });
   };
 
+  /*
+   * Only a pause somebody asked for is reported.
+   *
+   * This was left out of the original pass, and autoplay is what earns it a
+   * place. A play count on a video that starts itself measured nothing, so
+   * there was nothing for a pause to be read against; now that starting and
+   * pressing are counted separately, "it began for them and they stopped it"
+   * is a thing the page can say. Somebody who cuts the video off is not the
+   * same as somebody who never scrolled to it, and both currently look
+   * identical from here.
+   *
+   * The auto flag is what makes it honest, and every other caller sets it: the
+   * curriculum pausing an outgoing slide, the viewport observer at the edge of
+   * the screen, a hidden tab, another video taking the sound. Four ways for a
+   * video to stop that nobody asked for. Only toggle() -- the play button, the
+   * spacebar, a tap on the video -- comes through here without it.
+   */
   Player.prototype.pause = function (opts) {
-    if (!(opts && opts.auto)) this.userPaused = true;
+    if (!(opts && opts.auto)) {
+      this.userPaused = true;
+      this.track("pause");
+    }
     this.video.pause();
   };
 
@@ -1268,6 +1293,10 @@
    * So on the way back: clear any spinner that no longer has a play behind
    * it, and restart whatever was playing by itself before.
    */
+  // Paused because the tab went away, so that coming back puts back that exact
+  // set. Emptied as it is spent.
+  var hiddenPaused = [];
+
   document.addEventListener("visibilitychange", function () {
     if (document.hidden) {
       /*
@@ -1292,25 +1321,40 @@
        * anybody who clicks away to type while still watching, which is the
        * opposite of what this is for.
        *
-       * Restricted to autoplay players so that what stops here is exactly what
-       * the branch below starts again. A module clip somebody muted by hand and
-       * left running is the one thing this does not stop; it is a video the
-       * viewer already chose to silence, and stopping it would mean either
-       * remembering it or leaving it paused with no cue.
+       * Any silent video, however it came to be playing -- the brand video's
+       * autoplay is only the common case. What stops here is remembered rather
+       * than inferred, because the two are not the same set: inView is only
+       * maintained for players the viewport observer watches, and the module
+       * clips opt out of it so the curriculum can drive them. Working out on
+       * the way back what should resume would have quietly left those out.
        */
-      players.forEach(function (p) {
-        if (p.video.paused || !p.autoplay) return;
-        if (!p.video.muted && p.video.volume > 0) return;
+      hiddenPaused = players.filter(function (p) {
+        if (p.video.paused) return false;
+        // Audible, so somebody may well be listening rather than watching.
+        if (!p.video.muted && p.video.volume > 0) return false;
         p.pause({ auto: true });
+        return true;
       });
       return;
     }
 
+    var resuming = hiddenPaused;
+    hiddenPaused = [];
+
     players.forEach(function (p) {
       if (p.video.paused) p.setBusy(false);
-      if (p.autoplay && p.inView && !p.userPaused && p.video.paused) {
-        p.play({ muted: true });
+      if (!p.video.paused || p.userPaused) return;
+
+      // Exactly what the branch above stopped, exactly as it was: still muted,
+      // and still counted as whatever kind of playback it already was.
+      if (resuming.indexOf(p) >= 0) {
+        p.play({ resume: true });
+        return;
       }
+
+      // Not ours: iOS tore it down. Only the autoplay can be restarted blind,
+      // and only where it is still on screen to be watched.
+      if (p.autoplay && p.inView) p.play({ muted: true });
     });
   });
 
