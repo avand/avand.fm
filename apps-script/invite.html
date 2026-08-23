@@ -1,0 +1,73 @@
+<!-- The sample class invite. This is the only copy of it: the plain-text
+     part of the message is converted from this file by htmlToText_ in
+     signup.gs, so there is nothing to keep in step by hand.
+
+     That conversion knows a small, fixed vocabulary. p, ul, li, strong, a, br,
+     hr and small all survive it. An anchor becomes "label: url", so a link's
+     label has to make sense read aloud -- "click here" would not. Entities are
+     decoded from a list: mdash, ndash, rsquo, lsquo, ldquo, rdquo, rarr, nbsp,
+     lt, gt, amp. Anything else arrives in the text part spelled out, as
+     literally "&hellip;".
+
+     Run previewInviteText() after editing. It prints both parts and sends
+     nothing, and the text one is the half nobody looks at.
+
+     The values below come from inviteBody_, and are escaped on the way in.
+
+     Careful writing about the template tags in here: Apps Script scans this
+     whole file for them, HTML comments included, so an empty pair written out
+     as an example compiles to "output += ;" and the whole message fails with
+     a SyntaxError pointing at nothing you can see. That is what this line used
+     to be.
+
+     No <html>, <head> or <body>: this is a MIME part, not a page. No CSS
+     either -- every client strips a different half of it, and a plain message
+     from a person is what this is meant to look like. -->
+<p><?= greeting ?></p>
+
+<p>
+  Thanks for your interest in Headroom: advanced DJ training for aspiring
+  performers like you!
+</p>
+
+<p>
+  I&rsquo;m running free one-hour sample classes through September to give
+  you a sense of the kind of step-function improvement you can expect to get
+  from the full course. In the free sample class, I&rsquo;ll teach you the
+  AI-powered workflow I use to find, buy, and import new music. Afterwards,
+  I&rsquo;ll open it up to your questions to see if Headroom is the right
+  next step in your DJ career.
+</p>
+
+<p>
+  Pick a day and time that works best for you:
+</p>
+
+<ul>
+  <li><strong>Tuesday @ 12p MT</strong></li>
+  <li><strong>Thursday @ 6p MT</strong></li>
+</ul>
+
+<p><a href="<?= registerUrl ?>">RSVP for a Free Sample Class &rarr;</a></p>
+
+<p>After you RSVP, you&rsquo;ll get a Zoom link and a calendar invite.</p>
+
+<p>If you have any questions, just reply here. It goes straight to me.</p>
+
+<p>Avand</p>
+
+<hr />
+
+<p>
+  <small>
+    You&rsquo;re getting this because you signed up at avand.fm/headroom.
+    <br /><br />
+    <!-- No full stop after this link. In the plain-text part the URL is the
+         last thing on the line, and a trailing "." is swallowed by the
+         autolinker in most mail clients, giving the reader a dead link on the
+         one message they are most annoyed to find a dead link in. -->
+    <a href="<?= unsubscribeUrl ?>">Unsubscribe</a>
+    <br /><br />
+    <?!= addressHtml ?>
+  </small>
+</p>
