@@ -631,30 +631,119 @@
   };
 
   /*
-   * Quarter, half, three-quarters -- how far into a video people actually get.
+   * How much of the video was actually watched, and how much of that in
+   * silence. Those are the only two questions this page has about a video, and
+   * everything else it used to report was a worse way of guessing at them.
    *
-   * Opt-in with data-track-progress, and today only the brand video has it.
-   * The module clips run under a minute, where "played" and "finished" already
-   * say everything three more events would; this is for the one video long
-   * enough that abandoning it halfway is a different thing from watching it.
+   * The milestones this replaces read currentTime against the duration, so
+   * they measured where the playhead had *reached*, not what had been seen:
+   * jumping to 24%, watching a moment, jumping to 49% and watching a moment
+   * reported a quarter and a half of the video watched, out of about eight
+   * seconds of viewing. Every number they produced was an overstatement of
+   * unknown size, which is the worst kind.
    *
-   * Measured against the real duration once there is one. Under hls.js that is
-   * NaN or Infinity until the manifest lands, so data-duration -- already on
-   * the element for the control bar -- stands in until then.
+   * So keep the seconds instead. One slot per whole second of duration, marked
+   * as it is played, and the coverage is how many slots are marked. Skipping
+   * marks nothing, because timeupdate only fires while playing -- the seconds
+   * jumped over are never visited. Rewatching marks nothing new either, which
+   * is the same answer once() gives everywhere else: a person who watched the
+   * first minute twice watched the first minute.
+   *
+   * (This is the playback vector Mux describe for drawing retention heatmaps.
+   * They count visits per second, for the heat; coverage only needs to know
+   * whether a second was reached at all. Their one caveat -- check paused, or
+   * a parked playhead accumulates -- is taken below. Seek resistance is a
+   * property they never claim, and it falls out of timeupdate rather than
+   * being designed: worth knowing, because it means the guard below is doing
+   * real work rather than belt and braces.)
+   *
+   * Muted coverage is the same set, narrowed to the slots that were silent
+   * when they were watched, so it can only ever be a subset of the whole.
+   * A second watched muted and then again with sound counts in both, and
+   * neither count can go down -- which is what makes them safe to report
+   * through once().
    */
-  var MILESTONES = [25, 50, 75];
+  var COVERAGE_STEP = 10;
 
   Player.prototype.trackProgress = function () {
     if (!this.root.hasAttribute("data-track-progress")) return;
-    var total = this.video.duration;
+
+    var v = this.video;
+    // Mux's caveat: a paused playhead sits in one slot and would otherwise go
+    // on confirming a second nobody is watching. Harmless for coverage, which
+    // is a set, but it makes the guard below the only thing standing between a
+    // scrub and a fabricated number, so both are stated here rather than one
+    // being left implied.
+    if (v.paused || this.scrubbing) return;
+
+    /* Measured against the real duration once there is one. Under hls.js that
+       is NaN or Infinity until the manifest lands, so data-duration -- already
+       on the element for the control bar -- stands in until then. */
+    var total = v.duration;
     if (!isFinite(total) || total <= 0) total = parseFloat(this.root.dataset.duration);
     if (!isFinite(total) || total <= 0) return;
-    var pct = (this.video.currentTime / total) * 100;
-    for (var i = 0; i < MILESTONES.length; i++) {
-      // once() does the de-duplicating, so seeking backwards and forwards over
-      // a mark costs nothing and skipping ahead does not backfill the ones
-      // that were jumped.
-      if (pct >= MILESTONES[i]) this.track("progress-" + MILESTONES[i]);
+
+    /* Floor, not ceil, so the part-second every video ends on is not a slot of
+       its own. It would be one nobody could reliably fill -- there is no
+       guarantee of a timeupdate inside the last half second -- and a single
+       unfillable slot puts 100% permanently out of reach, which would read as
+       "nobody ever finished it" rather than as the measurement artefact it is.
+       The clamp is what folds that tail into the last real slot. */
+    var slots = Math.max(1, Math.floor(total));
+    var slot = Math.min(slots - 1, Math.floor(v.currentTime));
+    if (slot < 0) return;
+
+    if (!this.covered) {
+      this.covered = [];
+      this.watchedSlots = 0;
+      this.mutedSlots = 0;
+    }
+
+    // 1: watched. 2: watched while silent. Both, for a second that was seen
+    // each way.
+    var mark = 1 | (v.muted || v.volume === 0 ? 2 : 0);
+
+    /* From the slot the last sample was in, not only the one this sample is
+       in. During playback the playhead moves continuously, so a second lying
+       between two consecutive samples was genuinely played whether or not a
+       timeupdate landed inside it -- and one that is missed costs a whole
+       tenth. timeupdate is specified as "about four times a second", which is
+       a promise about the common case and not a floor; a phone under load can
+       leave a gap wider than a slot, and without this the video would report
+       90% to somebody who sat through all of it.
+       
+       Bounded, because that reasoning only holds for playback. A jump the size
+       of a seek fills nothing: it is the seek this whole function exists to
+       not be fooled by. Two seconds is far past any plausible stutter and far
+       short of a seek worth making. */
+    var continuous =
+      this.lastSlot !== undefined &&
+      v.currentTime >= this.lastSampledAt &&
+      v.currentTime - this.lastSampledAt <= 2;
+    var from = continuous ? Math.min(this.lastSlot, slot) : slot;
+    this.lastSampledAt = v.currentTime;
+    this.lastSlot = slot;
+
+    for (var i = from; i <= slot; i++) {
+      var seen = this.covered[i] || 0;
+      if ((seen & mark) === mark) continue;
+      if (!(seen & 1)) this.watchedSlots++;
+      if (mark & 2 && !(seen & 2)) this.mutedSlots++;
+      this.covered[i] = seen | mark;
+    }
+
+    this.reportCoverage("watched", this.watchedSlots, slots);
+    this.reportCoverage("watched-muted", this.mutedSlots, slots);
+  };
+
+  /* Every tenth up to where the coverage has got to, rather than only the one
+     just crossed. Coverage grows a second at a time so it cannot normally skip
+     a tenth, but "normally" is doing work there -- a video shorter than ten
+     seconds crosses several at once -- and once() makes the loop free. */
+  Player.prototype.reportCoverage = function (name, count, slots) {
+    var pct = Math.floor(((count / slots) * 100) / COVERAGE_STEP) * COVERAGE_STEP;
+    for (var p = COVERAGE_STEP; p <= pct; p += COVERAGE_STEP) {
+      this.track(name + "-" + p);
     }
   };
 
@@ -790,7 +879,6 @@
   };
 
   Player.prototype.restart = function () {
-    this.track("play-from-start");
     // Not gated on paused: starting a muted autoplay over from the top is the
     // same request as pressing play on it.
     this.unmuteForPress();
@@ -816,7 +904,6 @@
        device -- a touch screen gets the mute toggle instead, since iOS keeps
        the level on the hardware buttons. So these two count desktop viewers,
        and sound-on / sound-off below count everybody. */
-    this.track(direction > 0 ? "volume-up" : "volume-down");
     this.userSetSound = true;
     // Muted counts as zero however loud the underlying volume is, so turning
     // it up from muted starts from silence rather than jumping back to
@@ -856,18 +943,12 @@
   Player.prototype.toggleMute = function () {
     if (this.video.muted || this.video.volume === 0) this.unmute();
     else {
-      this.track("sound-off");
       this.userSetSound = true;
       this.video.muted = true;
     }
   };
 
   Player.prototype.unmute = function () {
-    /* Every player, not just the one that starts muted on its own. A video the
-       viewer had to press is already unmuted by that first press -- the play
-       button does it directly, without coming through here -- so this only
-       ever fires for somebody who deliberately asked for sound. */
-    this.track("sound-on");
     this.userSetSound = true;
     this.video.muted = false;
     if (this.video.volume === 0) this.video.volume = 1;
@@ -1074,20 +1155,6 @@
     });
 
     v.addEventListener("play", function () {
-      /* Two names, not one, and not neither.
-       *
-       * Reporting an autoplay as play would have made the count meaningless --
-       * it would have measured scrolling past the hero. Reporting nothing lost
-       * the other half: how many people the video actually started for, which
-       * is the denominator every other video number on the page wants. It is
-       * also the only figure that separates "the video is not compelling" from
-       * "the video never ran", and iOS Low Power Mode refuses autoplay outright.
-       *
-       * So the distinction stays and both halves are kept. play is a press;
-       * autoplay is the page deciding. Only the brand video can produce the
-       * second -- the module clips carry data-manual and are never started by
-       * the viewport. */
-      self.track(self.deliberate ? "play" : "autoplay");
       self.root.classList.add("is-playing", "has-started");
       self.playBtn.setAttribute("aria-label", "Pause");
       // has-started is half of what disables the volume pair, and it changes
@@ -1108,7 +1175,6 @@
       self.setBusy(false);
     });
     v.addEventListener("ended", function () {
-      self.track("complete");
       self.root.classList.remove("is-playing");
       self.root.classList.add("is-ended");
       self.stopLyrics();
@@ -1174,18 +1240,23 @@
       });
     }
 
-    var dragging = false;
+    /* On the instance rather than in this closure, because coverage has to see
+       it. A drag does not pause the video, so timeupdate goes on firing while
+       currentTime sweeps under the pointer -- and every one of those is a
+       second the coverage would otherwise record as watched. Four samples a
+       second across a three minute bar is ten or so free seconds per drag,
+       enough to walk somebody up a tenth they never saw. */
     this.bar.addEventListener("pointerdown", function (e) {
-      dragging = true;
+      self.scrubbing = true;
       self.holdControls("scrub", true);
       self.bar.setPointerCapture(e.pointerId);
       self.seekFromPointer(e.clientX);
     });
     this.bar.addEventListener("pointermove", function (e) {
-      if (dragging) self.seekFromPointer(e.clientX);
+      if (self.scrubbing) self.seekFromPointer(e.clientX);
     });
     this.bar.addEventListener("pointerup", function (e) {
-      dragging = false;
+      self.scrubbing = false;
       self.holdControls("scrub", false);
       self.bar.releasePointerCapture(e.pointerId);
     });

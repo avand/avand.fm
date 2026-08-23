@@ -73,12 +73,28 @@ report themselves without an attribute at all.
 `data-track` always holds a **complete** name, because `events.js` fires it
 verbatim on click. The video players carry **`data-track-prefix`** instead — a
 stem that `player.js` finishes with an action, giving
-`headroom / brand / video / sound-on`. Do not put a plain `data-track` on a
+`headroom / brand / video / watched-40`. Do not put a plain `data-track` on a
 player root: every press of its play button would report the stem as if it
 were an event.
 
 The naming scheme, and why the name has to carry everything Fathom cannot, is
 documented at the top of `events.js`. Read it before inventing a name.
+
+A video reports two things and no others: how much of it was watched, in
+tenths, and how much of that was watched in silence. `watched-10` through
+`watched-100`, and `watched-muted-10` through `watched-muted-100`. They are
+coverage, not position — a set of the seconds actually played, so seeking past
+something never counts it and watching it twice never counts it twice. The note
+above `trackProgress` in `player.js` is the whole argument; the short version
+is that the milestones this replaced measured where the playhead had reached,
+which overstates by an amount nobody can recover afterwards.
+
+Everything else a player used to report — play, autoplay, sound on and off,
+volume, restart, complete — is gone, because coverage answers those questions
+better or answers the question they were standing in for. `pause` survives
+alone: coverage cannot tell somebody who stopped the video from somebody who
+wandered off, and on a landing page that is the difference between rejection
+and distraction.
 
 **Only the landing page fires events.** The concept pages did, briefly, and the
 eleven names it took were noise next to the pageviews those pages already
