@@ -167,8 +167,8 @@ var SHEET_NAME = "Sample Class Leads";
  * Columns, in order. Changing this changes new rows only -- ensureHeaders
  * writes the header row once, into an empty Sheet, and never again.
  *
- * The last two are state, not data the form collects, and they are what makes
- * the invite mail idempotent. See INVITE_COL below.
+ * The last one is state, not data the form collects, and it is what makes the
+ * invite mail idempotent. See INVITE_COL below.
  */
 var HEADERS = [
   "Timestamp",
@@ -177,16 +177,15 @@ var HEADERS = [
   "Source",
   "Page",
   "Invited",
-  "Unsubscribed",
 ];
 
 /**
  * WHY THE SHEET IS THE QUEUE
  *
  * The invite mail is not addressed by row number and not addressed by a list
- * passed in from somewhere. Its recipients are a *query*: every row with an
- * email, an empty "Invited" cell, and an empty "Unsubscribed" cell. Sending
- * stamps "Invited" with the time it went.
+ * passed in from somewhere. Its recipients are a *query*: every row that has
+ * an email, has an empty "Invited" cell, and does not appear on the
+ * Unsubscribes tab. Sending stamps "Invited" with the time it went.
  *
  * Row numbers were the obvious alternative and they are a trap -- a sort, an
  * inserted row, or a deleted one renumbers every row beneath it, so a number
@@ -203,7 +202,6 @@ var HEADERS = [
  * in the first place.
  */
 var INVITE_COL = HEADERS.indexOf("Invited") + 1;
-var UNSUB_COL = HEADERS.indexOf("Unsubscribed") + 1;
 var EMAIL_COL = HEADERS.indexOf("Email") + 1;
 var NAME_COL = HEADERS.indexOf("First name") + 1;
 
@@ -237,8 +235,12 @@ var REQUEST_HEADERS = ["Timestamp", "Email", "Request", "Message", "Page"];
  * which runs from the editor, where reading is free -- does the matching when
  * it next goes to send something.
  *
- * The "Unsubscribed" column on the signup tab is still honoured. That one is
- * for you, by hand, when somebody replies to the mail instead of clicking.
+ * It is also the only place an unsubscribe is recorded. There was briefly a
+ * second one -- an "Unsubscribed" column on the signup tab, for the people who
+ * reply to the mail rather than clicking the link -- and two records of the
+ * same fact is one more than can be kept true. Somebody who replies gets a row
+ * typed into this tab by hand, which is the same row the page would have
+ * written.
  */
 var UNSUB_SHEET_NAME = "Unsubscribes";
 var UNSUB_HEADERS = ["Timestamp", "Email", "Page"];
@@ -549,8 +551,8 @@ function sendSampleClassInvites() {
 /* ------------------------------------------------------------------------ */
 
 /**
- * Reads the signup tab and mails every row that has an email, no "Invited"
- * stamp and no "Unsubscribed" stamp.
+ * Reads the signup tab and mails every row that has an email, has no
+ * "Invited" stamp, and is not on the Unsubscribes tab.
  *
  * THIS READS ROWS, AND THE NOTE AT THE TOP OF THE FILE SAYS NOTHING HERE
  * EVER DOES. Both are true, and the difference is what runs them. That note
@@ -596,10 +598,7 @@ function sendInvites_(opts) {
 
     var key = email.toLowerCase();
 
-    // Two ways off the list: the tab the unsubscribe page writes to, and the
-    // column you fill in by hand when somebody replies instead of clicking.
     if (unsubscribed[key]) { result.skipped++; continue; }
-    if (String(row[UNSUB_COL - 1] || "").trim()) { result.skipped++; continue; }
     if (String(row[INVITE_COL - 1] || "").trim()) { result.skipped++; continue; }
 
     if (seen[key]) {
