@@ -582,10 +582,24 @@ function sendInvites_(opts) {
   var rows = sheet.getRange(2, 1, lastRow - 1, HEADERS.length).getValues();
   var unsubscribed = unsubscribedSet_();
 
-  // Within one run, an address that appears twice is mailed once. Two rows
-  // for the same person is a person who submitted the form twice, not two
-  // people, and both rows still get stamped so neither comes back next run.
-  var seen = {};
+  // ADDRESSES, NOT ROWS
+  //
+  // Signing up twice is a real thing that happens -- a second ad, a second
+  // visit -- and both rows are kept, because Source and Page differ between
+  // them and that is the attribution. What must not happen twice is the mail.
+  //
+  // So the thing already-mailed is tracked by address rather than by row, and
+  // seeded from every row the Sheet has already stamped rather than starting
+  // empty each run. A duplicate is then skipped for the same reason on the
+  // first run and the fifth: this person has had it. Its cell stays blank,
+  // which is true -- that row never produced a send -- and the column stays
+  // the dates its name promises.
+  var mailed = {};
+  for (var r = 0; r < rows.length; r++) {
+    if (String(rows[r][INVITE_COL - 1] || "").trim()) {
+      mailed[String(rows[r][EMAIL_COL - 1] || "").trim().toLowerCase()] = true;
+    }
+  }
 
   for (var i = 0; i < rows.length; i++) {
     var row = rows[i];
@@ -599,18 +613,12 @@ function sendInvites_(opts) {
     var key = email.toLowerCase();
 
     if (unsubscribed[key]) { result.skipped++; continue; }
-    if (String(row[INVITE_COL - 1] || "").trim()) { result.skipped++; continue; }
-
-    if (seen[key]) {
-      result.skipped++;
-      if (!opts.dryRun) stampInvited_(sheet, rowNumber, "duplicate of " + seen[key]);
-      continue;
-    }
+    if (mailed[key]) { result.skipped++; continue; }
 
     if (result.sent >= INVITE_BATCH_LIMIT) break;
 
     result.recipients.push(name + " <" + email + ">");
-    if (opts.dryRun) { result.sent++; seen[key] = rowNumber; continue; }
+    if (opts.dryRun) { result.sent++; mailed[key] = true; continue; }
 
     // One bad address must not halt the batch. A failure leaves the stamp
     // empty, so the next run picks that row up again with nothing to
@@ -618,7 +626,7 @@ function sendInvites_(opts) {
     try {
       sendOneInvite_(name, email);
       stampInvited_(sheet, rowNumber, new Date());
-      seen[key] = rowNumber;
+      mailed[key] = true;
       result.sent++;
     } catch (err) {
       console.error(err);
@@ -651,14 +659,7 @@ function unsubscribedSet_() {
   return out;
 }
 
-/**
- * Writes the "Invited at" cell for one row.
- *
- * Almost always a Date. The exception is a duplicate address, which gets a
- * string naming the row that did get the mail -- the column is read for
- * emptiness and never for its type, so an occasional sentence in a date column
- * costs nothing and answers the question a blank timestamp would raise.
- */
+/** Writes the "Invited at" cell for one row. Always a Date. */
 function stampInvited_(sheet, rowNumber, value) {
   sheet.getRange(rowNumber, INVITE_COL).setValue(value);
 }
