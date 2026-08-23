@@ -476,6 +476,7 @@ function json(obj) {
  * why the two entry points below take none.
  *
  *   previewSampleClassInvites()   who would be mailed, mails nobody
+ *   sendTestInvite()              one copy to yourself, touches no row
  *   sendSampleClassInvites()      mails them, stamps the Sheet
  *
  * Always run the preview first. It is the only thing standing between a typo
@@ -535,6 +536,26 @@ function previewSampleClassInvites() {
       result.recipients.join("\n")
   );
   return result;
+}
+
+/**
+ * Mails one invite to whoever is running this, and touches no row.
+ *
+ * The preview exercises the half of this that reads the Sheet. It cannot
+ * exercise the other half at all -- the template, the MIME assembly, the From
+ * header, whether any of it survives a real mail client -- and that half is
+ * the one that goes out to everybody at once. This is how it gets looked at
+ * before then.
+ *
+ * Read the delivered message's From line, not the execution log. A send that
+ * went out from the wrong address is reported as a success by everything
+ * except the message itself; see the note at the top of this file.
+ */
+function sendTestInvite() {
+  var to = Session.getActiveUser().getEmail();
+  if (!to) throw new Error("No address for the active user -- run this from the editor");
+  sendOneInvite_("Avand", to);
+  console.log("Sent to " + to + ". Check the From line, the link, and the footer.");
 }
 
 /** Mails everybody not yet stamped "Invited at", and stamps them. */
