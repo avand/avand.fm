@@ -736,8 +736,39 @@
     }
   };
 
+  /*
+   * A press means sound.
+   *
+   * The test for this used to be "paused, and has-started absent" -- the very
+   * first press of a video that had never run. That is right for a module
+   * clip, which sits on its poster until somebody presses it, and wrong for
+   * the brand video, which sets has-started itself on the muted autoplay a
+   * second after the page loads. From then on every press of its play button
+   * resumed it silently and the only way to hear it was the mute button: the
+   * page's one video of somebody explaining what the course is, defaulting to
+   * silence for anyone who pressed the obvious control.
+   *
+   * userSetSound is the honest test -- has the viewer said anything about
+   * sound? Nobody has, so a press is somebody asking to watch this properly.
+   * Somebody muted it deliberately, so leave it alone; they meant it.
+   *
+   * Deliberately not routed through unmute(). That reports sound-on, which is
+   * this page's measure of a viewer leaning in and asking for audio, and a
+   * press already reports itself as play. Folding them together would quietly
+   * change what sound-on means against every one already recorded.
+   */
+  Player.prototype.unmuteForPress = function () {
+    if (this.userSetSound) return;
+    this.userSetSound = true;
+    this.video.muted = false;
+    if (this.video.volume === 0) this.video.volume = 1;
+  };
+
   Player.prototype.restart = function () {
     this.track("play-from-start");
+    // Not gated on paused: starting a muted autoplay over from the top is the
+    // same request as pressing play on it.
+    this.unmuteForPress();
     this.video.currentTime = 0;
     if (this.video.paused) this.play();
     this.nudgeControls();
@@ -966,10 +997,9 @@
     var v = this.video;
 
     this.playBtn.addEventListener("click", function () {
-      if (v.paused && !self.root.classList.contains("has-started")) {
-        self.userSetSound = true;
-        v.muted = false;
-      }
+      // Only on the way into playing; pressing it to pause says nothing about
+      // sound. See unmuteForPress.
+      if (v.paused) self.unmuteForPress();
       self.toggle();
     });
 
@@ -1019,7 +1049,20 @@
     });
 
     v.addEventListener("play", function () {
-      if (self.deliberate) self.track("play");
+      /* Two names, not one, and not neither.
+       *
+       * Reporting an autoplay as play would have made the count meaningless --
+       * it would have measured scrolling past the hero. Reporting nothing lost
+       * the other half: how many people the video actually started for, which
+       * is the denominator every other video number on the page wants. It is
+       * also the only figure that separates "the video is not compelling" from
+       * "the video never ran", and iOS Low Power Mode refuses autoplay outright.
+       *
+       * So the distinction stays and both halves are kept. play is a press;
+       * autoplay is the page deciding. Only the brand video can produce the
+       * second -- the module clips carry data-manual and are never started by
+       * the viewport. */
+      self.track(self.deliberate ? "play" : "autoplay");
       self.root.classList.add("is-playing", "has-started");
       self.playBtn.setAttribute("aria-label", "Pause");
       // has-started is half of what disables the volume pair, and it changes
@@ -1226,7 +1269,43 @@
    * it, and restart whatever was playing by itself before.
    */
   document.addEventListener("visibilitychange", function () {
-    if (document.hidden) return;
+    if (document.hidden) {
+      /*
+       * Nobody is looking, so stop the silent ones.
+       *
+       * A backgrounded tab keeps its media clock running -- Chrome drops the
+       * video track to save power, but currentTime goes on advancing -- so a
+       * muted autoplay plays to an empty room, pulls segments for it, and
+       * walks its own progress milestones out as though somebody were
+       * watching. The milestones are the reason this matters: how far into the
+       * brand video people get is the page's only involuntary measure of
+       * attention, and a switched-away tab was quietly inflating it.
+       *
+       * Only silent video stops. Audible video carries on, because listening
+       * to something in another tab is a thing people do on purpose and is the
+       * browser's own default; taking it away would be the surprising move.
+       *
+       * document.hidden covers tab switches, minimising, and the app switcher
+       * on a phone. It does not cover another window being dragged over this
+       * one: the spec permits a browser to report occlusion and none does so
+       * dependably. Window blur is not a stand-in either -- it fires for
+       * anybody who clicks away to type while still watching, which is the
+       * opposite of what this is for.
+       *
+       * Restricted to autoplay players so that what stops here is exactly what
+       * the branch below starts again. A module clip somebody muted by hand and
+       * left running is the one thing this does not stop; it is a video the
+       * viewer already chose to silence, and stopping it would mean either
+       * remembering it or leaving it paused with no cue.
+       */
+      players.forEach(function (p) {
+        if (p.video.paused || !p.autoplay) return;
+        if (!p.video.muted && p.video.volume > 0) return;
+        p.pause({ auto: true });
+      });
+      return;
+    }
+
     players.forEach(function (p) {
       if (p.video.paused) p.setBusy(false);
       if (p.autoplay && p.inView && !p.userPaused && p.video.paused) {
