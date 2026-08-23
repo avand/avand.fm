@@ -25,6 +25,7 @@ exclude:
   - bin
   - apps-script
   - headroom/chatgpt-ad-images
+  - headroom/fathom
   - video
   - mise.toml
   - Gemfile

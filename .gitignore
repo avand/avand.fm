@@ -26,3 +26,10 @@ vendor/
 
 # bin/dev keeps its background processes' output here.
 .dev.log
+
+# Analytics exports, dropped here to be read and then left behind. They are a
+# snapshot of a dashboard that has since moved on, not content, and they carry
+# visitor counts and ad ids that have no business in a public repo. Excluded in
+# _config.yml too: Jekyll copies any directory it is not told about into _site,
+# so untracked is not by itself unpublished -- see apps-script/.
+headroom/fathom/
