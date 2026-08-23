@@ -476,6 +476,7 @@ function json(obj) {
  * why the two entry points below take none.
  *
  *   previewSampleClassInvites()   who would be mailed, mails nobody
+ *   previewInviteText()           the message itself, both parts, sends nothing
  *   sendTestInvite()              one copy to yourself, touches no row
  *   sendSampleClassInvites()      mails them, stamps the Sheet
  *
@@ -539,6 +540,19 @@ function previewSampleClassInvites() {
     console.log("Skipping " + result.skipped + ":\n" + result.skipped_why.join("\n"));
   }
   return result;
+}
+
+/**
+ * Logs the message both ways, and sends nothing.
+ *
+ * The plain-text part is derived rather than written, so it is the half
+ * nobody has read. This is where to read it.
+ */
+function previewInviteText() {
+  var body = inviteBody_("Alexa", "alexa@example.com");
+  console.log("--- text ---\n" + body.text);
+  console.log("--- html ---\n" + body.html);
+  return body;
 }
 
 /**
@@ -819,11 +833,16 @@ function sendOneInvite_(name, email) {
 /**
  * The message, in both parts.
  *
- * The copy lives in invite.html and invite-text.html, next to this file, so
- * that reading or changing it is reading or changing prose rather than
- * picking it out of an array of string fragments. Both are Apps Script
- * templates; the values below are everything they can say that is not
- * already written down in them.
+ * The copy lives in invite.html, next to this file, so that reading or
+ * changing it is reading or changing prose rather than picking it out of an
+ * array of string fragments. The values below are everything it can say that
+ * is not already written down in it.
+ *
+ * The plain-text part is derived from the HTML rather than written. It was
+ * written, briefly, in a second file, and two files holding the same paragraphs
+ * is two files that will one day hold different ones -- which spam filters
+ * notice, and which nobody proofreads because both halves looked fine
+ * separately.
  *
  * One function builds both parts, so the automatic send and the batch cannot
  * say different things.
@@ -847,9 +866,11 @@ function inviteBody_(name, email) {
     addressHtml: esc_(MAILING_ADDRESS).replace(/\n/g, "<br />"),
   };
 
+  var html = render_("invite", values);
+
   return {
-    text: render_("invite-text", values).trim() + "\n",
-    html: render_("invite", values),
+    text: htmlToText_(html),
+    html: html,
     unsubscribeUrl: unsubscribeUrl,
   };
 }
@@ -857,16 +878,119 @@ function inviteBody_(name, email) {
 /**
  * Fills one template file in.
  *
- * <?= ?> escapes and <?!= ?> does not, which is the right way round in
- * invite.html and exactly wrong in invite-text.html -- an escaped apostrophe
- * is &#39; in a part that nothing will ever un-escape. So the text template
- * uses <?!= ?> throughout, and the only values reaching it are a first name
- * and two of our own URLs.
+ * <?= ?> escapes, <?!= ?> does not. Everything reaching the template is
+ * escaped except addressHtml, which is escaped by hand in inviteBody_ before
+ * its newlines are turned into <br>.
  */
 function render_(fileName, values) {
   var template = HtmlService.createTemplateFromFile(fileName);
   for (var key in values) template[key] = values[key];
   return template.evaluate().getContent();
+}
+
+/**
+ * The HTML part, as plain text.
+ *
+ * WHY A HAND-ROLLED CONVERTER IS NOT MAD HERE
+ *
+ * Turning arbitrary HTML into readable text is a genuinely hard problem and
+ * this is not it. The input is one file in this repo, written by us, using
+ * six tags. What makes that safe is that the input cannot change without
+ * somebody editing invite.html -- and if a tag appears there that this does
+ * not know about, its content still comes through, just without the shaping.
+ *
+ * The one thing that must not be lost is the links. Text has nowhere to hide
+ * an href, so an anchor becomes "label: url" -- the label alone would leave a
+ * reader with no way to reach the thing the whole message is asking them to
+ * do.
+ */
+function htmlToText_(html) {
+  var text = html;
+
+  // Anchors first, while the markup that holds the href is still there.
+  // The label's trailing arrow goes: "Pick your session ->: https://..."
+  // reads like a typo.
+  text = text.replace(
+    /<a\s[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/gi,
+    function (match, href, label) {
+      var clean = label.replace(/<[^>]+>/g, "").replace(/&rarr;|&#8594;/g, "");
+      clean = clean.replace(/\s+/g, " ").trim();
+      return clean ? clean + ": " + href : href;
+    }
+  );
+
+  // A <br> is a break somebody meant. The source's own line endings are not
+  // -- invite.html is indented for reading -- and the paragraph rebuild below
+  // discards those. So the deliberate ones are carried through as a sentinel
+  // that survives it, and turned back into newlines at the very end.
+  text = text.replace(/<br\s*\/?>/gi, BREAK_);
+  text = text.replace(/<hr\s*\/?>/gi, "\n--\n");
+  // Blocks end in a blank line. Opening tags go with everything else below.
+  text = text.replace(/<\/(p|div|h[1-6]|li|tr)>/gi, "\n\n");
+  text = text.replace(/<[^>]+>/g, "");
+
+  // The named entities invite.html actually uses, plus the three that must be
+  // decoded last so that a literal "&amp;lt;" is not turned into "<".
+  text = text
+    .replace(/&mdash;|&#8212;/g, "--")
+    .replace(/&ndash;|&#8211;/g, "-")
+    .replace(/&rsquo;|&#8217;|&#39;/g, "'")
+    .replace(/&lsquo;|&#8216;/g, "'")
+    .replace(/&ldquo;|&rdquo;/g, '"')
+    .replace(/&rarr;|&#8594;/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&");
+
+  // The source is indented for reading, so every line arrives with leading
+  // whitespace and paragraphs arrive broken across lines that mean nothing.
+  // Rebuild them: collapse each block to one line, then wrap it on purpose.
+  var blocks = text.split(/\n{2,}/);
+  var out = [];
+  for (var i = 0; i < blocks.length; i++) {
+    var segments = blocks[i].split(BREAK_);
+    var wrapped = [];
+    for (var j = 0; j < segments.length; j++) {
+      var flat = segments[j].replace(/\s+/g, " ").trim();
+      // An empty segment is <br><br> -- a blank line somebody asked for.
+      // Kept, but never leading or trailing, where it would only pad the
+      // message with whitespace nobody wrote.
+      if (!flat) {
+        if (wrapped.length) wrapped.push("");
+        continue;
+      }
+      wrapped.push(wrap_(flat, 72));
+    }
+    while (wrapped.length && wrapped[wrapped.length - 1] === "") wrapped.pop();
+    if (wrapped.length) out.push(wrapped.join("\n"));
+  }
+  return out.join("\n\n") + "\n";
+}
+
+/** Stands in for a <br> while paragraphs are rebuilt. Not typeable. */
+var BREAK_ = "\u0000";
+
+/**
+ * Wraps on spaces at `width`, and never inside a word -- a URL longer than
+ * the width goes on its own long line rather than being broken, because a
+ * broken URL is a URL that does not work when somebody copies it.
+ */
+function wrap_(text, width) {
+  var words = text.split(" ");
+  var lines = [];
+  var line = "";
+  for (var i = 0; i < words.length; i++) {
+    if (!line) { line = words[i]; continue; }
+    if ((line + " " + words[i]).length <= width) {
+      line += " " + words[i];
+    } else {
+      lines.push(line);
+      line = words[i];
+    }
+  }
+  if (line) lines.push(line);
+  return lines.join("\n");
 }
 
 /**

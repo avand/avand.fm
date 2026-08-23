@@ -45,7 +45,12 @@
 <p>
   <small>
     You&rsquo;re getting this because you signed up at avand.fm.
-    <a href="<?= unsubscribeUrl ?>">Unsubscribe</a>.
+    <br />
+    <!-- No full stop after this link. In the plain-text part the URL is the
+         last thing on the line, and a trailing "." is swallowed by the
+         autolinker in most mail clients, giving the reader a dead link on the
+         one message they are most annoyed to find a dead link in. -->
+    <a href="<?= unsubscribeUrl ?>">Unsubscribe</a>
     <br /><br />
     <?!= addressHtml ?>
   </small>
