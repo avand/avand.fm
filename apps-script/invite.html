@@ -1,0 +1,52 @@
+<!-- The sample class invite, HTML part. Its plain-text twin is
+     invite-text.html -- .html because that is the only extension besides .gs
+     and .json that clasp will push, not because there is any markup in it.
+
+     Both are Apps Script templates: <?= name ?> is substituted and escaped,
+     and the values come from inviteBody_ in signup.gs. Keep the two saying the
+     same thing. A reader with images off and HTML disabled gets the other one,
+     and a message whose halves disagree is one spam filters notice.
+
+     No <html>, <head> or <body>: this is a MIME part, not a page. No CSS
+     either -- every client strips a different half of it, and a plain message
+     from a person is what this is meant to look like. -->
+<p><?= greeting ?></p>
+
+<p>Thanks for signing up &mdash; here are the dates, as promised.</p>
+
+<p>
+  I&rsquo;m running free one-hour sample classes through September. I&rsquo;ll
+  teach you the AI-powered workflow I use to find, buy, and import new music,
+  then open it up to your questions. It&rsquo;s a real class, not a sales call.
+</p>
+
+<p>
+  Two times a week so you can pick what fits: <strong>Tuesdays at noon</strong>
+  and <strong>Thursdays at 6 PM Mountain</strong>.
+</p>
+
+<p><a href="<?= registerUrl ?>">Pick your session &rarr;</a></p>
+
+<p>You&rsquo;ll get a Zoom link and a calendar invite as soon as you register.</p>
+
+<p>
+  The course itself runs <strong>Thursdays 6&ndash;8 PM Mountain, Oct 1 &ndash;
+  Nov 19</strong> &mdash; eight weeks, one small first cohort. I mention the
+  time now because it&rsquo;s the part people need to plan around, and the
+  Thursday sample class is that exact slot if you want to test drive it.
+</p>
+
+<p>Questions, just reply. This goes straight to me.</p>
+
+<p>Avand</p>
+
+<hr />
+
+<p>
+  <small>
+    You&rsquo;re getting this because you signed up at avand.fm.
+    <a href="<?= unsubscribeUrl ?>">Unsubscribe</a>.
+    <br /><br />
+    <?!= addressHtml ?>
+  </small>
+</p>

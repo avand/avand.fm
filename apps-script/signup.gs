@@ -553,12 +553,21 @@ function previewSampleClassInvites() {
  * Read the delivered message's From line, not the execution log. A send that
  * went out from the wrong address is reported as a success by everything
  * except the message itself; see the note at the top of this file.
+ *
+ * It goes to REPLY_TO. That was Session.getActiveUser() for one version,
+ * which reads better and wants userinfo.email -- a third scope, consented
+ * forever, so that a test helper could work out an address this file already
+ * has written down.
+ *
+ * One thing it cannot show you: how the message lands somewhere else. Mail
+ * from this account to this account skips most of what a receiving provider
+ * would do to it. Once this looks right, put a personal Gmail address in
+ * below for one send and look at that too -- whether it arrives at all, and
+ * whether Gmail files it under Promotions.
  */
 function sendTestInvite() {
-  var to = Session.getActiveUser().getEmail();
-  if (!to) throw new Error("No address for the active user -- run this from the editor");
-  sendOneInvite_("Avand", to);
-  console.log("Sent to " + to + ". Check the From line, the link, and the footer.");
+  sendOneInvite_("Avand", REPLY_TO);
+  console.log("Sent to " + REPLY_TO + ". Check the From line, the link, and the footer.");
 }
 
 /** Mails everybody not yet stamped "Invited at", and stamps them. */
@@ -808,71 +817,56 @@ function sendOneInvite_(name, email) {
 }
 
 /**
- * The message, in both parts. One function, so the automatic send and the
- * batch cannot say different things.
+ * The message, in both parts.
  *
- * List-Unsubscribe is in buildMime_ rather than here; the visible link below
- * is the one the fine print on the site promises, and the header is what the
- * big mailbox providers read.
+ * The copy lives in invite.html and invite-text.html, next to this file, so
+ * that reading or changing it is reading or changing prose rather than
+ * picking it out of an array of string fragments. Both are Apps Script
+ * templates; the values below are everything they can say that is not
+ * already written down in them.
+ *
+ * One function builds both parts, so the automatic send and the batch cannot
+ * say different things.
+ *
+ * List-Unsubscribe is added in buildMime_ rather than here. The visible link
+ * in the footer is the one the fine print on the site promises; the header is
+ * what the big mailbox providers read.
  */
 function inviteBody_(name, email) {
-  var hi = name ? "Hi " + name + "," : "Hi,";
-
   // Prefills the field on the unsubscribe page, so leaving is one press. The
   // page still shows the address and lets it be changed -- a forwarded link
   // should unsubscribe whoever is reading it, not whoever sent it on.
-  var unsubscribeUrl =
-    UNSUBSCRIBE_URL + "?email=" + encodeURIComponent(email);
+  var unsubscribeUrl = UNSUBSCRIBE_URL + "?email=" + encodeURIComponent(email);
+  var greeting = name ? "Hi " + name + "," : "Hi,";
 
-  var text = [
-    hi,
-    "",
-    "Thanks for signing up -- here are the dates, as promised.",
-    "",
-    "I'm running free one-hour sample classes through September. I'll teach",
-    "you the AI-powered workflow I use to find, buy, and import new music,",
-    "then open it up to your questions. It's a real class, not a sales call.",
-    "",
-    "Two times a week so you can pick what fits: Tuesdays at noon and",
-    "Thursdays at 6 PM Mountain. Pick your session here:",
-    "",
-    REGISTER_URL,
-    "",
-    "You'll get a Zoom link and a calendar invite as soon as you register.",
-    "",
-    "The course itself runs Thursdays 6-8 PM Mountain, Oct 1 to Nov 19 --",
-    "eight weeks, one small first cohort. I mention the time now because",
-    "it's the part people need to plan around, and the Thursday sample",
-    "class is that exact slot if you want to test drive it.",
-    "",
-    "Questions, just reply. This goes straight to me.",
-    "",
-    "Avand",
-    "",
-    "--",
-    "You're getting this because you signed up at avand.fm.",
-    "Unsubscribe: " + unsubscribeUrl,
-    "",
-    MAILING_ADDRESS,
-  ].join("\n");
+  var values = {
+    greeting: greeting,
+    registerUrl: REGISTER_URL,
+    unsubscribeUrl: unsubscribeUrl,
+    address: MAILING_ADDRESS,
+    addressHtml: esc_(MAILING_ADDRESS).replace(/\n/g, "<br />"),
+  };
 
-  var html = [
-    "<p>" + esc_(hi) + "</p>",
-    "<p>Thanks for signing up &mdash; here are the dates, as promised.</p>",
-    "<p>I&rsquo;m running free one-hour sample classes through September. I&rsquo;ll teach you the AI-powered workflow I use to find, buy, and import new music, then open it up to your questions. It&rsquo;s a real class, not a sales call.</p>",
-    "<p>Two times a week so you can pick what fits: <strong>Tuesdays at noon</strong> and <strong>Thursdays at 6 PM Mountain</strong>.</p>",
-    '<p><a href="' + esc_(REGISTER_URL) + '">Pick your session &rarr;</a></p>',
-    "<p>You&rsquo;ll get a Zoom link and a calendar invite as soon as you register.</p>",
-    "<p>The course itself runs <strong>Thursdays 6&ndash;8 PM Mountain, Oct 1 &ndash; Nov 19</strong> &mdash; eight weeks, one small first cohort. I mention the time now because it&rsquo;s the part people need to plan around, and the Thursday sample class is that exact slot if you want to test drive it.</p>",
-    "<p>Questions, just reply. This goes straight to me.</p>",
-    "<p>Avand</p>",
-    "<hr />",
-    "<p><small>You&rsquo;re getting this because you signed up at avand.fm. " +
-      '<a href="' + esc_(unsubscribeUrl) + '">Unsubscribe</a>.<br /><br />' +
-      esc_(MAILING_ADDRESS).replace(/\n/g, "<br />") + "</small></p>",
-  ].join("\n");
+  return {
+    text: render_("invite-text", values).trim() + "\n",
+    html: render_("invite", values),
+    unsubscribeUrl: unsubscribeUrl,
+  };
+}
 
-  return { text: text, html: html, unsubscribeUrl: unsubscribeUrl };
+/**
+ * Fills one template file in.
+ *
+ * <?= ?> escapes and <?!= ?> does not, which is the right way round in
+ * invite.html and exactly wrong in invite-text.html -- an escaped apostrophe
+ * is &#39; in a part that nothing will ever un-escape. So the text template
+ * uses <?!= ?> throughout, and the only values reaching it are a first name
+ * and two of our own URLs.
+ */
+function render_(fileName, values) {
+  var template = HtmlService.createTemplateFromFile(fileName);
+  for (var key in values) template[key] = values[key];
+  return template.evaluate().getContent();
 }
 
 /**
