@@ -184,8 +184,9 @@ var HEADERS = [
  *
  * The invite mail is not addressed by row number and not addressed by a list
  * passed in from somewhere. Its recipients are a *query*: every row that has
- * an email, has an empty "Invited at" cell, and does not appear on the
- * Unsubscribes tab. Sending stamps "Invited at" with the time it went.
+ * an email, has not been mailed at that address before, and has not
+ * unsubscribed since it signed up. Sending stamps "Invited at" with the time
+ * it went.
  *
  * Row numbers were the obvious alternative and they are a trap -- a sort, an
  * inserted row, or a deleted one renumbers every row beneath it, so a number
@@ -204,6 +205,7 @@ var HEADERS = [
 var INVITE_COL = HEADERS.indexOf("Invited at") + 1;
 var EMAIL_COL = HEADERS.indexOf("Email") + 1;
 var NAME_COL = HEADERS.indexOf("First name") + 1;
+var TIME_COL = HEADERS.indexOf("Timestamp") + 1;
 
 /**
  * Privacy requests -- access, correction, deletion -- from the form on
@@ -551,8 +553,8 @@ function sendSampleClassInvites() {
 /* ------------------------------------------------------------------------ */
 
 /**
- * Reads the signup tab and mails every row that has an email, has no
- * "Invited at" stamp, and is not on the Unsubscribes tab.
+ * Reads the signup tab and mails every row that has an email, whose address
+ * has not been mailed already, and who has not unsubscribed since signing up.
  *
  * THIS READS ROWS, AND THE NOTE AT THE TOP OF THE FILE SAYS NOTHING HERE
  * EVER DOES. Both are true, and the difference is what runs them. That note
@@ -580,7 +582,7 @@ function sendInvites_(opts) {
   if (lastRow < 2) return result;
 
   var rows = sheet.getRange(2, 1, lastRow - 1, HEADERS.length).getValues();
-  var unsubscribed = unsubscribedSet_();
+  var unsubscribedSince = unsubscribedSince_();
 
   // ADDRESSES, NOT ROWS
   //
@@ -612,7 +614,10 @@ function sendInvites_(opts) {
 
     var key = email.toLowerCase();
 
-    if (unsubscribed[key]) { result.skipped++; continue; }
+    if (hasLeft_(unsubscribedSince[key], row[TIME_COL - 1])) {
+      result.skipped++;
+      continue;
+    }
     if (mailed[key]) { result.skipped++; continue; }
 
     if (result.sent >= INVITE_BATCH_LIMIT) break;
@@ -638,25 +643,62 @@ function sendInvites_(opts) {
 }
 
 /**
- * Every address that has unsubscribed, lower-cased, as a lookup.
+ * When each address last unsubscribed, lower-cased, as a lookup of Dates.
  *
- * Reads the tab, which is fine here and would not be in doPost -- the whole
- * point of splitting the two is that the reading happens on this side. The tab
- * may not exist yet; that is not an error, it is a list nobody has left.
+ * WHEN AND NOT WHETHER, BECAUSE PEOPLE COME BACK
+ *
+ * Somebody who left in September and filled the signup form in again in
+ * October has said two opposite things, and the second one is the one they
+ * mean. A set of addresses cannot tell those apart and would keep them off
+ * the list forever, having been asked to put them back on it.
+ *
+ * So the batch compares this against the Timestamp on their row: an
+ * unsubscribe only silences a signup that came before it. That is the same
+ * rule doPost already runs on when it mails a returning signup without
+ * consulting this tab at all -- most recent statement wins -- and it means the
+ * tab stays an append-only record. Nothing is ever deleted from it, which
+ * matters the day somebody says they asked to leave and were ignored.
+ *
+ * The tab may not exist yet. That is not an error, it is a list nobody has
+ * left.
  */
-function unsubscribedSet_() {
+function unsubscribedSince_() {
   var book = SpreadsheetApp.openById(SPREADSHEET_ID);
   var sheet = book.getSheetByName(UNSUB_SHEET_NAME);
   var out = {};
   if (!sheet || sheet.getLastRow() < 2) return out;
 
-  var emailCol = UNSUB_HEADERS.indexOf("Email") + 1;
-  var values = sheet.getRange(2, emailCol, sheet.getLastRow() - 1, 1).getValues();
-  for (var i = 0; i < values.length; i++) {
-    var email = String(values[i][0] || "").trim().toLowerCase();
-    if (email) out[email] = true;
+  var rows = sheet
+    .getRange(2, 1, sheet.getLastRow() - 1, UNSUB_HEADERS.length)
+    .getValues();
+  var timeCol = UNSUB_HEADERS.indexOf("Timestamp");
+  var emailCol = UNSUB_HEADERS.indexOf("Email");
+
+  for (var i = 0; i < rows.length; i++) {
+    var email = String(rows[i][emailCol] || "").trim().toLowerCase();
+    if (!email) continue;
+    // A hand-typed row may hold anything, or nothing, in the date cell. An
+    // unreadable date is treated as "just now" rather than ignored: the row
+    // exists because somebody asked to leave, and the safe reading of an
+    // ambiguous request to stop is to stop.
+    var when = rows[i][timeCol] instanceof Date ? rows[i][timeCol] : new Date();
+    if (!out[email] || when > out[email]) out[email] = when;
   }
   return out;
+}
+
+/**
+ * Is this signup silenced by an unsubscribe?
+ *
+ * Only if the unsubscribe came after it. A signup with no readable timestamp
+ * is treated as older than any unsubscribe -- an undated row is one of the
+ * first, from before any of this existed, and none of those has asked to come
+ * back.
+ */
+function hasLeft_(leftAt, signedUpAt) {
+  if (!leftAt) return false;
+  if (!(signedUpAt instanceof Date)) return true;
+  return leftAt >= signedUpAt;
 }
 
 /** Writes the "Invited at" cell for one row. Always a Date. */
