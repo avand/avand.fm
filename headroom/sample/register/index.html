@@ -1,0 +1,51 @@
+---
+# No layout, deliberately. Nobody reads this page -- it exists to bounce
+# somebody to Zoom in the time it takes to render, and pulling in the nav, the
+# footer, the fonts and three stylesheets to do that would put a visible flash
+# of a page nobody wanted in front of the thing they clicked.
+---
+<!-- ===========================================================================
+     /headroom/sample/register -> the Zoom registration page.
+
+     WHY THIS EXISTS AT ALL, GIVEN THAT THE ZOOM URL WORKS FINE ON ITS OWN
+
+     Because it is the URL that goes in the email, and email is the one place
+     a link cannot be corrected after the fact. Every invite already sent is a
+     permanent pointer at whatever this file says today. If the Zoom meeting is
+     ever rebuilt -- and it will be, the first time an occurrence needs to move
+     in a way editing cannot manage -- the registration URL changes and every
+     one of those links dies. Editing one line here fixes all of them at once.
+
+     It also means the link in the mail says avand.fm, which is the name the
+     reader recognises. `us06web.zoom.us/meeting/register/vzPf...` is genuinely
+     Zoom and genuinely fine, and it still reads like a link somebody forwarded
+     you rather than one you asked for.
+
+     The destination lives here and REGISTER_URL in apps-script/signup.gs
+     points at this page. One fact, one place.
+
+     NOT TRACKED, on purpose. A Fathom event fired immediately before a
+     navigation is a race the navigation usually wins, so the number would be
+     wrong in a direction nothing reveals. The number that matters is Zoom's
+     own registration count, and that one cannot be lost.
+     =========================================================================== -->
+<meta charset="utf-8" />
+<title>Redirecting to registration…</title>
+<meta name="robots" content="noindex" />
+
+<!-- Belt and braces, in that order. The meta refresh works with JavaScript
+     off; the script below beats it by a frame when JavaScript is on, and uses
+     replace() so the back button returns to the mail client rather than
+     bouncing the reader through here again. -->
+<meta http-equiv="refresh" content="0; url=https://us06web.zoom.us/meeting/register/vzPf7rKuTnKw_-5MlJKFkw" />
+
+<p style="font: 16px/1.5 system-ui, sans-serif; margin: 4rem auto; max-width: 32rem; padding: 0 1.5rem">
+  Taking you to the sample class registration…
+  <br /><br />
+  <a href="https://us06web.zoom.us/meeting/register/vzPf7rKuTnKw_-5MlJKFkw">Continue to Zoom</a>
+  if nothing happens.
+</p>
+
+<script>
+  location.replace("https://us06web.zoom.us/meeting/register/vzPf7rKuTnKw_-5MlJKFkw");
+</script>

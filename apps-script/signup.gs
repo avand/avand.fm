@@ -221,6 +221,28 @@ var NAME_COL = HEADERS.indexOf("First name") + 1;
 var REQUEST_SHEET_NAME = "Privacy Requests";
 var REQUEST_HEADERS = ["Timestamp", "Email", "Request", "Message", "Page"];
 
+/**
+ * Unsubscribes, from the form on /headroom/unsubscribe.
+ *
+ * ITS OWN TAB, AND NOT A CELL ON THE LEAD'S ROW, FOR ONE REASON
+ *
+ * Finding the lead's row means reading the signup tab, and doPost must never
+ * read a row. That is the entire argument for why a deployment open to
+ * "Anyone" is safe -- see the top of this file -- and an unsubscribe handler
+ * that searched for a match would hand a stranger a membership oracle for a
+ * private mailing list: type an address, watch whether it was found.
+ *
+ * Appending sidesteps it completely. doPost stays append-only, the answer is
+ * "ok" whether or not the address was ever on the list, and sendInvites_ --
+ * which runs from the editor, where reading is free -- does the matching when
+ * it next goes to send something.
+ *
+ * The "Unsubscribed" column on the signup tab is still honoured. That one is
+ * for you, by hand, when somebody replies to the mail instead of clicking.
+ */
+var UNSUB_SHEET_NAME = "Unsubscribes";
+var UNSUB_HEADERS = ["Timestamp", "Email", "Page"];
+
 /** What the form may ask for. Anything else is recorded as "other". */
 var REQUEST_KINDS = ["copy", "correct", "delete", "other"];
 
@@ -231,7 +253,9 @@ function doPost(e) {
     // One endpoint, two forms. Absent kind means the mailing list, so the
     // signup form keeps working unchanged and older cached copies of the page
     // -- which send no kind at all -- are not broken by this.
-    if (String(payload.kind || "") === "privacy") return privacyRequest(payload);
+    var kind = String(payload.kind || "");
+    if (kind === "privacy") return privacyRequest(payload);
+    if (kind === "unsubscribe") return unsubscribeRequest(payload);
 
     var name = String(payload.firstName || "").trim();
     var email = String(payload.email || "").trim();
@@ -284,6 +308,11 @@ function doPost(e) {
     // it failed because a send did. What a failure costs is the stamp, which
     // is exactly what makes sendSampleClassInvites() pick this row up later
     // -- the recovery is already built and needs nothing recorded here.
+    //
+    // The unsubscribe list is deliberately not consulted here. Somebody who
+    // left and has now filled the form in again has resubscribed, and that is
+    // the more recent of the two statements. Checking would also mean reading
+    // a tab from doPost, which is the thing this file will not do.
     try {
       sendOneInvite_(name, email);
       stampInvited_(sheet, rowNumber, new Date());
@@ -364,6 +393,39 @@ function privacyRequest(payload) {
 }
 
 /**
+ * An unsubscribe. Appends and answers ok, always.
+ *
+ * Never rejected for anything but a malformed address, and never told that an
+ * address was not found -- see UNSUB_SHEET_NAME for why that silence is
+ * deliberate rather than lazy. An unsubscribe is also the one request where a
+ * false "done" is safer than a true "you were not on the list": the second
+ * answer sends somebody who mistyped away believing they are finished.
+ */
+function unsubscribeRequest(payload) {
+  var email = String(payload.email || "").trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return json({ ok: false, error: "email invalid" });
+  }
+
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(20000)) return json({ ok: false, error: "busy" });
+
+  try {
+    var sheet = targetSheet(UNSUB_SHEET_NAME, true);
+    ensureHeaders(sheet, UNSUB_HEADERS);
+    sheet.appendRow([
+      new Date(),
+      email.slice(0, 254),
+      String(payload.page || "").slice(0, 500),
+    ]);
+  } finally {
+    lock.releaseLock();
+  }
+
+  return json({ ok: true });
+}
+
+/**
  * Both tabs are found by name now -- there is no "first tab" fallback left, on
  * purpose. `create` makes the tab if it is missing, which the requests tab
  * needs and the signup tab must not have, for the reason given at SHEET_NAME.
@@ -431,13 +493,28 @@ var FROM_EMAIL = "headroom@avand.fm";
 var REPLY_TO = "wave@avand.fm";
 
 /**
- * The Zoom registration page, and the postal address the footer is required
- * to carry. Both are empty on purpose: sendOneInvite_ throws if either is
- * still blank, so a forgotten value stops the run instead of mailing a dead
- * link and a missing address to the whole list.
+ * Where the mail points. REGISTER_URL is a page on avand.fm that bounces to
+ * Zoom rather than the Zoom URL itself -- see that page for why, but the short
+ * of it is that a link already sent in an email cannot be corrected, and a
+ * rebuilt Zoom meeting changes its registration URL.
+ *
+ * sendOneInvite_ still throws if either this or the address below is blank.
+ * Emptying one to test something and forgetting is the failure that would
+ * otherwise mail a dead link to the whole list.
  */
-var REGISTER_URL = "";
-var MAILING_ADDRESS = "";
+var REGISTER_URL = "https://avand.fm/headroom/sample/register";
+
+/**
+ * The postal address every commercial email is required to carry. Multi-line
+ * because that is how an address is read; the HTML part joins it with <br>.
+ */
+var MAILING_ADDRESS = "Headroom\n3388 Triangle Rd.\nMariposa, CA 95338";
+
+/**
+ * Where the footer's unsubscribe link points. The address is appended as a
+ * query parameter so the page arrives filled in and one press away.
+ */
+var UNSUBSCRIBE_URL = "https://avand.fm/headroom/unsubscribe";
 
 /** How many one run will send. A cap, not a target -- see sendInvites_. */
 var INVITE_BATCH_LIMIT = 100;
@@ -501,6 +578,7 @@ function sendInvites_(opts) {
   if (lastRow < 2) return result;
 
   var rows = sheet.getRange(2, 1, lastRow - 1, HEADERS.length).getValues();
+  var unsubscribed = unsubscribedSet_();
 
   // Within one run, an address that appears twice is mailed once. Two rows
   // for the same person is a person who submitted the form twice, not two
@@ -516,10 +594,14 @@ function sendInvites_(opts) {
     if (!email) continue;
     result.considered++;
 
+    var key = email.toLowerCase();
+
+    // Two ways off the list: the tab the unsubscribe page writes to, and the
+    // column you fill in by hand when somebody replies instead of clicking.
+    if (unsubscribed[key]) { result.skipped++; continue; }
     if (String(row[UNSUB_COL - 1] || "").trim()) { result.skipped++; continue; }
     if (String(row[INVITE_COL - 1] || "").trim()) { result.skipped++; continue; }
 
-    var key = email.toLowerCase();
     if (seen[key]) {
       result.skipped++;
       if (!opts.dryRun) stampInvited_(sheet, rowNumber, "duplicate of " + seen[key]);
@@ -546,6 +628,28 @@ function sendInvites_(opts) {
   }
 
   return result;
+}
+
+/**
+ * Every address that has unsubscribed, lower-cased, as a lookup.
+ *
+ * Reads the tab, which is fine here and would not be in doPost -- the whole
+ * point of splitting the two is that the reading happens on this side. The tab
+ * may not exist yet; that is not an error, it is a list nobody has left.
+ */
+function unsubscribedSet_() {
+  var book = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = book.getSheetByName(UNSUB_SHEET_NAME);
+  var out = {};
+  if (!sheet || sheet.getLastRow() < 2) return out;
+
+  var emailCol = UNSUB_HEADERS.indexOf("Email") + 1;
+  var values = sheet.getRange(2, emailCol, sheet.getLastRow() - 1, 1).getValues();
+  for (var i = 0; i < values.length; i++) {
+    var email = String(values[i][0] || "").trim().toLowerCase();
+    if (email) out[email] = true;
+  }
+  return out;
 }
 
 /** Writes the "Invited" cell for one row. */
@@ -600,12 +704,13 @@ function sendOneInvite_(name, email) {
   if (!REGISTER_URL) throw new Error("REGISTER_URL is empty -- nothing sent");
   if (!MAILING_ADDRESS) throw new Error("MAILING_ADDRESS is empty -- nothing sent");
 
-  var body = inviteBody_(name);
+  var body = inviteBody_(name, email);
   var raw = buildMime_({
     to: email,
     subject: "Your Headroom sample class dates",
     text: body.text,
     html: body.html,
+    unsubscribeUrl: body.unsubscribeUrl,
   });
   Gmail.Users.Messages.send({ raw: raw }, "me");
 }
@@ -618,8 +723,14 @@ function sendOneInvite_(name, email) {
  * is the one the fine print on the site promises, and the header is what the
  * big mailbox providers read.
  */
-function inviteBody_(name) {
+function inviteBody_(name, email) {
   var hi = name ? "Hi " + name + "," : "Hi,";
+
+  // Prefills the field on the unsubscribe page, so leaving is one press. The
+  // page still shows the address and lets it be changed -- a forwarded link
+  // should unsubscribe whoever is reading it, not whoever sent it on.
+  var unsubscribeUrl =
+    UNSUBSCRIBE_URL + "?email=" + encodeURIComponent(email);
 
   var text = [
     hi,
@@ -648,7 +759,8 @@ function inviteBody_(name) {
     "",
     "--",
     "You're getting this because you signed up at avand.fm.",
-    "To unsubscribe, reply with UNSUBSCRIBE.",
+    "Unsubscribe: " + unsubscribeUrl,
+    "",
     MAILING_ADDRESS,
   ].join("\n");
 
@@ -664,11 +776,11 @@ function inviteBody_(name) {
     "<p>Avand</p>",
     "<hr />",
     "<p><small>You&rsquo;re getting this because you signed up at avand.fm. " +
-      "To unsubscribe, reply with UNSUBSCRIBE.<br />" +
-      esc_(MAILING_ADDRESS) + "</small></p>",
+      '<a href="' + esc_(unsubscribeUrl) + '">Unsubscribe</a>.<br /><br />' +
+      esc_(MAILING_ADDRESS).replace(/\n/g, "<br />") + "</small></p>",
   ].join("\n");
 
-  return { text: text, html: html };
+  return { text: text, html: html, unsubscribeUrl: unsubscribeUrl };
 }
 
 /**
@@ -693,10 +805,17 @@ function buildMime_(msg) {
     "From: " + FROM_NAME + " <" + FROM_EMAIL + ">",
     "To: " + msg.to,
     "Reply-To: " + REPLY_TO,
-    // What Gmail and Outlook read to offer their own unsubscribe control.
-    // mailto only: a one-click List-Unsubscribe-Post needs a URL that
-    // actually unsubscribes somebody, and there isn't one yet.
-    "List-Unsubscribe: <mailto:" + REPLY_TO + "?subject=Unsubscribe>",
+    // What Gmail and Outlook read to put their own unsubscribe control at the
+    // top of the message, next to the sender.
+    //
+    // Both routes are offered, and there is deliberately no
+    // List-Unsubscribe-Post. That header promises the URL will unsubscribe on
+    // a bare POST with no confirmation, and this one will not: the page it
+    // points at requires a press, because link scanners open every URL in a
+    // message before a person sees it. Claiming one-click and then showing a
+    // button is worse than not claiming it.
+    "List-Unsubscribe: <" + msg.unsubscribeUrl + ">, <mailto:" +
+      REPLY_TO + "?subject=Unsubscribe>",
     "Subject: " + msg.subject,
     "MIME-Version: 1.0",
     'Content-Type: multipart/alternative; boundary="' + boundary + '"',

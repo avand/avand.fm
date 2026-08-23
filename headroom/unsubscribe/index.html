@@ -1,0 +1,150 @@
+---
+layout: headroom
+title: "Unsubscribe — Headroom"
+description: "Stop the Headroom emails. One button, and it is done."
+subsection: Unsubscribe
+---
+
+<div class="entry-header">
+  <div class="breadcrumb">
+    <a href="/headroom/">Headroom</a>
+    <span>/</span>
+    Unsubscribe
+  </div>
+  <h1>Unsubscribe</h1>
+  <p class="lead">
+    One button and the emails stop. No survey, no “are you sure”, no offer of a
+    reduced frequency you did not ask for.
+  </p>
+</div>
+
+<div class="entry-body">
+
+  <form class="request" id="unsub-form" novalidate>
+    <!-- The address arrives in ?email= and is written into this field by the
+         script below, so the common case is a filled-in form and one press.
+         It stays visible and editable on purpose: a link forwarded to somebody
+         else should let that person unsubscribe themselves rather than the
+         friend who forwarded it. -->
+    <label for="un-email">Email address</label>
+    <input id="un-email" name="email" type="email" placeholder="you@example.com"
+      autocomplete="email" data-1p-ignore required />
+
+    <button class="btn-primary" type="submit">Unsubscribe me</button>
+    <p class="request-status" role="status" aria-live="polite"></p>
+  </form>
+
+  <p>
+    This covers the Headroom mailing list — the sample class dates and anything
+    about the course. It is not the same as asking for your data to be deleted,
+    which is a bigger thing and lives on the
+    <a href="/headroom/privacy/#request">privacy page</a>.
+  </p>
+
+</div>
+
+<script>
+  /*
+   * The unsubscribe form.
+   *
+   * WHY THERE IS A BUTTON AT ALL, WHEN ONE CLICK FROM THE MAIL WOULD DO
+   *
+   * Because a link in an email is fetched by things that are not people.
+   * Corporate mail security scanners and link previewers open every URL in a
+   * message before the recipient has seen it, and they do it with a GET. A
+   * page that unsubscribed somebody on load would therefore unsubscribe a
+   * share of the list automatically, silently, and only at the companies with
+   * the strictest filters -- which is to say, invisibly and unevenly.
+   *
+   * The press is what a scanner cannot do. It costs the reader one click and
+   * it is the whole reason the outcome can be trusted.
+   *
+   * WHY IT ALWAYS SAYS IT WORKED
+   *
+   * The answer never depends on whether the address was on the list. If it
+   * said "you were not subscribed", anybody could type addresses into this
+   * form and read membership of a private mailing list back out of it, one at
+   * a time -- a read surface on a Sheet whose whole design is that strangers
+   * can write to it and nobody can read it. So the endpoint appends and says
+   * ok, and this page says the same thing either way.
+   *
+   * That also happens to be the kinder answer. Somebody who unsubscribes
+   * twice, or who mistypes, wants to hear that it is dealt with.
+   */
+  (function () {
+    /* Same /exec URL as the signup form. Safe in public source: the deployment
+       can only append rows, never read them. */
+    var ENDPOINT =
+      "https://script.google.com/macros/s/AKfycbyiqhCLfyrsszqOGrbHxvIwqsAJvCPwzpW6o1FrN4pB2mwZslfeN2F57bcovuRDX-es/exec";
+
+    var form = document.getElementById("unsub-form");
+    if (!form) return;
+    var status = form.querySelector(".request-status");
+    var button = form.querySelector('button[type="submit"]');
+
+    function say(message, kind) {
+      status.textContent = message;
+      status.className = "request-status" + (kind ? " " + kind : "");
+    }
+
+    /* Prefill from ?email=. Assigned to .value, never written into the page as
+       markup -- the whole string arrives from a URL a stranger can compose. */
+    try {
+      var given = new URLSearchParams(location.search).get("email");
+      if (given) form.elements.email.value = given.trim();
+    } catch (e) {
+      /* URLSearchParams is everywhere this site supports; if it somehow is
+         not, an empty field the reader types into is a working page. */
+    }
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      var email = form.elements.email.value.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        say("That email doesn't look right.", "err");
+        form.elements.email.focus();
+        return;
+      }
+
+      button.disabled = true;
+      say("Working…");
+
+      /* No Content-Type header, deliberately. A cross-origin POST labelled
+         application/json triggers an OPTIONS preflight, and Apps Script Web
+         Apps do not answer OPTIONS -- the preflight fails, the real request is
+         never sent, and nothing reaches the execution log to find. A string
+         body with no Content-Type is sent as text/plain, which is on the CORS
+         safelist. The body is still JSON; signup.gs parses it by hand. */
+      fetch(ENDPOINT, {
+        method: "POST",
+        body: JSON.stringify({
+          kind: "unsubscribe",
+          email: email,
+          page: window.location.href,
+        }),
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error("bad status " + res.status);
+          return res.json();
+        })
+        .then(function (data) {
+          if (!data || !data.ok) throw new Error(data && data.error);
+          say("Done. " + email + " will not get any more of these.", "ok");
+          button.remove();
+        })
+        .catch(function () {
+          /* An unsubscribe that failed is the one failure where "try again
+             later" is not good enough on its own -- the person is already
+             annoyed enough to be here. So give them the route that does not
+             depend on this page working. */
+          say(
+            "That didn't go through, so you are still subscribed. Please try again in a minute — " +
+              "or reply to any of the emails with the word UNSUBSCRIBE and I'll do it by hand.",
+            "err"
+          );
+          button.disabled = false;
+        });
+    });
+  })();
+</script>
