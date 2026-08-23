@@ -535,6 +535,9 @@ function previewSampleClassInvites() {
     "Would mail " + result.sent + " of " + result.considered + " rows:\n" +
       result.recipients.join("\n")
   );
+  if (result.skipped_why.length) {
+    console.log("Skipping " + result.skipped + ":\n" + result.skipped_why.join("\n"));
+  }
   return result;
 }
 
@@ -565,6 +568,7 @@ function sendSampleClassInvites() {
     "Mailed " + result.sent + ", skipped " + result.skipped +
       ", failed " + result.failed.length
   );
+  if (result.skipped_why.length) console.log(result.skipped_why.join("\n"));
   if (result.failed.length) console.warn(result.failed.join("\n"));
   return result;
 }
@@ -599,7 +603,17 @@ function sendInvites_(opts) {
   assertInviteColumns_(sheet);
 
   var lastRow = sheet.getLastRow();
-  var result = { considered: 0, sent: 0, skipped: 0, failed: [], recipients: [] };
+  var result = {
+    considered: 0,
+    sent: 0,
+    skipped: 0,
+    failed: [],
+    recipients: [],
+    // Why each skipped row was skipped. A count alone leaves you subtracting
+    // one number from another and guessing at the difference, on the one
+    // report whose job is to be read before mailing a list.
+    skipped_why: [],
+  };
   if (lastRow < 2) return result;
 
   var rows = sheet.getRange(2, 1, lastRow - 1, HEADERS.length).getValues();
@@ -635,11 +649,19 @@ function sendInvites_(opts) {
 
     var key = email.toLowerCase();
 
+    var skip = null;
     if (hasLeft_(unsubscribedSince[key], row[TIME_COL - 1])) {
+      skip = "unsubscribed";
+    } else if (String(row[INVITE_COL - 1] || "").trim()) {
+      skip = "already invited";
+    } else if (mailed[key]) {
+      skip = "same address as a row already invited";
+    }
+    if (skip) {
       result.skipped++;
+      result.skipped_why.push("row " + rowNumber + " " + email + " -- " + skip);
       continue;
     }
-    if (mailed[key]) { result.skipped++; continue; }
 
     if (result.sent >= INVITE_BATCH_LIMIT) break;
 
