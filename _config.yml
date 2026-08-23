@@ -17,10 +17,14 @@ markdown: kramdown
 # returned the whole file. Nothing secret was in it -- the repo is public and
 # the API key lives in Script Properties -- but a marketing site handing out
 # its backend as a download is not a thing to leave working.
+# headroom/chatgpt-ad-images/ is the ad creative itself. No page links to it --
+# the files are uploaded to the ad account by hand -- so serving it only means
+# publishing a browsable folder of every image the campaign has ever run.
 exclude:
   - README.md
   - bin
   - apps-script
+  - headroom/chatgpt-ad-images
   - video
   - mise.toml
   - Gemfile
