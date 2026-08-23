@@ -494,7 +494,7 @@ function sendSampleClassInvites() {
 function sendInvites_(opts) {
   opts = opts || {};
   var sheet = targetSheet(SHEET_NAME);
-  ensureInviteColumns_(sheet);
+  assertInviteColumns_(sheet);
 
   var lastRow = sheet.getLastRow();
   var result = { considered: 0, sent: 0, skipped: 0, failed: [], recipients: [] };
@@ -554,20 +554,33 @@ function stampInvited_(sheet, rowNumber, value) {
 }
 
 /**
- * Adds the two state columns to a tab that predates them.
+ * Stops the batch if the tab is not laid out the way this file believes.
  *
- * ensureHeaders only ever writes into an empty Sheet, so the live tab -- which
- * has rows in it -- would never grow these on its own. This fills in any
- * header cell that is blank or wrong from HEADERS, and touches no row but the
- * first.
+ * The columns are addressed by position -- "Invited" is column 6 because it
+ * is sixth in HEADERS, not because a cell says so. Header text is therefore
+ * cosmetic to the code and load-bearing to nobody but a reader, which is
+ * exactly the arrangement that lets a hand-made column go in backwards and
+ * never be noticed: the run succeeds, and it stamps send times into the
+ * unsubscribe column.
+ *
+ * So this reads the header row and refuses to run if it disagrees. It writes
+ * nothing. The columns are made by hand, once, in the Sheet -- the earlier
+ * version of this migrated them and would then have sat here forever being a
+ * migration nobody needed twice.
  */
-function ensureInviteColumns_(sheet) {
-  if (sheet.getLastRow() === 0) { ensureHeaders(sheet, HEADERS); return; }
-  var width = Math.max(sheet.getLastColumn(), HEADERS.length);
-  var header = sheet.getRange(1, 1, 1, width).getValues()[0];
+function assertInviteColumns_(sheet) {
+  if (sheet.getLastRow() === 0) return;
+  var header = sheet
+    .getRange(1, 1, 1, Math.max(sheet.getLastColumn(), HEADERS.length))
+    .getValues()[0];
   for (var c = 0; c < HEADERS.length; c++) {
-    if (String(header[c] || "").trim() !== HEADERS[c]) {
-      sheet.getRange(1, c + 1).setValue(HEADERS[c]).setFontWeight("bold");
+    var found = String(header[c] || "").trim();
+    if (found !== HEADERS[c]) {
+      throw new Error(
+        "Column " + (c + 1) + ' should be "' + HEADERS[c] + '" and is "' +
+          found + '". Nothing sent -- fix the Sheet, not this file, unless ' +
+          "the layout really did change."
+      );
     }
   }
 }
