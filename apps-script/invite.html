@@ -12,7 +12,13 @@
      Run previewInviteText() after editing. It prints both parts and sends
      nothing, and the text one is the half nobody looks at.
 
-     <?= ?> is substituted and escaped; the values come from inviteBody_.
+     The values below come from inviteBody_, and are escaped on the way in.
+
+     Careful writing about the template tags in here: Apps Script scans this
+     whole file for them, HTML comments included, so an empty pair written out
+     as an example compiles to "output += ;" and the whole message fails with
+     a SyntaxError pointing at nothing you can see. That is what this line used
+     to be.
 
      No <html>, <head> or <body>: this is a MIME part, not a page. No CSS
      either -- every client strips a different half of it, and a plain message
