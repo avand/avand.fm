@@ -176,7 +176,7 @@ var HEADERS = [
   "Email",
   "Source",
   "Page",
-  "Invited",
+  "Invited at",
 ];
 
 /**
@@ -184,8 +184,8 @@ var HEADERS = [
  *
  * The invite mail is not addressed by row number and not addressed by a list
  * passed in from somewhere. Its recipients are a *query*: every row that has
- * an email, has an empty "Invited" cell, and does not appear on the
- * Unsubscribes tab. Sending stamps "Invited" with the time it went.
+ * an email, has an empty "Invited at" cell, and does not appear on the
+ * Unsubscribes tab. Sending stamps "Invited at" with the time it went.
  *
  * Row numbers were the obvious alternative and they are a trap -- a sort, an
  * inserted row, or a deleted one renumbers every row beneath it, so a number
@@ -201,7 +201,7 @@ var HEADERS = [
  * make this mail somebody twice, which is the property a key was wanted for
  * in the first place.
  */
-var INVITE_COL = HEADERS.indexOf("Invited") + 1;
+var INVITE_COL = HEADERS.indexOf("Invited at") + 1;
 var EMAIL_COL = HEADERS.indexOf("Email") + 1;
 var NAME_COL = HEADERS.indexOf("First name") + 1;
 
@@ -467,7 +467,7 @@ function json(obj) {
  * the same function, so the two cannot drift:
  *
  *   - automatically, from doPost, to somebody who just signed up
- *   - in a batch, from the editor, to everybody not yet stamped "Invited"
+ *   - in a batch, from the editor, to everybody not yet stamped "Invited at"
  *
  * TO RUN THE BATCH: open the script editor, pick a function from the Run
  * menu, press Run. Apps Script's Run button cannot pass arguments, which is
@@ -535,7 +535,7 @@ function previewSampleClassInvites() {
   return result;
 }
 
-/** Mails everybody not yet stamped "Invited", and stamps them. */
+/** Mails everybody not yet stamped "Invited at", and stamps them. */
 function sendSampleClassInvites() {
   var result = sendInvites_({ dryRun: false });
   console.log(
@@ -552,7 +552,7 @@ function sendSampleClassInvites() {
 
 /**
  * Reads the signup tab and mails every row that has an email, has no
- * "Invited" stamp, and is not on the Unsubscribes tab.
+ * "Invited at" stamp, and is not on the Unsubscribes tab.
  *
  * THIS READS ROWS, AND THE NOTE AT THE TOP OF THE FILE SAYS NOTHING HERE
  * EVER DOES. Both are true, and the difference is what runs them. That note
@@ -651,7 +651,14 @@ function unsubscribedSet_() {
   return out;
 }
 
-/** Writes the "Invited" cell for one row. */
+/**
+ * Writes the "Invited at" cell for one row.
+ *
+ * Almost always a Date. The exception is a duplicate address, which gets a
+ * string naming the row that did get the mail -- the column is read for
+ * emptiness and never for its type, so an occasional sentence in a date column
+ * costs nothing and answers the question a blank timestamp would raise.
+ */
 function stampInvited_(sheet, rowNumber, value) {
   sheet.getRange(rowNumber, INVITE_COL).setValue(value);
 }
@@ -659,17 +666,17 @@ function stampInvited_(sheet, rowNumber, value) {
 /**
  * Stops the batch if the tab is not laid out the way this file believes.
  *
- * The columns are addressed by position -- "Invited" is column 6 because it
- * is sixth in HEADERS, not because a cell says so. Header text is therefore
- * cosmetic to the code and load-bearing to nobody but a reader, which is
- * exactly the arrangement that lets a hand-made column go in backwards and
- * never be noticed: the run succeeds, and it stamps send times into the
- * unsubscribe column.
+ * Every column is addressed by position -- "Invited at" is column 6 because it
+ * is sixth in HEADERS, not because a cell anywhere says so. Header text is
+ * cosmetic to the code and load-bearing to nobody but a reader, which is the
+ * arrangement that lets a hand-made column land in the wrong place and never
+ * be noticed. Insert it before "Page" instead of after, and the run succeeds
+ * and writes send times over the page every lead signed up from.
  *
- * So this reads the header row and refuses to run if it disagrees. It writes
- * nothing. The columns are made by hand, once, in the Sheet -- the earlier
- * version of this migrated them and would then have sat here forever being a
- * migration nobody needed twice.
+ * So this reads the header row and refuses to run if it disagrees, naming the
+ * column that is wrong. It writes nothing at all -- the column is made by
+ * hand, once, in the Sheet. An earlier version of this created it instead,
+ * and would then have sat here forever being a migration nobody needed twice.
  */
 function assertInviteColumns_(sheet) {
   if (sheet.getLastRow() === 0) return;
