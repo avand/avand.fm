@@ -925,8 +925,16 @@ function htmlToText_(html) {
   // that survives it, and turned back into newlines at the very end.
   text = text.replace(/<br\s*\/?>/gi, BREAK_);
   text = text.replace(/<hr\s*\/?>/gi, "\n--\n");
+
+  // A list keeps its shape. Each item opens on a line of its own and carries
+  // a dash, because the bullet is the markup -- strip it and two items become
+  // two unexplained sentences with no visible relationship to each other.
+  text = text.replace(/<li[^>]*>/gi, BREAK_ + "- ");
+  text = text.replace(/<\/li>/gi, "");
+  text = text.replace(/<\/(ul|ol)>/gi, "\n\n");
+
   // Blocks end in a blank line. Opening tags go with everything else below.
-  text = text.replace(/<\/(p|div|h[1-6]|li|tr)>/gi, "\n\n");
+  text = text.replace(/<\/(p|div|h[1-6]|tr)>/gi, "\n\n");
   text = text.replace(/<[^>]+>/g, "");
 
   // The named entities invite.html actually uses, plus the three that must be
