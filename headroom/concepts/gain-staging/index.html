@@ -34,7 +34,7 @@ subsection: Gain Staging
     chain operating in its sweet spot.
   </p>
 
-  <h2>Why it matters for DJs</h2>
+  <h2 id="why-it-matters-for-djs">Why it matters for DJs <a class="heading-link" href="#why-it-matters-for-djs" aria-label="Link to this section">#</a></h2>
 
   <p>
     A DJ rig is a chain: source (media player or laptop) → mixer channel →
@@ -56,7 +56,7 @@ subsection: Gain Staging
     </p>
   </div>
 
-  <h2>The stages in a typical DJ rig</h2>
+  <h2 id="the-stages-in-a-typical-dj-rig">The stages in a typical DJ rig <a class="heading-link" href="#the-stages-in-a-typical-dj-rig" aria-label="Link to this section">#</a></h2>
 
   <ul>
     <li><strong>Trim / gain knob</strong> — sets the input level for each channel on the mixer. This is where you level-match tracks so they hit the mixer at the same volume regardless of how they were mastered.</li>
@@ -65,7 +65,7 @@ subsection: Gain Staging
     <li><strong>Booth monitor</strong> — a separate output on most club mixers; set independently so you can hear yourself without affecting the PA level.</li>
   </ul>
 
-  <h2>Common mistakes</h2>
+  <h2 id="common-mistakes">Common mistakes <a class="heading-link" href="#common-mistakes" aria-label="Link to this section">#</a></h2>
 
   <ul>
     <li>Turning the channel gain all the way up to make a quiet track loud, then pulling the master down — this pushes noise through the whole chain.</li>
@@ -73,7 +73,61 @@ subsection: Gain Staging
     <li>Setting gain at home on studio monitors and discovering the club's system sounds completely different because the room, the amp, and the speakers all have their own sensitivities.</li>
   </ul>
 
-  <h2>In the context of Headroom</h2>
+  <h2 id="current-sag">Current sag <a class="heading-link" href="#current-sag" aria-label="Link to this section">#</a></h2>
+
+  <p>
+    Gain staging assumes each stage behaves the same way at every level — that
+    turning something up 3&nbsp;dB gets you 3&nbsp;dB more. At the end of the
+    chain that stops being true. An amplifier makes its power from a supply
+    that has to deliver current on demand, and a sustained kick drum is a
+    demand for a lot of current in a hurry. When the supply cannot keep up, its
+    voltage rails droop under the load — <strong>current sag</strong> — and the
+    amp simply cannot swing as far as its spec sheet says. The peaks arrive
+    shorter than they left.
+  </p>
+
+  <p>
+    What you hear is not the crackle of
+    <a href="/headroom/concepts/clipping/">clipping</a>. It is the mix going
+    soft and flat exactly when it should hit hardest: the low end loses its
+    punch, the whole system sounds like it is being squeezed, and it recovers
+    the moment the energy drops. That is why it fools people. It behaves like a
+    <a href="/headroom/concepts/limiter/">limiter</a> nobody switched on, so
+    the instinct is to push the master up — which asks the supply for even more
+    current and makes the sag worse.
+  </p>
+
+  <div class="callout">
+    <p>
+      The tell is that it tracks the music rather than the meters. If your
+      mixer is peaking where it always does and the system still sounds gutless
+      on the loudest tracks, the problem is downstream of everything you can
+      see. No gain setting on the mixer fixes a supply that has run out of
+      current.
+    </p>
+  </div>
+
+  <p>
+    It is worth knowing about because it sets a real ceiling on the rig, and
+    the ceiling is often lower than the equipment suggests. Common causes:
+  </p>
+
+  <ul>
+    <li><strong>An underpowered amp driving a demanding load</strong> — bass cabinets pull the most current, and an amp run near its limit spends the whole night there.</li>
+    <li><strong>A weak circuit</strong> — a long extension lead, a shared 15&nbsp;A circuit, or an outlet already carrying lighting. The sag can start at the wall, before the amp gets a say.</li>
+    <li><strong>Cheap power distribution</strong> — thin cable and undersized connectors drop voltage under current in exactly the same way, for the same reason.</li>
+  </ul>
+
+  <p>
+    The practical response is the same discipline as the rest of gain staging,
+    applied one stage further down: leave the amp
+    <a href="/headroom/concepts/headroom/">headroom</a> to work in. Give the
+    system enough power that peaks are comfortable rather than heroic, put the
+    amp on its own circuit where you can, and treat the mix's loudest moment as
+    the level you set for — not the level you find out about at 1&nbsp;a.m.
+  </p>
+
+  <h2 id="in-the-context-of-headroom">In the context of Headroom <a class="heading-link" href="#in-the-context-of-headroom" aria-label="Link to this section">#</a></h2>
 
   <p>
     Gain staging is covered in depth in
@@ -84,7 +138,7 @@ subsection: Gain Staging
   </p>
 
   <div class="related">
-    <h3>Related terms</h3>
+    <h3 id="related-terms">Related terms <a class="heading-link" href="#related-terms" aria-label="Link to this section">#</a></h3>
     <div class="related-list">
       <a href="/headroom/concepts/unity-gain/">Unity Gain</a>
       <a href="/headroom/concepts/noise-floor/">Noise Floor</a>
