@@ -52,6 +52,58 @@
   margin: 2.5em 0 0.6em;
 }
 
+/* ---------------------------------------------------------------------------
+   Linkable headings.
+
+   Every heading inside .entry-content carries an id and a trailing "#" that
+   links to it, so an entry can be handed over at the section somebody meant --
+   /headroom/concepts/gain-staging#current-sag rather than the top of the page
+   plus "scroll down a bit". The ids are written into the HTML rather than
+   generated at load: they are part of the URL, and a URL that only resolves
+   once a script has run is not a URL anybody can rely on.
+
+   scroll-margin-top because the nav is fixed. Without it the browser scrolls
+   the heading to y=0, which is underneath the bar, and the reader arrives at
+   the paragraph after the one they were sent to. In rem, not em: inside an h2
+   at 1.4em an em is 40% larger than it looks here.
+   --------------------------------------------------------------------------- */
+.entry-content h2[id],
+.entry-content h3[id] {
+  scroll-margin-top: calc(5rem + env(safe-area-inset-top, 0px));
+}
+
+.heading-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 400;
+  opacity: 0;
+  transition: opacity 150ms, color 150ms;
+}
+
+.entry-content h2:hover > .heading-link,
+.entry-content h3:hover > .heading-link,
+.heading-link:focus-visible {
+  opacity: 1;
+}
+
+.heading-link:hover {
+  color: var(--warm);
+}
+
+/* A touch screen has no hover, so the affordance would never appear at all --
+   the anchor is there, faintly, for a reader who wants to long-press it. */
+@media (hover: none) {
+  .heading-link {
+    opacity: 0.3;
+  }
+}
+
+/* Which section you were sent to, once you land on it. */
+.entry-content h2:target,
+.entry-content h3:target {
+  color: var(--warm);
+}
+
 .entry-content p {
   color: var(--text-muted);
   margin-bottom: 1em;
