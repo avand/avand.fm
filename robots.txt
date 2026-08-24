@@ -1,0 +1,24 @@
+# Everything under avand.fm is public and meant to be found.
+#
+# There was no robots.txt here before this one, which already meant every
+# crawler was allowed -- absence is permission. This file does not open
+# anything new; it says yes explicitly, for the two OpenAI agents the ads and
+# the glossary depend on, and it starts with a wildcard group so that adding it
+# cannot accidentally narrow anyone else.
+#
+# OAI-AdsBot fetches a landing page to check it before an ad pointing at it can
+# run. OAI-SearchBot is ChatGPT's search crawler, which is how a glossary entry
+# gets found by somebody who has never heard of the site.
+#
+# GPTBot is deliberately absent. It is the model-training crawler and a
+# separate decision from either of these; leaving it out changes nothing today,
+# since no rule here forbids it, but it is not being consented to by name.
+
+User-agent: *
+Allow: /
+
+User-agent: OAI-AdsBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
