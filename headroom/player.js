@@ -781,7 +781,7 @@
    *
    * The stem comes off the element -- data-track-prefix="headroom / brand /
    * video" -- and this appends the action, so the finished name is
-   * "headroom / brand / video / sound-on". It is a separate attribute from
+   * "headroom / brand / video / watched-60". It is a separate attribute from
    * plain data-track deliberately: data-track is a complete event name that
    * events.js fires on click, and this is half of one that only means
    * something once an action is on the end of it. Naming them the same thing
@@ -804,15 +804,6 @@
   Player.prototype.play = function (opts) {
     var self = this;
     var silent = opts && opts.muted;
-
-    /* Read by the "play" listener below. The muted autoplay is the page
-       deciding; everything else is somebody pressing something.
-
-       A resume is neither, so it leaves the flag alone: putting back playback
-       that something interrupted must not relabel how that playback began.
-       Without this, restoring a video the viewer had pressed would report it
-       as an autoplay. */
-    if (!(opts && opts.resume)) this.deliberate = !silent;
 
     // Only one video at a time; two soundtracks at once is never what anyone
     // wanted. A muted autoplay should not interrupt something already audible.
@@ -841,28 +832,8 @@
       });
   };
 
-  /*
-   * Only a pause somebody asked for is reported.
-   *
-   * This was left out of the original pass, and autoplay is what earns it a
-   * place. A play count on a video that starts itself measured nothing, so
-   * there was nothing for a pause to be read against; now that starting and
-   * pressing are counted separately, "it began for them and they stopped it"
-   * is a thing the page can say. Somebody who cuts the video off is not the
-   * same as somebody who never scrolled to it, and both currently look
-   * identical from here.
-   *
-   * The auto flag is what makes it honest, and every other caller sets it: the
-   * curriculum pausing an outgoing slide, the viewport observer at the edge of
-   * the screen, a hidden tab, another video taking the sound. Four ways for a
-   * video to stop that nobody asked for. Only toggle() -- the play button, the
-   * spacebar, a tap on the video -- comes through here without it.
-   */
   Player.prototype.pause = function (opts) {
-    if (!(opts && opts.auto)) {
-      this.userPaused = true;
-      this.track("pause");
-    }
+    if (!(opts && opts.auto)) this.userPaused = true;
     this.video.pause();
   };
 
@@ -891,10 +862,10 @@
    * sound? Nobody has, so a press is somebody asking to watch this properly.
    * Somebody muted it deliberately, so leave it alone; they meant it.
    *
-   * Deliberately not routed through unmute(). That reports sound-on, which is
-   * this page's measure of a viewer leaning in and asking for audio, and a
-   * press already reports itself as play. Folding them together would quietly
-   * change what sound-on means against every one already recorded.
+   * Not routed through unmute() because that rewinds a few seconds, which is
+   * right when somebody turns the sound on mid-sentence and wrong when they
+   * are pressing play on a video that is already where they want it. Neither
+   * reports anything any more; the difference is only what the viewer sees.
    */
   Player.prototype.unmuteForPress = function () {
     if (this.userSetSound) return;
@@ -922,13 +893,9 @@
 
   Player.prototype.nudgeVolume = function (direction) {
     var v = this.video;
-    /* Two names rather than one with a direction on it, because they are two
-       different things to learn: turning it up is somebody leaning in, turning
-       it down is somebody who wants it quieter but not gone. Only the stepped
-       buttons reach here, and the stylesheet only shows those on a pointer
-       device -- a touch screen gets the mute toggle instead, since iOS keeps
-       the level on the hardware buttons. So these two count desktop viewers,
-       and sound-on / sound-off below count everybody. */
+    /* Only the stepped buttons reach here, and the stylesheet shows those on a
+       pointer device alone -- a touch screen gets the mute toggle instead,
+       since iOS keeps the level on the hardware buttons. */
     this.userSetSound = true;
     // Muted counts as zero however loud the underlying volume is, so turning
     // it up from muted starts from silence rather than jumping back to
@@ -1441,10 +1408,10 @@
       if (p.video.paused) p.setBusy(false);
       if (!p.video.paused || p.userPaused) return;
 
-      // Exactly what the branch above stopped, exactly as it was: still muted,
-      // and still counted as whatever kind of playback it already was.
+      // Exactly what the branch above stopped, and exactly as it was: no
+      // muted flag, so whatever it was playing at is what it goes back to.
       if (resuming.indexOf(p) >= 0) {
-        p.play({ resume: true });
+        p.play();
         return;
       }
 

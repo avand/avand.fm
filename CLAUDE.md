@@ -102,9 +102,13 @@ is four hundred, nearly all of them holding a one. Fathom only lists names that
 have fired, so the number that matters is smaller than that — but the ceiling
 is what decides whether the page is legible on the day everything works.
 
-`pause` is the only other event a player reports. Coverage cannot tell somebody
-who stopped the video from somebody who wandered off, and on a landing page
-that is the difference between rejection and distraction.
+Coverage is the **only** thing a player reports. There is no play, pause,
+autoplay, mute, volume or complete event, and the code for them is gone rather
+than switched off — `Player.prototype.track` has one caller. `pause` was the
+last to go: on a video that autoplays muted, reaching the sound through the
+control bar means pressing play once to pause and again to resume, so every
+viewer who wanted audio filed a pause on the way and the signal was a mix of
+"stop this" and "let me hear it".
 
 Where JavaScript is unavoidable, call through the guard: `if (window.Track)
 Track.event("…")`. The guard is not superstition — the file is same-origin but
