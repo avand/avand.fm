@@ -158,7 +158,13 @@
     event(name);
   }
 
-  window.Track = { event: event, once: once, lead: lead };
+  window.Track = {
+    event: event,
+    once: once,
+    lead: lead,
+    settle: settle,
+    unsettle: unsettle,
+  };
 
   /* Which part of the site this page is. Set by the layout; used to name
      outbound links that carry no attribute of their own. */
@@ -246,6 +252,40 @@
    */
   var VIEW_DWELL_MS = 1000;
 
+  /*
+   * The clock, exposed, because this page has two ways of deciding that
+   * something is on screen and only one idea of what "reached" means.
+   *
+   * Out here, geometry answers it: an observer watches the element and the
+   * rule below decides. Inside the pinned curriculum it cannot -- the eight
+   * slides sit at one position and every one of them reads as visible at once
+   * -- so curriculum.js answers it from scroll offset instead. What both need
+   * after that is identical: start a clock, cancel it if the thing goes away,
+   * report once if it does not. Two copies of that drifted apart the moment
+   * anybody tuned one, and the two families of names would have quietly
+   * stopped being comparable with nothing to notice it by.
+   *
+   * settle() is idempotent: calling it again while a clock is already running
+   * keeps that clock rather than restarting it, so a second of settling is a
+   * second however often the caller says so. That is what makes it safe to
+   * call from a scroll handler.
+   */
+  function settle(el) {
+    if (!el || el.__trackSettle) return;
+    var name = el.getAttribute && el.getAttribute("data-track-view");
+    if (!name) return;
+    el.__trackSettle = setTimeout(function () {
+      el.__trackSettle = null;
+      once(name);
+    }, VIEW_DWELL_MS);
+  }
+
+  function unsettle(el) {
+    if (!el || !el.__trackSettle) return;
+    clearTimeout(el.__trackSettle);
+    el.__trackSettle = null;
+  }
+
   function watchViews() {
     if (!window.IntersectionObserver) return;
     var marked = document.querySelectorAll("[data-track-view]");
@@ -262,16 +302,8 @@
             reference > 0 &&
             entry.intersectionRect.height / reference >= 0.5;
 
-          if (!showing) {
-            clearTimeout(el.__trackViewTimer);
-            el.__trackViewTimer = null;
-            return;
-          }
-          if (el.__trackViewTimer) return;
-          el.__trackViewTimer = setTimeout(function () {
-            el.__trackViewTimer = null;
-            once(el.getAttribute("data-track-view"));
-          }, VIEW_DWELL_MS);
+          if (showing) settle(el);
+          else unsettle(el);
         });
       },
       { threshold: [0, 0.1, 0.25, 0.5, 0.75, 1] }
@@ -279,9 +311,9 @@
 
     Array.prototype.forEach.call(marked, function (el) {
       /* The curriculum's eight slides carry this attribute and curriculum.js
-         drives them, because pinned they are stacked at one position and would
-         every one of them read as on screen at once. Nothing here can tell
-         which is showing; that file already knows. */
+         observes them itself, for the reason above settle(). They still report
+         through the same clock; only the question of what counts as on screen
+         is answered somewhere else. */
       if (el.closest && el.closest("#curr-scroll")) return;
       observer.observe(el);
     });

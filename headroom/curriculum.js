@@ -42,7 +42,7 @@
   var active = -1;
   var ticking = false;
   // Whether the sticky stage currently holds the screen. Written by update(),
-  // read by the dwell clock; see the note above arm().
+  // and the gate on starting any clock; see the note above settle().
   var onStage = false;
 
   /* How much scrolling one week costs, in viewports.
@@ -101,11 +101,17 @@
     if (previous >= 0) {
       var old = playerFor(slides[previous]);
       if (old) old.pause({ auto: true });
+      // The week turned over, so whatever the outgoing one was waiting to
+      // report is stale.
+      unsettle(previous);
     }
 
-    // The week turned over, so whatever the last one was waiting to report is
-    // stale. See the dwell note below.
-    arm();
+    /* Only once the region actually holds the screen. enablePinned runs
+       update() one time on load, and that pass calls setActive(0) however far
+       down the page the curriculum still is -- starting a clock on arrival
+       alone would credit module 1 to every visitor, including the ones who
+       bounced off the hero. */
+    if (onStage) settle(index);
   }
 
   /* The module clips do not start on their own: eight of them firing as you
@@ -135,87 +141,40 @@
    * reader then did about it.
    *
    * The name is complete, in the markup, on the slide it belongs to, for the
-   * same reason the players carry their own stems -- see the note above
-   * Player.prototype.track. It is deliberately not data-track: that attribute
-   * is a click name and events.js delegates it down through the subtree, so a
-   * slide wearing one would report itself every time somebody pressed the
-   * play button inside it.
+   * same reason the players carry their own stems. It is deliberately not
+   * data-track: that attribute is a click name and events.js delegates it down
+   * through the subtree, so a slide wearing one would report itself every time
+   * somebody pressed the play button inside it.
    *
-   * Once per page load. Scroll position is not a decision -- reading week 3
-   * twice is one person who read week 3 -- so counting crossings would measure
-   * gestures, and Fathom has no event properties, which makes that count the
-   * only number the event carries. The set of names that fired is the finding:
-   * reached m1, never reached m6.
+   * The clock is events.js's, not one of ours. A module counts once it has
+   * been stood on rather than crossed -- a week costs 0.375 of a viewport, so
+   * one flick of a trackpad passes through three or four before the momentum
+   * runs out -- and that is the same rule the instructor and how-it-works
+   * sections are held to. It was written twice before this, once here and once
+   * there, which lasts exactly until somebody tunes one of them.
+   *
+   * What this file still answers is which slide is showing, because out there
+   * nothing can: pinned, the eight sit at one position and every one of them
+   * reads as on screen at once. Geometry decides it for an ordinary section
+   * and scroll offset decides it here; what happens next is shared.
    */
-  function report(index) {
-    var slide = slides[index];
-    var name = slide && slide.getAttribute("data-track-view");
-    if (name && window.Track) window.Track.once(name);
+  function settle(index) {
+    if (window.Track) Track.settle(slides[index]);
   }
 
-  /*
-   * A module counts once it has been stood on, not once it has been crossed.
-   *
-   * A week costs 0.375 of a viewport, so one flick of a trackpad passes
-   * through three or four of them before the momentum runs out. Reporting on
-   * arrival would credit every module between where a scroll started and
-   * where it stopped, which is the same as reporting nothing: the deepest
-   * module would be the most-seen one on the page.
-   *
-   * So arrival only starts a clock. If the same week is still showing when it
-   * runs out, somebody is reading it; if the scroll moved on, the timer is
-   * replaced by the next week's and the one that was passed through is never
-   * reported. A second is long enough that momentum has always resolved and
-   * short enough that it cannot outlast a genuine stop.
-   *
-   * Worth being clear about what this makes the number mean, because it is
-   * not what a scroll-depth metric usually means: this counts modules dwelt
-   * on, not modules scrolled past. Someone who blasts to the bottom of the
-   * region reports the last module and nothing before it. That is the
-   * intended reading -- "how far did people actually get" is a question about
-   * attention, and a count of what flew by does not answer it -- but it does
-   * mean these numbers are not comparable to a scroll-depth report.
-   */
-  var DWELL_MS = 1000;
-  var dwell = null;
-
-  function arm() {
-    disarm();
-    dwell = setTimeout(function () {
-      dwell = null;
-      /* Checked at the end rather than the beginning: the region can be armed
-         while it is still below the fold. enablePinned runs update() once on
-         load, and that first pass calls setActive(0) however far down the page
-         the curriculum still is -- reporting on arm alone would credit module
-         1 to every visitor, including the ones who bounced off the hero.
-
-         This reads the flag update() already maintains for the is-pinned
-         class. It is state this module owns, not a fresh measurement. */
-      if (onStage) report(active);
-    }, DWELL_MS);
+  function unsettle(index) {
+    if (window.Track) Track.unsettle(slides[index]);
   }
 
-  function disarm() {
-    if (dwell) clearTimeout(dwell);
-    dwell = null;
-  }
+  /* The stacked fallback has no active slide, and it is not a rare path: a
+     phone held in landscape is under the 620px floor, and so is anybody who
+     asked for reduced motion. Left uninstrumented, "nobody got to module 4"
+     would be partly a statement about who was measured.
 
-  /* The stacked fallback has no active slide to hang any of this on, and it is
-     not a rare path: a phone held in landscape is under the 620px floor, and
-     so is anybody who asked for reduced motion. Left uninstrumented, "nobody
-     got to module 4" would be partly a statement about who was measured.
-
-     An IntersectionObserver is the event this wants -- enter and leave arrive
-     as callbacks, with no polling and no geometry read here -- and the dwell
-     is the same idea per slide: entering starts a clock, leaving before it
-     runs out cancels it. The heading is what is watched, not the slide, since
-     unpinned a slide can be taller than a small screen and a fraction of the
-     whole might never be met on the very devices this path exists for.
-
-     Both paths end at the same once(), so switching modes on a rotate cannot
-     double-count. */
+     The heading is what is watched, not the slide, since unpinned a slide can
+     be taller than a small screen and a fraction of the whole might never be
+     met on the very devices this path exists for. */
   var watcher = null;
-  var stacked = {};
 
   function watchStacked() {
     if (watcher || !window.IntersectionObserver) return;
@@ -224,16 +183,8 @@
         entries.forEach(function (entry) {
           var i = slides.indexOf(entry.target.closest(".curr-slide"));
           if (i < 0) return;
-          if (!entry.isIntersecting) {
-            clearTimeout(stacked[i]);
-            delete stacked[i];
-            return;
-          }
-          if (stacked[i]) return;
-          stacked[i] = setTimeout(function () {
-            delete stacked[i];
-            report(i);
-          }, DWELL_MS);
+          if (entry.isIntersecting) settle(i);
+          else unsettle(i);
         });
       },
       { threshold: 0.5 }
@@ -248,9 +199,8 @@
     if (!watcher) return;
     watcher.disconnect();
     watcher = null;
-    Object.keys(stacked).forEach(function (i) {
-      clearTimeout(stacked[i]);
-      delete stacked[i];
+    slides.forEach(function (slide, i) {
+      unsettle(i);
     });
   }
 
@@ -341,10 +291,10 @@
     if (holding !== onStage) {
       onStage = holding;
       scroller.classList.toggle("is-pinned", holding);
-      if (holding) arm();
-      // Scrolled clear of the region with a clock running: that module was
-      // left, not read.
-      else disarm();
+      // Taking the screen starts the showing week's clock; leaving with one
+      // running says that module was left rather than read.
+      if (holding) settle(active);
+      else unsettle(active);
     }
 
     var direction = index > active ? "down" : "up";
@@ -389,7 +339,7 @@
 
   function disablePinned() {
     pinned = false;
-    disarm();
+    unsettle(active);
     onStage = false;
     scroller.classList.remove("is-scroller", "is-pinned");
     window.removeEventListener("scroll", onScroll);

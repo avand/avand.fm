@@ -70,6 +70,19 @@ every link inside it — and a click only counts when it landed on a link or a
 button, so the prose around them is not a giant hit target. External links
 report themselves without an attribute at all.
 
+**`data-track-view`** is the same idea for a section nobody clicks:
+
+```html
+<section class="instructor-band" data-track-view="headroom / instructor">
+```
+
+It fires once the element has settled on screen for a second, not when it is
+crossed, so scrolling past reports nothing. `events.js` owns that clock and
+exposes it as `Track.settle` / `Track.unsettle`, because the pinned curriculum
+has to answer "is this on screen" from scroll offset rather than geometry —
+its eight slides sit at one position and all read as visible at once — and only
+that half differs. Two copies of the clock is two dwell constants that drift.
+
 `data-track` always holds a **complete** name, because `events.js` fires it
 verbatim on click. The video players carry **`data-track-prefix`** instead — a
 stem that `player.js` finishes with an action, giving
