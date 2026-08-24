@@ -675,13 +675,17 @@
    * true of it. Neither count can fall, which is what makes them safe to
    * report through once().
    */
-  // Five, not ten: the brand video runs three and a half minutes, where a
-  // tenth is twenty seconds and the difference between leaving at 50 and
-  // leaving at 59 is a paragraph of the argument. Twenty steps is also fine
-  // for a clip of half a minute -- a step is a second and a half there, and
-  // the slots underneath are whole seconds, so the buckets stay coarser than
-  // the data that fills them, which is the right way round.
-  var COVERAGE_STEP = 5;
+  /* Fifths. Every player reports this now, and two families of five names
+     across nine of them is a list somebody can still read; the same thing in
+     twentieths is four hundred names, most of which would only ever hold a
+     one. Finer buckets were better to test against and worse to live with.
+
+     A fifth is forty seconds of the brand video and about eight of a module
+     clip, and the slots underneath are whole seconds either way, so the
+     buckets stay coarser than the data filling them -- which is the right way
+     round, and the reason this survives being applied to clips a fifth the
+     length of the one it was written for. */
+  var COVERAGE_STEP = 20;
 
   Player.prototype.trackProgress = function () {
     if (!this.root.hasAttribute("data-track-progress")) return;
@@ -757,7 +761,7 @@
 
   /* Every step up to where the coverage has got to, rather than only the one
      just crossed. On a short clip a single second is worth more than one step
-     -- half a minute of video moves 3.3% at a time against 5% buckets -- so
+     -- half a minute of video moves 3.3% at a time against 20% buckets -- so
      stepping one at a time would leave gaps in the series that look like
      somebody skipped a passage they actually watched. once() makes the loop
      free. */
