@@ -88,7 +88,7 @@
   /* The OpenAI ads data source for avand.fm, from Tools > Conversions in Ads
      Manager. Public by design -- it is in the page source of every site that
      runs one, and it identifies where a conversion goes, not who may send it. */
-  var PIXEL = "4vwqTNei7uTQTgByJxxCfo";
+  var PIXEL = "3Qm9ZKQgcepVC4tBmdJnx3";
 
   /* Fathom's snippet has no stub queue: window.fathom does not exist until the
      script has loaded, and anything fired before then is simply lost. Since
