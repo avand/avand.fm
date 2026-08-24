@@ -1,12 +1,17 @@
 /*
  * Analytics: the one place that knows which vendors this site reports to.
  *
- * Three jobs. It loads Fathom, it loads the OpenAI ads pixel, and it turns a
- * `data-track` attribute into an event -- so the ordinary case, "somebody
- * pressed this thing", is markup rather than a listener somebody has to
- * remember to write.
+ * Three jobs. It loads Fathom, it loads the OpenAI ads pixel, and it turns two
+ * attributes into events -- so the ordinary cases, "somebody pressed this
+ * thing" and "somebody got this far", are markup rather than listeners
+ * somebody has to remember to write.
  *
  *   <a href="#cta" data-track="headroom / hero / cta">Join a free class</a>
+ *   <section data-track-view="headroom / instructor">
+ *
+ * data-track fires on a click; data-track-view fires when the element has held
+ * the screen for a moment. Both hold a complete name. See each one's own note
+ * further down.
  *
  * data-track always holds a COMPLETE name, because this fires it as-is. The
  * video players carry data-track-prefix instead -- a stem that player.js
@@ -208,6 +213,85 @@
     // stopPropagation -- the modal's backdrop and the player's controls both do.
     true
   );
+
+  /*
+   * ---------------------------------------------------------------------
+   * Sections that report being reached
+   * ---------------------------------------------------------------------
+   *
+   * data-track-view holds a complete name, the way data-track does, and fires
+   * when the element has held the screen for a moment instead of when somebody
+   * clicks it. Most of this page is read rather than used -- the instructor
+   * copy has nothing to press -- so without this the only thing separating a
+   * section nobody found convincing from one nobody scrolled to is a guess.
+   *
+   *   <section class="instructor-band" data-track-view="headroom / instructor">
+   *
+   * A moment, not a crossing. Arriving only starts a clock; if the section is
+   * still on screen a second later somebody is reading it, and if the scroll
+   * carried on past, the timer is cleared and nothing is reported. Flicking
+   * from the hero to the footer should say that nothing was read, because
+   * nothing was.
+   *
+   * Once per page load, through once(), for the reason every other viewport
+   * name here uses it: scrolling back up to re-read a section is one person
+   * who read it, and counting crossings would measure the scroll rather than
+   * the reader.
+   *
+   * Half of the smaller of the element and the screen has to be showing. Not
+   * half the element: a section taller than the viewport can never show half
+   * of itself, and those are exactly the sections long enough to be worth
+   * asking about. The threshold list is what gets the callback to fire often
+   * enough to notice; the arithmetic below is what decides.
+   */
+  var VIEW_DWELL_MS = 1000;
+
+  function watchViews() {
+    if (!window.IntersectionObserver) return;
+    var marked = document.querySelectorAll("[data-track-view]");
+    if (!marked.length) return;
+
+    var observer = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          var el = entry.target;
+          var screen = (entry.rootBounds && entry.rootBounds.height) || window.innerHeight;
+          var reference = Math.min(entry.boundingClientRect.height, screen);
+          var showing =
+            entry.isIntersecting &&
+            reference > 0 &&
+            entry.intersectionRect.height / reference >= 0.5;
+
+          if (!showing) {
+            clearTimeout(el.__trackViewTimer);
+            el.__trackViewTimer = null;
+            return;
+          }
+          if (el.__trackViewTimer) return;
+          el.__trackViewTimer = setTimeout(function () {
+            el.__trackViewTimer = null;
+            once(el.getAttribute("data-track-view"));
+          }, VIEW_DWELL_MS);
+        });
+      },
+      { threshold: [0, 0.1, 0.25, 0.5, 0.75, 1] }
+    );
+
+    Array.prototype.forEach.call(marked, function (el) {
+      /* The curriculum's eight slides carry this attribute and curriculum.js
+         drives them, because pinned they are stacked at one position and would
+         every one of them read as on screen at once. Nothing here can tell
+         which is showing; that file already knows. */
+      if (el.closest && el.closest("#curr-scroll")) return;
+      observer.observe(el);
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", watchViews);
+  } else {
+    watchViews();
+  }
 
   /*
    * ---------------------------------------------------------------------
