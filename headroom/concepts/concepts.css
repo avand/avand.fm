@@ -44,6 +44,13 @@
   max-width: 760px;
   margin: 0 auto;
   padding: 0 2em 5em;
+
+  /* The external-link arrow, used by the rule further down: a box with a
+     corner open and an arrow leaving through it. Inlined as a data URI
+     because a separate request for 400 bytes costs more than the bytes, and
+     named here so the two mask properties that need it cannot drift apart.
+     The stroke colour inside is irrelevant -- a mask reads only alpha. */
+  --external-link-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6'/%3E%3Cpolyline points='15 3 21 3 21 9'/%3E%3Cline x1='10' y1='14' x2='21' y2='3'/%3E%3C/svg%3E");
 }
 
 .entry-content h2 {
@@ -120,6 +127,41 @@
   text-decoration: underline;
   text-decoration-style: dotted;
   text-underline-offset: 0.2em;
+}
+
+/* ---------------------------------------------------------------------------
+   External links say so.
+
+   A reader following a link inside an entry deserves to know before they press
+   whether they are staying in the glossary or leaving for someone else's site.
+   The arrow is the convention for that, and target="_blank" is already the
+   marker for exactly the links it belongs on -- so the rule keys off the
+   attribute rather than a class somebody has to remember to add. Add an
+   outbound link, get the icon.
+
+   It is a mask rather than a background image because a background image is a
+   fixed colour, and these links are var(--text) now and could be anything
+   later. Masking paints currentColor through the shape, so the arrow is
+   whatever colour the link it belongs to is, and stays matched to it for
+   free if that colour ever changes. Full strength, not dimmed: the arrow is
+   part of the link, and a faded one reads as a separate, lesser thing sitting
+   next to it.
+   --------------------------------------------------------------------------- */
+.entry-content a[target="_blank"]::after {
+  content: "";
+  display: inline-block;
+  width: 0.68em;
+  height: 0.68em;
+  /* No whitespace between the link text and this box, so a line can never
+     break just before the arrow and strand it at the start of a line. */
+  margin-left: 0.3em;
+  /* A square sitting exactly on the baseline reads as floating, because it
+     has no descender and the letters beside it do. Nudged down to put its
+     optical centre on the line. */
+  transform: translateY(0.04em);
+  background-color: currentColor;
+  -webkit-mask: var(--external-link-icon) center / contain no-repeat;
+  mask: var(--external-link-icon) center / contain no-repeat;
 }
 
 .entry-content ul,
