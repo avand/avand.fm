@@ -27,6 +27,13 @@ vendor/
 # bin/dev keeps its background processes' output here.
 .dev.log
 
+# Campaign spreadsheets on their way in or out of the OpenAI ads account --
+# imports, exports, and the id maps for stitching the two together. Same deal
+# as the Fathom exports below: working files, not content, and they carry ad
+# ids and spend that have no business in a public repo. Excluded in
+# _config.yml too, for the reason spelled out there.
+headroom/openai-ad-data/
+
 # Analytics exports, dropped here to be read and then left behind. They are a
 # snapshot of a dashboard that has since moved on, not content, and they carry
 # visitor counts and ad ids that have no business in a public repo. Excluded in

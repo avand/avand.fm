@@ -25,6 +25,7 @@ exclude:
   - bin
   - apps-script
   - headroom/fathom
+  - headroom/openai-ad-data
   - video
   - mise.toml
   - Gemfile
