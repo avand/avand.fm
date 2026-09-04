@@ -390,3 +390,109 @@
     padding-right: 1.2em;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Gear lists: a bullet with a picture of the thing it names.
+
+   Used where an entry recommends real equipment. The point is recognition --
+   a reader who has seen the box in a shop should be able to match the name to
+   it without leaving the page, and one who hasn't should be able to press the
+   picture and go look.
+
+   Flex rather than a float, because the two layouts want the figure in
+   different places and DOM order can only be one of them. On a wide screen
+   the picture sits to the right of its bullet; on a phone it drops below the
+   text it belongs to, which is the order somebody reads in anyway -- claim
+   first, evidence second. A float would have to appear before the text to
+   land top-right, and would then be above the text on a phone.
+
+   The <li> stays position: relative and keeps its padding, so the triangle
+   from the rule further up still hangs in the gutter: it is absolutely
+   positioned and never joined the flex row.
+   --------------------------------------------------------------------------- */
+.entry-content .gear-list > li {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5em;
+  margin-bottom: 1.8em;
+}
+
+.gear-text {
+  flex: 1 1 auto;
+  /* Without this a long unbroken string (a model number, a URL) refuses to
+     shrink below its own width and pushes the picture off the line. */
+  min-width: 0;
+}
+
+.gear-shot {
+  flex: 0 0 210px;
+  margin: 0;
+}
+
+.gear-thumb {
+  display: block;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  /* White, not the page's surface colour: these are catalogue photographs
+     shot on white, and any other backdrop shows the seam where the product
+     cut-out ends. The card is a little window into the shop, deliberately
+     brighter than the page around it. */
+  background: #fff;
+  transition: border-color 200ms, transform 200ms;
+}
+
+.gear-thumb:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.gear-thumb img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  /* contain, so a tall speaker and a wide controller both sit whole inside
+     the same rectangle. Cropping to fill would behead half of them. */
+  object-fit: contain;
+}
+
+/* The picture and its caption are one link to one place, so only the caption
+   wears the outbound arrow. On the thumbnail the arrow renders as a small
+   solid box floating under the photograph, attached to nothing. */
+.entry-content a.gear-thumb::after {
+  content: none;
+}
+
+.gear-shot figcaption {
+  margin-top: 0.5em;
+  font-size: 0.8em;
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+
+.entry-content .gear-shot figcaption a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.entry-content .gear-shot figcaption a:hover {
+  color: var(--text);
+}
+
+@media (max-width: 640px) {
+  .entry-content .gear-list > li {
+    flex-direction: column;
+    gap: 0.9em;
+  }
+
+  /* Left-aligned rather than full width: at 320px the card is already big
+     enough to read, and stretching it edge to edge makes a bullet point look
+     like a product listing. */
+  .gear-shot {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 280px;
+  }
+}
