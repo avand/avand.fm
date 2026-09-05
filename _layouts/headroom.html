@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
-  The shell every page under /headroom/ is served in: the landing page and the
-  forty-three glossary entries alike.
+  The shell every page under /headroom/ is served in: the landing page, the
+  forty-three glossary entries, and the two application pages.
 
   `landing: true` means the Headroom landing page, and it is the only thing
   that turns on the hero preloads, the locked viewport unit, the nav's call to
@@ -156,11 +156,13 @@
   <link rel="preload" as="font" type="font/woff2" href="/headroom/fonts/cairo-latin.woff2" crossorigin />
   <link rel="icon" type="image/png" href="/headroom/favicon.svg" id="favicon" />
 
-  <!-- Three stylesheets, by audience. headroom.css is what both page types
-       present identically and is the one every page under /headroom/ loads --
-       so it is downloaded once and reused across the landing page and all
-       forty-three glossary entries. The other two are loaded only where they
-       apply.
+  <!-- Five stylesheets, by audience. headroom.css is what every page type
+       presents identically and is the one every page under /headroom/ loads --
+       so it is downloaded once and reused across the landing page, all
+       forty-three glossary entries, and the application. The rest are loaded
+       only where they apply, which is why player.css exists at all: the
+       confirmation page renders a player and must not take index.css to get
+       one.
 
        The order matters and is not alphabetical by accident: index.css comes
        second because it overrides headroom.css. The body's canvas colour is
