@@ -23,10 +23,11 @@
  * this got here originally. It is now the way to lose work: the next push
  * overwrites it with whatever is in the repo, without asking.
  *
- * The Sheet is "Headroom CRM" -- SPREADSHEET_ID below. Both tabs it writes to
- * are named in the constants below and must already exist under exactly those
- * names, capitals included. Renaming a tab in the Sheet without changing the
- * constant breaks that form.
+ * The Sheet is "Headroom CRM" -- SPREADSHEET_ID below. Every tab it writes to
+ * is named in a constant below, and renaming one in the Sheet without changing
+ * its constant breaks that form. Three of the four are created on first use if
+ * they are missing; the signup tab deliberately is not, for the reason given
+ * at SHEET_NAME.
  *
  * The deployment's own settings, made once and carried in appsscript.json:
  *      Execute as:      Me
@@ -250,6 +251,52 @@ var UNSUB_HEADERS = ["Timestamp", "Email", "Page"];
 /** What the form may ask for. Anything else is recorded as "other". */
 var REQUEST_KINDS = ["copy", "correct", "delete", "other"];
 
+/**
+ * Applications, from the wizard on /headroom/apply.
+ *
+ * Its own tab for the same reason the two above have theirs: these rows are
+ * read by a person deciding who to talk to, and a mailing list is read by a
+ * script deciding who to mail. Mixing them means every query on either one
+ * has to start by excluding the other.
+ *
+ * Created on first use, like the privacy and unsubscribe tabs and unlike the
+ * signup tab. The argument at SHEET_NAME -- that creating hides a typo behind
+ * a plausible-looking empty tab -- does not apply where the name exists once,
+ * here, and is never typed anywhere else. What it buys is that the first
+ * application cannot be lost to a setup step somebody forgot.
+ */
+var APPLICATION_SHEET_NAME = "Applications";
+
+/**
+ * The five multiple-choice answers, in the order they are asked and therefore
+ * the order they appear as columns.
+ *
+ * Named here rather than written out twice because the header row and the
+ * appended row have to agree, and two hand-maintained lists in the same order
+ * is a bug waiting for somebody to insert a question in the middle. The
+ * headers below are built from this, and so is the row in application().
+ *
+ * The keys are what the page posts. The labels are what a human reads at the
+ * top of a column in the Sheet -- short, because the question is not in the
+ * column and does not need to be: every answer this file stores is a whole
+ * sentence that stands on its own.
+ */
+var APPLICATION_CHOICES = [
+  { key: "stage", label: "Stage" },
+  { key: "gear", label: "Gear" },
+  { key: "goal", label: "Goal" },
+  { key: "obstacle", label: "Obstacle" },
+  { key: "commitment", label: "Commitment" },
+];
+
+var APPLICATION_HEADERS = ["Timestamp", "Name", "Email", "Phone"]
+  .concat(
+    APPLICATION_CHOICES.map(function (q) {
+      return q.label;
+    })
+  )
+  .concat(["In their words", "Source", "Page"]);
+
 function doPost(e) {
   try {
     var payload = parseBody(e);
@@ -260,6 +307,7 @@ function doPost(e) {
     var kind = String(payload.kind || "");
     if (kind === "privacy") return privacyRequest(payload);
     if (kind === "unsubscribe") return unsubscribeRequest(payload);
+    if (kind === "application") return application(payload);
 
     var name = String(payload.firstName || "").trim();
     var email = String(payload.email || "").trim();
@@ -430,9 +478,86 @@ function unsubscribeRequest(payload) {
 }
 
 /**
- * Both tabs are found by name now -- there is no "first tab" fallback left, on
- * purpose. `create` makes the tab if it is missing, which the requests tab
- * needs and the signup tab must not have, for the reason given at SHEET_NAME.
+ * An application, from the wizard on /headroom/apply.
+ *
+ * WHY THIS VALIDATES THREE FIELDS AND NOTHING ELSE
+ *
+ * Name, email and phone are the three the page itself requires, repeated here
+ * because the page's copy of a rule can be skipped by anyone posting to this
+ * URL directly. The six answers are not checked at all -- not for presence,
+ * not against the list of options they were picked from.
+ *
+ * Presence, because every question is skippable by design and a blank column
+ * is a true record of somebody who did not answer. Rejecting one would throw
+ * away the other eleven fields to punish a gap.
+ *
+ * The list of options, because this file would then hold a second copy of the
+ * question copy, and the two would drift the first time a word in an answer
+ * gets edited on the page. Everything stored here arrives as a whole sentence
+ * from a fixed set of buttons; somebody who posts their own sentence instead
+ * has written in a Sheet cell that a person reads, which is a nuisance and not
+ * a hazard. The cap below is what keeps it to a nuisance.
+ */
+function application(payload) {
+  var name = String(payload.name || "").trim();
+  var email = String(payload.email || "").trim();
+  var phone = String(payload.phone || "").trim();
+
+  if (!name) return json({ ok: false, error: "name required" });
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return json({ ok: false, error: "email invalid" });
+  }
+  if (!phone) return json({ ok: false, error: "phone required" });
+
+  // Same honeypot as the other three: answer as though it worked, write
+  // nothing.
+  if (String(payload.company || "").trim()) return json({ ok: true });
+
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(20000)) return json({ ok: false, error: "busy" });
+
+  try {
+    var sheet = targetSheet(APPLICATION_SHEET_NAME, true);
+    ensureHeaders(sheet, APPLICATION_HEADERS);
+
+    // Built in the same three pieces as APPLICATION_HEADERS, from the same
+    // list, so a question added in the middle moves the column and the value
+    // together.
+    //
+    // Every field capped, because nothing upstream of a public URL limits
+    // what arrives. The free-text answer gets the same 2000 as a privacy
+    // request's message; the choices get 200, which is comfortably more than
+    // the longest option on the page and far less than a paragraph somebody
+    // posted by hand.
+    sheet.appendRow(
+      [new Date(), name.slice(0, 100), email.slice(0, 254), phone.slice(0, 40)]
+        .concat(
+          APPLICATION_CHOICES.map(function (q) {
+            return String(payload[q.key] || "").slice(0, 200);
+          })
+        )
+        .concat([
+          String(payload.words || "").slice(0, 2000),
+          String(payload.source || "").slice(0, 200),
+          String(payload.page || "").slice(0, 500),
+        ])
+    );
+  } finally {
+    lock.releaseLock();
+  }
+
+  // No mail from here, unlike a signup. The confirmation an applicant gets is
+  // the page they land on, and what happens next is a text message sent by a
+  // person who has read what they wrote -- which is the entire premise of
+  // asking them to apply rather than to join a list.
+  return json({ ok: true });
+}
+
+/**
+ * Every tab is found by name -- there is no "first tab" fallback left, on
+ * purpose. `create` makes the tab if it is missing, which the requests,
+ * unsubscribe and application tabs all pass, and which the signup tab must not
+ * have, for the reason given at SHEET_NAME.
  */
 function targetSheet(name, create) {
   var book = SpreadsheetApp.openById(SPREADSHEET_ID);
