@@ -58,129 +58,50 @@ chrome: false
   <form class="apply-form" id="application" novalidate>
 
     <!-- ---------------------------------------------------------------
-         Q1 -- identity. One tap, no wrong answer, and the fit filter.
+         The six questions, from _data/application.yml.
 
-         "I'm just getting started" is off the arc every other option is on,
-         and it is here on purpose: without it a beginner has nothing to tap
-         and simply leaves, which is the one outcome that teaches nobody
-         anything. With it they are a row in the Sheet and a kind reply.
+         The copy lives there, and the reasoning behind each option set lives
+         there beside it, because those two go stale together. What is left
+         here is the shape: a panel per question, options where a question has
+         them, a textarea where it does not.
+
+         Nothing in this loop knows which question it is on. apply.js reads
+         the panels' order and their data-name out of the rendered DOM, so
+         reordering the questions means reordering blocks in the YAML -- the
+         progress bar, the back button and the step event names all follow
+         without being told.
+
+         The [starts] and [ends] tokens are substituted here rather than
+         written into the data file, so the cohort dates are stated once, in
+         _config.yml. A data file is never run through Liquid, which is why
+         they are tokens at all.
+
+         Square brackets and not curly ones: Liquid 4 tokenises a variable
+         with /{{.*?}}?/ -- one closing brace is enough to end it -- so the
+         "}" inside a {starts} written here would terminate the tag early and
+         fail the whole build with a syntax error pointing at the wrong
+         thing.
          --------------------------------------------------------------- -->
-    <section class="apply-panel" data-name="stage" hidden>
-      <h1 class="apply-q">Where are you with DJing right now?</h1>
+    {% for q in site.data.application %}
+    <section class="apply-panel" data-name="{{ q.name }}" hidden>
+      <h1 class="apply-q">{{ q.question | replace: "[starts]", site.headroom.cohort_starts | replace: "[ends]", site.headroom.cohort_ends }}</h1>
+      {% if q.options %}
       <div class="apply-options">
-        <button type="button" class="apply-option">I mix at home and I&rsquo;m good at it &mdash; I just haven&rsquo;t played out</button>
-        <button type="button" class="apply-option">I&rsquo;ve played a handful of gigs. Friends&rsquo; parties, small rooms</button>
-        <button type="button" class="apply-option">I play out regularly and I want to be better at it</button>
-        <button type="button" class="apply-option">I&rsquo;ve been at this a while and something&rsquo;s plateaued</button>
-        <button type="button" class="apply-option">I&rsquo;m just getting started</button>
+        {% for option in q.options %}
+        <button type="button" class="apply-option">{{ option }}</button>
+        {% endfor %}
       </div>
-    </section>
-
-    <!-- ---------------------------------------------------------------
-         Q2 -- rapport. The question DJs actually ask each other first. It
-         costs nothing, it is not a judgement, and it tells you what to
-         teach. A frequency question would do more work here and would also
-         sting, which is the wrong thing to do on the second screen.
-         --------------------------------------------------------------- -->
-    <section class="apply-panel" data-name="gear" hidden>
-      <h1 class="apply-q">What are you playing on?</h1>
-      <div class="apply-options">
-        <button type="button" class="apply-option">CDJs or XDJs</button>
-        <button type="button" class="apply-option">A controller</button>
-        <button type="button" class="apply-option">Vinyl, or some hybrid situation</button>
-        <button type="button" class="apply-option">Whatever&rsquo;s at the venue</button>
-        <button type="button" class="apply-option">Still figuring out my setup</button>
-      </div>
-    </section>
-
-    <!-- ---------------------------------------------------------------
-         Q3 -- the turn. The first question about a future rather than a
-         fact, and picking one is a small act of admitting you want
-         something.
-         --------------------------------------------------------------- -->
-    <section class="apply-panel" data-name="goal" hidden>
-      <h1 class="apply-q">If this goes well, what&rsquo;s different a year from now?</h1>
-      <div class="apply-options">
-        <button type="button" class="apply-option">I&rsquo;m playing the rooms I actually want to play</button>
-        <button type="button" class="apply-option">I feel calm up there instead of white-knuckling it</button>
-        <button type="button" class="apply-option">I have a sound people recognize as mine</button>
-        <button type="button" class="apply-option">I&rsquo;m getting booked, and paid</button>
-        <button type="button" class="apply-option">I finally know what I&rsquo;m doing under the hood</button>
-      </div>
-    </section>
-
-    <!-- ---------------------------------------------------------------
-         Q4 -- the gap, and the most important screen here.
-
-         These five options are the syllabus: gain staging, mixing, library
-         and metadata, performance. Somebody tapping one is finding out that
-         the course was built for the exact thing they were embarrassed about
-         ten seconds ago -- which is true, and is the reason not to reword
-         them into something more flattering.
-         --------------------------------------------------------------- -->
-    <section class="apply-panel" data-name="obstacle" hidden>
-      <h1 class="apply-q">What&rsquo;s actually in the way?</h1>
-      <div class="apply-options">
-        <button type="button" class="apply-option">My mixes sound great at home and thin on a real system</button>
-        <button type="button" class="apply-option">I can beatmatch fine, but the transitions don&rsquo;t feel like anything</button>
-        <button type="button" class="apply-option">My library&rsquo;s a mess &mdash; I can&rsquo;t find the right track in the moment</button>
-        <button type="button" class="apply-option">I freeze when I&rsquo;m trying to read a room</button>
-        <button type="button" class="apply-option">I&rsquo;m technically solid and creatively stuck</button>
-      </div>
-    </section>
-
-    <!-- ---------------------------------------------------------------
-         Q5 -- the real ask, and the honest place for price to surface.
-
-         Tapping "I'm in" is a commitment, and people keep small stated
-         commitments better than private intentions. Money is folded into an
-         option rather than made its own question: a screen that asks about
-         budget halfway through an application is a cold shower.
-
-         The schedule is written into the question rather than assumed,
-         because this is the screen where somebody decides, and making them
-         scroll back to the homepage to check a day of the week is how a
-         decision becomes a maybe.
-         --------------------------------------------------------------- -->
-    <section class="apply-panel" data-name="commitment" hidden>
-      <h1 class="apply-q">It&rsquo;s Thursdays, 6&ndash;8 PM Mountain, {{ site.headroom.cohort_starts }} through {{ site.headroom.cohort_ends }}. Two hours live, about thirty minutes of homework. Where are you with that?</h1>
-      <div class="apply-options">
-        <button type="button" class="apply-option">I&rsquo;m in. Put it on my calendar</button>
-        <button type="button" class="apply-option">I want to &mdash; I need to check a couple of those Thursdays</button>
-        <button type="button" class="apply-option">Time works. It&rsquo;s the money I need to think about</button>
-        <button type="button" class="apply-option">Just exploring for now</button>
-      </div>
-    </section>
-
-    <!-- ---------------------------------------------------------------
-         Q6 -- their own words, and the only screen that asks for effort.
-
-         The effort is the point. Articulating a want is what makes somebody
-         feel it, so this is the screen that earns the "I hope I get in" the
-         submit button then collects. It is also the field worth reading
-         before a call.
-
-         December rather than "when the course ends": three weeks past the
-         last session, so it asks them to picture the other side of it.
-
-         The prompts under the box are prompts, not quotes. Real applicant
-         quotes go here once there are some. Inventing them on a page whose
-         whole premise is a person reading real applications is the thing
-         that poisons it if it is ever noticed.
-         --------------------------------------------------------------- -->
-    <section class="apply-panel" data-name="words" hidden>
-      <h1 class="apply-q">What do you want to be able to do in December that you can&rsquo;t do today?</h1>
-      <label class="sr-only" for="ap-words">Your answer</label>
-      <textarea id="ap-words" name="words" rows="5" maxlength="2000"
-        placeholder="A sentence or two is plenty."></textarea>
-      <p class="apply-hint">
-        Some people name a room. Some name a thing they keep messing up. Some
-        name a sound they can hear in their head and can&rsquo;t make yet.
-      </p>
+      {% else %}
+      <label class="sr-only" for="ap-{{ q.name }}">Your answer</label>
+      <textarea id="ap-{{ q.name }}" name="{{ q.name }}" rows="5" maxlength="2000"
+        placeholder="{{ q.placeholder }}"></textarea>
+      {% if q.hint %}<p class="apply-hint">{{ q.hint }}</p>{% endif %}
       <div class="apply-actions">
         <button type="button" class="btn-primary apply-next">Next &rsaquo;</button>
       </div>
+      {% endif %}
     </section>
+    {% endfor %}
 
     <!-- ---------------------------------------------------------------
          Screen 7 -- contact.
@@ -271,4 +192,4 @@ chrome: false
 
 </div>
 
-<script src="/headroom/apply/apply.js?v=2" defer></script>
+<script src="/headroom/apply/apply.js?v=3" defer></script>

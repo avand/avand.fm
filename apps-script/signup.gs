@@ -271,6 +271,17 @@ var APPLICATION_SHEET_NAME = "Applications";
  * The five multiple-choice answers, in the order they are asked and therefore
  * the order they appear as columns.
  *
+ * THE QUESTIONS THEMSELVES LIVE IN _data/application.yml, IN THE SITE REPO.
+ * This list is the other half of that file and has to be kept in step with
+ * it: same keys, same order. They cannot be one list, because this file is
+ * deployed to Google and that one is published to Pages -- two releases, and
+ * the whole reason doPost has to stay backward compatible.
+ *
+ * A question added there and not here is collected from the applicant, posted
+ * to this endpoint, and dropped without a word. The note at the top of that
+ * file says so too, on the theory that whoever adds a question is reading
+ * that one and not this one.
+ *
  * Named here rather than written out twice because the header row and the
  * appended row have to agree, and two hand-maintained lists in the same order
  * is a bug waiting for somebody to insert a question in the middle. The
