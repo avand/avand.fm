@@ -104,10 +104,15 @@
   }
 }
 
-.apply-count {
-  font-size: 0.78em;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+/* .apply-count carries .sr-only and has no presentation of its own. See the
+   note beside it in index.html for why it is still written to. */
+
+/* The resume line, which replaces nothing -- it is the one thing that used to
+   sit under the bar and is worth reading. Same negative margin the count had,
+   so it tucks under the bar rather than opening a gap the other six panels
+   never have. */
+.apply-resumed {
+  font-size: 0.85em;
   color: var(--text-muted);
   margin-top: -1.25em;
 }

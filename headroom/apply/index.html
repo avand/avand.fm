@@ -31,12 +31,29 @@ chrome: false
   </header>
 
   <!-- The progress line counts all seven panels, contact included. A bar that
-       reads 6 of 6 and then asks for a phone number is a small betrayal at the
-       one moment in this flow where trust is actually being spent. -->
+       fills at 6 of 6 and then asks for a phone number is a small betrayal at
+       the one moment in this flow where trust is actually being spent.
+
+       The bar is the only VISIBLE progress. "Step 1 of 7" used to sit under
+       it and read as a warning about how much was left rather than as
+       reassurance about how little -- a number at the top of a form is a
+       price. A filling bar says the same thing without quantifying it.
+
+       The count is still here, and still written on every advance, because
+       the bar is aria-hidden: a filling rectangle says nothing to a screen
+       reader, so this element is the whole of what progress means to one.
+       Removing it rather than hiding it would have taken the number away
+       from the people it was helping and left it for the ones it was
+       daunting. -->
   <div class="apply-progress" aria-hidden="true">
     <div class="apply-progress-bar"></div>
   </div>
-  <p class="apply-count" role="status" aria-live="polite"></p>
+  <p class="apply-count sr-only" role="status" aria-live="polite"></p>
+
+  <!-- Shown only on a resume, and worth being visible when it is: arriving
+       at question four with three already answered is confusing until
+       something says why. -->
+  <p class="apply-resumed" hidden>Picking up where you left off.</p>
 
   <form class="apply-form" id="application" novalidate>
 
@@ -254,4 +271,4 @@ chrome: false
 
 </div>
 
-<script src="/headroom/apply/apply.js?v=1" defer></script>
+<script src="/headroom/apply/apply.js?v=2" defer></script>

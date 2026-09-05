@@ -177,7 +177,7 @@
   {% if page.landing %}<link rel="stylesheet" href="/headroom/index.css?v=13" />{% endif %}
   {% if page.landing or page.player %}<link rel="stylesheet" href="/headroom/player.css?v=1" />{% endif %}
   {% if page.subsection %}<link rel="stylesheet" href="/headroom/concepts/concepts.css?v=7" />{% endif %}
-  {% if page.apply %}<link rel="stylesheet" href="/headroom/apply/apply.css?v=5" />{% endif %}
+  {% if page.apply %}<link rel="stylesheet" href="/headroom/apply/apply.css?v=6" />{% endif %}
 
   <!-- Analytics. The Fathom snippet used to sit here; both vendors are loaded
        by events.js now -- Fathom, and the OpenAI ads conversion pixel -- which
@@ -258,10 +258,10 @@
          somebody may or may not press.
 
          Still landing-page only. The glossary keeps its own lighter call to
-         action at the foot of each entry -- and that one deliberately still
-         points at /headroom/#cta, because "learn more about Headroom" and
-         "apply" are different intentions and a reader who looked up a
-         definition has expressed the first one. -->
+         action at the foot of each entry, and that one goes to the top of
+         /headroom/ rather than to any part of this flow: it says "learn more
+         about Headroom", and somebody who just looked up a definition has
+         expressed that intention and not this one. -->
     <div class="cta-nav">
       {% if page.landing %}<a href="/headroom/apply/" data-track="headroom / nav / cta">Apply</a>{% endif %}
     </div>

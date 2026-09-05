@@ -65,6 +65,7 @@
 
   var bar = document.querySelector(".apply-progress-bar");
   var count = document.querySelector(".apply-count");
+  var resumed = document.querySelector(".apply-resumed");
   var backBtn = document.querySelector(".apply-back");
   var exitLink = document.querySelector(".apply-exit");
   var status = form.querySelector(".apply-status");
@@ -152,12 +153,18 @@
     });
 
     if (bar) bar.style.width = ((at + 1) / panels.length) * 100 + "%";
-    // "Step", not "Question": the last panel asks for a name and a phone
-    // number, and calling that question seven of seven is the kind of small
-    // inaccuracy somebody notices at exactly the wrong moment.
+    /* Announced, not shown. The visible count was removed for reading as a
+       price at the top of a form; a screen reader gets no progress at all
+       from a bar that is aria-hidden, so it keeps the sentence.
+
+       "Step", not "Question": the last panel asks for a name and a phone
+       number, and calling that question seven of seven is the kind of small
+       inaccuracy somebody notices at exactly the wrong moment. */
     if (count) {
       count.textContent = "Step " + (at + 1) + " of " + panels.length;
     }
+    // True on arrival and not after.
+    if (resumed && previous !== at) resumed.hidden = true;
     // Nowhere to go back to from the first panel, and a disabled control is a
     // worse answer than no control.
     if (backBtn) backBtn.hidden = at === 0;
@@ -457,10 +464,9 @@
 
   if (resuming) {
     track("resumed");
-    // Said next to the progress count rather than in the status line, which
-    // lives at the foot of the contact panel and would be off screen. The
-    // next advance overwrites it, which is right: it is true on arrival and
-    // not after.
-    if (count) count.textContent += " · picking up where you left off";
+    // Its own line rather than the status element, which lives at the foot of
+    // the contact panel and would be off screen. show() hides it again on the
+    // first advance.
+    if (resumed) resumed.hidden = false;
   }
 })();
