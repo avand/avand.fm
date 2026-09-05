@@ -3,18 +3,37 @@
   The shell every page under /headroom/ is served in: the landing page and the
   forty-three glossary entries alike.
 
-  One front-matter flag decides which of the two a page is. `landing: true`
-  means the Headroom landing page, and it is the only thing that turns on the
-  hero preloads, the locked viewport unit, the nav's call to action, the video
-  share card, and the footer credits. Everything else here is common to both.
+  `landing: true` means the Headroom landing page, and it is the only thing
+  that turns on the hero preloads, the locked viewport unit, the nav's call to
+  action, the video share card, index.css, and the footer credits.
 
-  A single flag rather than one per feature because they are not independent
-  choices -- they are all the same fact, asked five times. Adding a second
+  A single flag rather than one per feature because those are not independent
+  choices -- they are all the same fact, asked six times. Adding a second
   landing page would mean setting one thing in its front matter.
 
   Concept pages carry `section`, `section_url` and `subsection`, which drive
   the breadcrumb in the footer and pull in concepts.css. That contract predates
   this rewrite and the entries still rely on it unchanged.
+
+  Three more flags arrived with the application, and each is one fact that the
+  others cannot be derived from -- which is the test for whether a flag has
+  earned its place here:
+
+    apply: true     both application pages. Sets the event-name prefix and
+                    loads apply.css.
+    chrome: false   no nav, no footer. Only the wizard sets it: the
+                    confirmation page is the end of the flow and people should
+                    be able to browse away from it.
+    player: true    loads player.css. The landing page implies it; the
+                    confirmation page has to ask, and cannot ask for index.css
+                    instead -- that file paints the body the hero's purple,
+                    which on a page with no hero is the bug that once shipped
+                    to all forty-three glossary entries.
+
+  `chrome` is the one written as a negative, and it is compared against `false`
+  rather than tested for truthiness, because Liquid treats an undefined
+  variable and `false` identically. Every other page in this repo says nothing
+  about chrome and must keep it.
 -->
 {% comment %}
   The event-name prefix for every event on this page: the page's own path, so
@@ -27,7 +46,7 @@
   forty-three pages was eleven names buying almost nothing. The area is still
   set for both, because it names an outbound link that carries no attribute of
   its own, and because a concept page may yet earn an event worth having.
-{% endcomment %}{% if page.landing %}{% assign area = "headroom" %}{% else %}{% assign area = "headroom / concepts" %}{% endif %}
+{% endcomment %}{% if page.landing %}{% assign area = "headroom" %}{% elsif page.apply %}{% assign area = "headroom / apply" %}{% else %}{% assign area = "headroom / concepts" %}{% endif %}
 <html lang="en" dir="ltr"{% if page.landing %} class="has-hero"{% endif %}>
 
 <head>
@@ -154,7 +173,9 @@
        ten minutes. -->
   <link rel="stylesheet" href="/headroom/headroom.css?v=7" />
   {% if page.landing %}<link rel="stylesheet" href="/headroom/index.css?v=10" />{% endif %}
+  {% if page.landing or page.player %}<link rel="stylesheet" href="/headroom/player.css?v=1" />{% endif %}
   {% if page.subsection %}<link rel="stylesheet" href="/headroom/concepts/concepts.css?v=7" />{% endif %}
+  {% if page.apply %}<link rel="stylesheet" href="/headroom/apply/apply.css?v=1" />{% endif %}
 
   <!-- Analytics. The Fathom snippet used to sit here; both vendors are loaded
        by events.js now -- Fathom, and the OpenAI ads conversion pixel -- which
@@ -208,6 +229,20 @@
 </head>
 
 <body data-track-area="{{ area }}">
+  {% if page.chrome == false %}{% comment %}
+    No nav and no footer on the application.
+
+    Not a style choice. Every link in the chrome is a way out of a form
+    somebody is halfway through, and a wizard that keeps a "headroom" link and
+    a footer full of them at the edges of every question is one that offers an
+    exit six times before it offers a submit button. The page provides its own
+    single exit, at the bottom, where somebody looking for one will go.
+
+    What is deliberately kept is the head: the fonts, the tokens, events.js
+    and its ?v=. A second layout to drop two elements would have been a second
+    place to bump that version, and a version bumped in one of two places
+    reaches nobody for ten minutes and says nothing about it.
+  {% endcomment %}{% else %}
   <nav class="site-nav">
     <div class="brand">
       <a href="/"{% if page.landing %} data-track="headroom / nav / avand-fm"{% endif %}>avand.fm</a> <span class="brand-sep">/</span>
@@ -221,18 +256,22 @@
       {% if page.landing %}<a href="#cta" data-track="headroom / nav / cta">Apply</a>{% endif %}
     </div>
   </nav>
+  {% endif %}
 
   <!-- .sheet is the page proper: it carries the background the content sits
        on, without which body's own colour -- the top of the hero gradient --
        would show through. The landing page brings its own, because .sheet is a
        stacking context and its module modal has to sit outside one to stay
-       above the nav. Everything else is wrapped here and needs no say in it. -->
-  {% if page.landing %}{{ content }}{% else %}
+       above the nav. The application brings its own too, for a duller reason:
+       .sheet's background is the ground the *nav* sits on, and there is no nav
+       there. Everything else is wrapped here and needs no say in it. -->
+  {% if page.landing or page.chrome == false %}{{ content }}{% else %}
   <div class="sheet">
     {{ content }}
   </div>
   {% endif %}
 
+  {% if page.chrome != false %}
   <footer class="site-footer" id="site-footer">
     <div class="footer-inner">
       {% if page.landing %}
@@ -256,6 +295,7 @@
       </div>
     </div>
   </footer>
+  {% endif %}
 
   <script>
     /* ---------- Spinning record favicon ---------- */

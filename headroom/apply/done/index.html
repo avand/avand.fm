@@ -1,0 +1,160 @@
+---
+layout: headroom
+title: "Application received — Headroom"
+description: "Your Headroom application is in. Here's what happens next."
+apply: true
+player: true
+---
+
+<!-- ===========================================================================
+     The confirmation.
+
+     WHY THIS IS A PAGE AND NOT THE WIZARD'S EIGHTH PANEL
+
+     Three reasons, and the first is the one that decided it. The conversion
+     is reported from here, and Track.lead() is an async call into a script
+     loaded from an ad-tech CDN -- firing it on the apply page and navigating
+     immediately is the race the note on /headroom/sample/register describes
+     losing, and losing it costs a conversion the ad account has already been
+     charged for.
+
+     Second, this page renders a video player, and player.css and player.js
+     have no business loading while somebody answers questions.
+
+     Third, "how many applications landed" becomes a pageview at a distinct
+     URL rather than a JavaScript event that has to survive whatever the
+     browser is doing at the time. It is also a URL that can go in a text
+     message.
+
+     It keeps the nav and the footer, unlike the wizard. This is the end of
+     the flow and there is no form left to protect: somebody who wants to go
+     and read the glossary now should be able to.
+     =========================================================================== -->
+
+<div class="done">
+
+  <h1>Application received</h1>
+
+  <p class="done-lead">
+    I read every one of these myself &mdash; not a form, not a filter. I&rsquo;ll
+    text you within two days, from a Colorado number, about whether this cohort
+    is the right fit.
+  </p>
+
+  <!-- The brand video, and the reason it is here rather than inside the
+       application.
+
+       Inside a wizard people are in completion mode: there is a progress bar
+       and they want to finish, so a video in front of the submit button is a
+       thing to get past. Here the application is already in, there is nothing
+       to race toward, and they have just written a paragraph about why they
+       want this -- which is the moment curiosity about what they applied to
+       is highest it will ever be.
+
+       NOT AUTOPLAYED, unlike the hero's copy of the same film. The number
+       this player reports only means something if somebody chose to press
+       play; an autoplay would measure the page rather than the person.
+
+       Its own track prefix, deliberately not the landing page's
+       `headroom / brand / video`. Watch coverage among people who have
+       applied is a different finding from watch coverage among people who
+       have just arrived, and one name for both would hide which you had. -->
+  <div class="done-video">
+    <h2>While you wait &mdash; what Headroom actually is</h2>
+    <div class="player" data-track-prefix="headroom / apply / video" data-track-progress
+      data-video="brand" data-duration="206.581" data-captions
+      data-label="Why I built Headroom"></div>
+  </div>
+
+  <!-- The free class, offered here rather than on the homepage.
+       It is the bridge: a room rather than a one-to-one, so somebody can
+       watch me teach before either of us has to have a conversation. The
+       destination is /headroom/sample/register, which is a redirect this repo
+       owns -- see the note in that file for why the Zoom URL is never linked
+       directly. -->
+  <div class="done-next">
+    <h2>Come sit in on a class</h2>
+    <p>
+      There&rsquo;s a free sample class most weeks &mdash; one hour, the
+      AI-powered workflow I use to find, buy and import new music, then
+      questions. Everyone who applies is welcome, whether or not this turns out
+      to be your cohort.
+    </p>
+    <a class="btn-primary" href="/headroom/sample/register"
+      data-track="headroom / apply / sample-class">Pick a date</a>
+  </div>
+
+</div>
+
+<!-- hls.min.js is deliberately not listed here: player.js fetches it on
+     demand, and only on browsers that need it. Safari plays HLS natively and
+     never asks. -->
+<script src="/headroom/player.js?v=82" defer></script>
+
+<script>
+  /* ---------- The ad conversion ----------
+   *
+   * The one lead_created the OpenAI ad account bids on. It lived on the
+   * success branch of the homepage signup form until that form was replaced
+   * by this flow, and moving it was the single thing in that change that
+   * would have failed without erroring: an ad account with no conversions
+   * does not report an error, it reports a zero and starts optimising toward
+   * nothing.
+   *
+   * WHY IT IS HERE AND NOT WHERE THE APPLICATION WAS ACCEPTED
+   *
+   * Track.lead() hashes the name and the email and then calls into a script
+   * fetched from bzrcdn.openai.com. Firing it on the apply page and
+   * navigating in the next line is a race the navigation usually wins -- the
+   * same race the note on /headroom/sample/register documents for a Fathom
+   * event, which is why that page tracks nothing at all.
+   *
+   * So the apply page parks what the pixel needs in sessionStorage and comes
+   * here, where the page is not going anywhere and the call has as long as it
+   * needs.
+   *
+   * WHY THE STASH IS READ ONCE AND THEN THROWN AWAY
+   *
+   * Because a reload would otherwise report a second conversion for the same
+   * application, and so would a bookmark. Removing it first, before the call,
+   * means even a throw inside Track.lead() cannot leave it behind to be
+   * counted again.
+   *
+   * Someone who types this URL has no stash and converts nothing, which is
+   * correct: they did not apply.
+   *
+   * The Fathom side of it is the pageview, which has already happened. There
+   * is deliberately no `success` event to go with it -- it would be a second,
+   * less reliable copy of a number Fathom already has.
+   */
+  /* Waits for DOMContentLoaded rather than running where it sits.
+   *
+   * events.js is deferred, and an inline script runs BEFORE any deferred one
+   * -- so window.Track does not exist yet at this point in the document, and
+   * the guard below would quietly decline to report every conversion this
+   * page was built to report. Deferred scripts all run before
+   * DOMContentLoaded, so this is the first moment Track is certain to be
+   * there. */
+  document.addEventListener("DOMContentLoaded", function () {
+    var raw = null;
+    try {
+      raw = window.sessionStorage.getItem("headroom.applied");
+      window.sessionStorage.removeItem("headroom.applied");
+    } catch (err) {
+      return;
+    }
+    if (!raw) return;
+
+    var applicant;
+    try {
+      applicant = JSON.parse(raw);
+    } catch (err) {
+      return;
+    }
+    if (!applicant) return;
+
+    /* The guard is the same all-or-nothing one every other call site uses:
+       events.js is same-origin, but ad blockers match on filenames. */
+    if (window.Track) window.Track.lead(applicant.firstName, applicant.email);
+  });
+</script>

@@ -35,7 +35,12 @@
   // Bumped when a captions.vtt is re-uploaded. See loadCaptions.
   var CAPTIONS_V = 2;
 
-  var HLS_LIB = "hls.min.js";
+  /* Absolute, not relative. It was "hls.min.js", which resolves against the
+     document -- fine while the only page with a player was /headroom/, and a
+     404 the moment /headroom/apply/done/ got one, on every browser that is not
+     Safari. Safari plays HLS natively and never asks for this file, so the
+     failure would have been invisible on the machine most likely to check. */
+  var HLS_LIB = "/headroom/hls.min.js";
 
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 

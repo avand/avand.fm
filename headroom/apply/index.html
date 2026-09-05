@@ -1,0 +1,257 @@
+---
+layout: headroom
+title: "Apply — Headroom"
+description: "Six questions and a couple of sentences. About two minutes. Every application is read by a person."
+apply: true
+chrome: false
+---
+
+<!-- ===========================================================================
+     The application.
+
+     Seven panels, all present in the markup, one visible at a time. Server-
+     rendered rather than built by apply.js for two reasons: the copy is
+     content and belongs in a file somebody can edit without reading a
+     script, and a question that exists in the DOM can be styled and measured
+     before anybody has answered anything.
+
+     The panels are laid out in source order and the script only toggles
+     `hidden`. Nothing here knows what question it is -- the numbering, the
+     progress line, the back link and the event names are all derived from
+     position in apply.js, so inserting a question is inserting a <section>.
+     =========================================================================== -->
+
+<div class="apply">
+
+  <header class="apply-head">
+    <a class="apply-mark" href="/headroom/">
+      <span class="apply-mark-name">HEADROOM</span>
+    </a>
+    <p class="apply-kicker">Application &middot; Fall {{ site.headroom.cohort_starts | split: " " | last }}</p>
+  </header>
+
+  <!-- The progress line counts all seven panels, contact included. A bar that
+       reads 6 of 6 and then asks for a phone number is a small betrayal at the
+       one moment in this flow where trust is actually being spent. -->
+  <div class="apply-progress" aria-hidden="true">
+    <div class="apply-progress-bar"></div>
+  </div>
+  <p class="apply-count" role="status" aria-live="polite"></p>
+
+  <form class="apply-form" id="application" novalidate>
+
+    <!-- ---------------------------------------------------------------
+         Q1 -- identity. One tap, no wrong answer, and the fit filter.
+
+         "I'm just getting started" is off the arc every other option is on,
+         and it is here on purpose: without it a beginner has nothing to tap
+         and simply leaves, which is the one outcome that teaches nobody
+         anything. With it they are a row in the Sheet and a kind reply.
+         --------------------------------------------------------------- -->
+    <section class="apply-panel" data-name="stage" hidden>
+      <h1 class="apply-q">Where are you with DJing right now?</h1>
+      <div class="apply-options">
+        <button type="button" class="apply-option">I mix at home and I&rsquo;m good at it &mdash; I just haven&rsquo;t played out</button>
+        <button type="button" class="apply-option">I&rsquo;ve played a handful of gigs. Friends&rsquo; parties, small rooms</button>
+        <button type="button" class="apply-option">I play out regularly and I want to be better at it</button>
+        <button type="button" class="apply-option">I&rsquo;ve been at this a while and something&rsquo;s plateaued</button>
+        <button type="button" class="apply-option">I&rsquo;m just getting started</button>
+      </div>
+    </section>
+
+    <!-- ---------------------------------------------------------------
+         Q2 -- rapport. The question DJs actually ask each other first. It
+         costs nothing, it is not a judgement, and it tells you what to
+         teach. A frequency question would do more work here and would also
+         sting, which is the wrong thing to do on the second screen.
+         --------------------------------------------------------------- -->
+    <section class="apply-panel" data-name="gear" hidden>
+      <h1 class="apply-q">What are you playing on?</h1>
+      <div class="apply-options">
+        <button type="button" class="apply-option">CDJs or XDJs</button>
+        <button type="button" class="apply-option">A controller</button>
+        <button type="button" class="apply-option">Vinyl, or some hybrid situation</button>
+        <button type="button" class="apply-option">Whatever&rsquo;s at the venue</button>
+        <button type="button" class="apply-option">Still figuring out my setup</button>
+      </div>
+    </section>
+
+    <!-- ---------------------------------------------------------------
+         Q3 -- the turn. The first question about a future rather than a
+         fact, and picking one is a small act of admitting you want
+         something.
+         --------------------------------------------------------------- -->
+    <section class="apply-panel" data-name="goal" hidden>
+      <h1 class="apply-q">If this goes well, what&rsquo;s different a year from now?</h1>
+      <div class="apply-options">
+        <button type="button" class="apply-option">I&rsquo;m playing the rooms I actually want to play</button>
+        <button type="button" class="apply-option">I feel calm up there instead of white-knuckling it</button>
+        <button type="button" class="apply-option">I have a sound people recognize as mine</button>
+        <button type="button" class="apply-option">I&rsquo;m getting booked, and paid</button>
+        <button type="button" class="apply-option">I finally know what I&rsquo;m doing under the hood</button>
+      </div>
+    </section>
+
+    <!-- ---------------------------------------------------------------
+         Q4 -- the gap, and the most important screen here.
+
+         These five options are the syllabus: gain staging, mixing, library
+         and metadata, performance. Somebody tapping one is finding out that
+         the course was built for the exact thing they were embarrassed about
+         ten seconds ago -- which is true, and is the reason not to reword
+         them into something more flattering.
+         --------------------------------------------------------------- -->
+    <section class="apply-panel" data-name="obstacle" hidden>
+      <h1 class="apply-q">What&rsquo;s actually in the way?</h1>
+      <div class="apply-options">
+        <button type="button" class="apply-option">My mixes sound great at home and thin on a real system</button>
+        <button type="button" class="apply-option">I can beatmatch fine, but the transitions don&rsquo;t feel like anything</button>
+        <button type="button" class="apply-option">My library&rsquo;s a mess &mdash; I can&rsquo;t find the right track in the moment</button>
+        <button type="button" class="apply-option">I freeze when I&rsquo;m trying to read a room</button>
+        <button type="button" class="apply-option">I&rsquo;m technically solid and creatively stuck</button>
+      </div>
+    </section>
+
+    <!-- ---------------------------------------------------------------
+         Q5 -- the real ask, and the honest place for price to surface.
+
+         Tapping "I'm in" is a commitment, and people keep small stated
+         commitments better than private intentions. Money is folded into an
+         option rather than made its own question: a screen that asks about
+         budget halfway through an application is a cold shower.
+
+         The schedule is written into the question rather than assumed,
+         because this is the screen where somebody decides, and making them
+         scroll back to the homepage to check a day of the week is how a
+         decision becomes a maybe.
+         --------------------------------------------------------------- -->
+    <section class="apply-panel" data-name="commitment" hidden>
+      <h1 class="apply-q">It&rsquo;s Thursdays, 6&ndash;8 PM Mountain, {{ site.headroom.cohort_starts }} through November 19. Two hours live, about thirty minutes of homework. Where are you with that?</h1>
+      <div class="apply-options">
+        <button type="button" class="apply-option">I&rsquo;m in. Put it on my calendar</button>
+        <button type="button" class="apply-option">I want to &mdash; I need to check a couple of those Thursdays</button>
+        <button type="button" class="apply-option">Time works. It&rsquo;s the money I need to think about</button>
+        <button type="button" class="apply-option">Just exploring for now</button>
+      </div>
+    </section>
+
+    <!-- ---------------------------------------------------------------
+         Q6 -- their own words, and the only screen that asks for effort.
+
+         The effort is the point. Articulating a want is what makes somebody
+         feel it, so this is the screen that earns the "I hope I get in" the
+         submit button then collects. It is also the field worth reading
+         before a call.
+
+         December rather than "when the course ends": three weeks past the
+         last session, so it asks them to picture the other side of it.
+
+         The prompts under the box are prompts, not quotes. Real applicant
+         quotes go here once there are some. Inventing them on a page whose
+         whole premise is a person reading real applications is the thing
+         that poisons it if it is ever noticed.
+         --------------------------------------------------------------- -->
+    <section class="apply-panel" data-name="words" hidden>
+      <h1 class="apply-q">What do you want to be able to do in December that you can&rsquo;t do today?</h1>
+      <label class="sr-only" for="ap-words">Your answer</label>
+      <textarea id="ap-words" name="words" rows="5" maxlength="2000"
+        placeholder="A sentence or two is plenty."></textarea>
+      <p class="apply-hint">
+        Some people name a room. Some name a thing they keep messing up. Some
+        name a sound they can hear in their head and can&rsquo;t make yet.
+      </p>
+      <div class="apply-actions">
+        <button type="button" class="btn-primary apply-next">Next &rsaquo;</button>
+      </div>
+    </section>
+
+    <!-- ---------------------------------------------------------------
+         Screen 7 -- contact.
+
+         Last, and deliberately the smallest screen here: by now they have
+         answered six questions, and these three fields read as "where do I
+         send the answer" rather than as a toll booth.
+
+         The line under the phone field is doing the work verification would
+         not. The risk was never mistyped numbers -- it is people who would
+         rather not be phoned, and a hedged number passes an SMS check just
+         as well as a real one. Saying what the number is for is what
+         produces correct ones.
+         --------------------------------------------------------------- -->
+    <section class="apply-panel apply-panel-contact" data-name="contact" hidden>
+      <h1 class="apply-q">Last thing &mdash; how do I reach you?</h1>
+
+      <div class="apply-fields">
+        <label for="ap-name">Name</label>
+        <!-- data-1p-ignore for the same reason the old signup form carried
+             it: this is not a login, and 1Password's inline menu covers the
+             button. The browser's own autofill is wanted and stays. -->
+        <input id="ap-name" name="name" type="text" autocomplete="name" data-1p-ignore required />
+
+        <label for="ap-email">Email</label>
+        <input id="ap-email" name="email" type="email" autocomplete="email" data-1p-ignore required />
+
+        <label for="ap-phone">Phone</label>
+        <input id="ap-phone" name="phone" type="tel" autocomplete="tel" data-1p-ignore required />
+        <p class="apply-hint apply-hint-phone">
+          I&rsquo;d rather text than email &mdash; it&rsquo;s how I actually
+          reply. I won&rsquo;t call out of the blue.
+        </p>
+      </div>
+
+      <!-- Bots fill this in; people never see it. Same field name the other
+           three forms use, so signup.gs checks one thing. -->
+      <div class="apply-hp" aria-hidden="true">
+        <label>Company <input type="text" name="company" tabindex="-1" autocomplete="off" /></label>
+      </div>
+
+      <div class="apply-actions">
+        <button type="submit" class="btn-primary btn-comet apply-submit">Submit application</button>
+      </div>
+
+      <p class="apply-status" role="status" aria-live="polite"></p>
+
+      <!-- The disclosure sits at the point the data is collected, and below
+           the button so it informs without standing between somebody and the
+           thing they came to do. It names the phone number specifically:
+           that is the field a reader will hesitate over, and the one this
+           page is asking them to trust it with. -->
+      <p class="apply-fineprint">
+        By applying you&rsquo;re agreeing to the
+        <a href="/headroom/privacy/">Privacy Policy</a>. Your email and phone
+        number are used to talk to you about Headroom, and nothing else.
+      </p>
+    </section>
+
+  </form>
+
+  <!-- Back is in-page state, not history. It appears from the second panel
+       on -- there is nowhere to go back to from the first, and a disabled
+       control is a worse answer than no control.
+
+       Exit is a real navigation, and it is separate from back on purpose:
+       one of them is a step and the other is leaving, and a single control
+       that silently changes meaning on the first panel is how somebody loses
+       six answers by tapping the thing that worked a moment ago. -->
+  <nav class="apply-nav">
+    <button type="button" class="apply-back" hidden>&lsaquo; Back</button>
+    <a class="apply-exit" href="/headroom/">Exit application</a>
+  </nav>
+
+  <noscript>
+    <div class="apply-noscript">
+      <h1>This application needs JavaScript</h1>
+      <p>
+        It asks one question at a time, and that part is script. If you&rsquo;d
+        rather not turn it on, email me at
+        <a href="mailto:wave@avand.fm">wave@avand.fm</a> and tell me about your
+        DJing &mdash; that is all the form does anyway, and I read those
+        myself too.
+      </p>
+      <p><a href="/headroom/">Back to Headroom</a></p>
+    </div>
+  </noscript>
+
+</div>
+
+<script src="/headroom/apply/apply.js?v=1" defer></script>

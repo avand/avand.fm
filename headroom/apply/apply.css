@@ -1,0 +1,445 @@
+/*
+ * apply.css -- the application's own layout.
+ *
+ * The fourth stylesheet, and the fourth audience. The split in this section
+ * is by who sees a thing, not by tidiness:
+ *
+ *   headroom.css   what every page under /headroom/ presents identically --
+ *                  tokens, fonts, buttons, the nav and footer this page does
+ *                  not render, .final-cta which fifty pages do.
+ *   index.css      the landing page's own furniture.
+ *   player.css     the video player, wherever one appears.
+ *   concepts.css   the glossary's layout.
+ *   this file      the application and its confirmation page.
+ *
+ * Loaded by _layouts/headroom.html on any page with `apply: true`, which is
+ * both /headroom/apply/ and /headroom/apply/done/. Bump its ?v= there in the
+ * same commit as any change here.
+ *
+ * WHY THERE IS SO LITTLE IN HERE
+ *
+ * The buttons, the type, the colours and the focus ring all come from
+ * headroom.css already. What is left is the one thing this page does that no
+ * other page does: show one question at a time, centred in a column, with
+ * nothing else on screen. Most of the file is that column and the options in
+ * it.
+ */
+
+/* The page has no nav, so nothing is holding the content down from the top of
+   the viewport and nothing is painting the strip behind an iPhone's status
+   bar except body. --bg is what headroom.css already sets there; this is here
+   to say that the absence of .sheet on this page is deliberate and does not
+   leave a colour unclaimed. See the note above .site-nav in headroom.css. */
+.apply {
+  min-height: 100vh;
+  min-height: 100svh;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* The safe-area insets do real work here in landscape, where the notch
+     becomes a side inset -- the same reason the layout asks for
+     viewport-fit=cover. */
+  padding: 2.5em max(1.5em, env(safe-area-inset-right)) 3em max(1.5em, env(safe-area-inset-left));
+  gap: 1.75em;
+}
+
+/* ---------- Masthead ---------- */
+
+.apply-head {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35em;
+}
+
+/* The wordmark, not a picture of one. It is the same string the hero sets in
+   the same face, so the two are one mark rendered twice rather than a logo
+   and a heading that resemble each other. It is also a link home, which is
+   the exit somebody reaches for before they find the one at the bottom. */
+.apply-mark {
+  text-decoration: none;
+  color: var(--text);
+}
+
+.apply-mark-name {
+  display: block;
+  font-size: 1.5em;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+
+.apply-kicker {
+  font-size: 0.8em;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ---------- Progress ---------- */
+
+/* Both halves of the same fact: the bar for a glance, the count for anyone
+   who wants the number -- and for a screen reader, which is why the bar is
+   aria-hidden and the count is a live region. Announcing both would say the
+   same thing twice on every advance. */
+.apply-progress {
+  width: 100%;
+  max-width: 34em;
+  height: 2px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.apply-progress-bar {
+  height: 100%;
+  width: 0;
+  background: var(--accent);
+  transition: width 320ms var(--ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .apply-progress-bar {
+    transition: none;
+  }
+}
+
+.apply-count {
+  font-size: 0.78em;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-top: -1.25em;
+}
+
+/* ---------- The question ---------- */
+
+.apply-form {
+  width: 100%;
+  max-width: 34em;
+  /* The column does not resize as the panels change height. Without this a
+     five-option question followed by a four-option one pulls the whole page
+     up mid-tap, and on a phone the second tap lands on whatever moved into
+     that spot. Tall enough for the longest panel; the flex centring keeps
+     shorter ones from sitting at the top of a hole. */
+  min-height: 26em;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.apply-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1em;
+}
+
+/* Every panel's heading is an h1: only one panel is ever visible, and the
+   other six are `hidden`, which takes them out of the accessibility tree
+   entirely. One document, one heading, as far as anything reading it knows. */
+.apply-q {
+  font-size: 1.45em;
+  font-weight: 700;
+  line-height: 1.3;
+  text-wrap: balance;
+}
+
+.apply-options {
+  display: grid;
+  gap: 0.5em;
+}
+
+/* Deliberately not .btn-primary. These are not the action of the page -- they
+   are the page -- and five filled accent buttons in a stack would leave
+   nothing for the submit button at the end to be. Quiet until touched. */
+.apply-option {
+  font-family: inherit;
+  font-size: 1em;
+  line-height: 1.4;
+  text-align: left;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 0.6em;
+  padding: 0.85em 1.1em;
+  cursor: pointer;
+  transition: border-color 140ms var(--ease), background 140ms var(--ease), transform 140ms var(--ease);
+}
+
+@media (hover: hover) {
+  .apply-option:hover {
+    border-color: var(--accent);
+    background: rgba(146, 7, 195, 0.12);
+  }
+}
+
+.apply-option:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+/* The answer, held for the moment between the tap and the next question, so
+   the advance reads as a consequence of the tap rather than as the page
+   changing on its own. apply.js sets this and waits out the same beat. */
+.apply-option.is-chosen {
+  border-color: var(--accent);
+  background: rgba(146, 7, 195, 0.22);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .apply-option:active {
+    transform: scale(0.99);
+  }
+}
+
+/* ---------- Free text ---------- */
+
+.apply-panel textarea {
+  font-family: inherit;
+  font-size: 1em;
+  line-height: 1.55;
+  color: var(--text);
+  background: rgba(10, 10, 15, 0.75);
+  border: 1px solid var(--border);
+  border-radius: 0.6em;
+  padding: 0.85em 1.1em;
+  resize: vertical;
+  min-width: 0;
+}
+
+.apply-panel textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.apply-panel textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+/* Quiet, and under the thing it is about in both places it appears -- the
+   prompts below the box, and the reason for the phone number below that
+   field. */
+.apply-hint {
+  font-size: 0.85em;
+  line-height: 1.5;
+  color: var(--text-muted);
+  margin-top: -0.5em;
+}
+
+/* ---------- Contact ---------- */
+
+.apply-fields {
+  display: grid;
+  gap: 0.35em;
+}
+
+.apply-fields label {
+  font-size: 0.85em;
+  color: var(--text-muted);
+}
+
+.apply-fields label + input {
+  margin-bottom: 0.75em;
+}
+
+.apply-fields input {
+  font-family: inherit;
+  font-size: 1em;
+  padding: 0.75em 1.1em;
+  border-radius: 0.6em;
+  border: 1px solid var(--border);
+  background: rgba(10, 10, 15, 0.75);
+  color: var(--text);
+  min-width: 0;
+}
+
+.apply-fields input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+/* The field a validation error landed on. Colour and nothing else: the
+   message itself is in the status line, where a screen reader will hear it. */
+.apply-fields input.is-invalid {
+  border-color: #ff8a6b;
+}
+
+.apply-hint-phone {
+  margin-top: 0;
+  margin-bottom: 0.25em;
+}
+
+.apply-actions {
+  display: grid;
+  margin-top: 0.5em;
+}
+
+.apply-submit[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.apply-status {
+  font-size: 0.95em;
+  min-height: 1.5em;
+  text-align: center;
+}
+
+.apply-status.err {
+  color: #ff8a6b;
+}
+
+.apply-fineprint {
+  font-size: 0.8em;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.apply-fineprint a {
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.apply-fineprint a:hover {
+  color: var(--text);
+}
+
+/* Honeypot: hidden from people, tempting to bots. */
+.apply-hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* ---------- Back and exit ---------- */
+
+/* Both quiet, and stacked rather than side by side: they are not a pair of
+   equal choices. One is a step inside the form and the other leaves it. */
+.apply-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6em;
+  margin-top: auto;
+  padding-top: 2em;
+}
+
+.apply-back {
+  font-family: inherit;
+  font-size: 0.9em;
+  color: var(--text-muted);
+  background: none;
+  border: 0;
+  padding: 0.4em 0.8em;
+  cursor: pointer;
+}
+
+.apply-back:hover {
+  color: var(--text);
+}
+
+.apply-back:focus-visible {
+  outline: none;
+  color: var(--text);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+  border-radius: 0.4em;
+}
+
+.apply-exit {
+  font-size: 0.8em;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.apply-exit:hover {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+/* ---------- No JavaScript ---------- */
+
+.apply-noscript {
+  max-width: 34em;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+
+.apply-noscript h1 {
+  font-size: 1.3em;
+}
+
+.apply-noscript a {
+  color: var(--text);
+}
+
+/* ---------- Confirmation ---------- */
+
+/* /headroom/apply/done/ keeps its nav and footer, so this is a section inside
+   a page rather than a page, and it does not repeat .apply's full-height
+   column. */
+.done {
+  max-width: 44em;
+  margin: 0 auto;
+  padding: 3em 0 1em;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25em;
+}
+
+.done h1 {
+  font-size: 2em;
+  text-wrap: balance;
+}
+
+.done-lead {
+  font-size: 1.15em;
+  color: var(--text);
+}
+
+.done-video {
+  margin-top: 1em;
+}
+
+.done-video h2,
+.done-next h2 {
+  font-size: 1.15em;
+  margin-bottom: 0.5em;
+}
+
+.done-next {
+  border: 1px solid var(--border);
+  border-radius: 0.6em;
+  padding: 1.4em 1.5em;
+  margin-top: 1em;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75em;
+}
+
+.done-next p {
+  color: var(--text-muted);
+}
+
+@media (max-width: 40em) {
+  .apply-q {
+    font-size: 1.25em;
+  }
+
+  .apply-form {
+    min-height: 24em;
+  }
+
+  .done h1 {
+    font-size: 1.6em;
+  }
+}
