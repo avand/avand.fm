@@ -197,6 +197,25 @@
       heading.setAttribute("tabindex", "-1");
       heading.focus({ preventScroll: true });
     }
+
+    /* The position is saved HERE, after it has changed, and that placement is
+       the whole of a bug worth writing down.
+
+       Every caller used to save before moving -- choose() recorded the answer
+       and saved, then advanced a beat later; back() saved and then stepped
+       back. So the stored `at` was always the panel being left rather than the
+       one being shown, and a reload put somebody one question behind where
+       they were. After Back it put them one ahead, which is the same bug
+       wearing the other sign.
+
+       Saving from inside show() means the stored position is whatever is on
+       screen, by construction, and no caller has to remember the ordering.
+       The callers still save on the way in, because an answer given and then
+       abandoned inside the 260ms hold should survive too.
+
+       Not saved when there is nothing to save: a visitor who opens the page
+       and reads the first question should not be given a stored draft for it. */
+    if (Object.keys(answers).length) saveDraft();
   }
 
   function advance() {

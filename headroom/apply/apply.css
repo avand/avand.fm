@@ -141,7 +141,10 @@
 .apply-panel {
   display: flex;
   flex-direction: column;
-  gap: 1.1em;
+  /* Named because .apply-status has to cancel exactly one of these when it is
+     empty, and two copies of the number would drift. */
+  --panel-gap: 1.1em;
+  gap: var(--panel-gap);
   padding: 0;
   max-width: none;
   margin: 0;
@@ -357,8 +360,18 @@
   min-height: 1.5em;
 }
 
+/* Empty, this is still a flex item, so it takes a slot in the column and the
+   panel's gap is paid on BOTH sides of it -- twice the space between the
+   phone field and the disclosure, around an element with no height.
+   min-height: 0 fixes the height and not the gaps.
+
+   display: none would fix both and is the wrong tool: this is an aria-live
+   region, and a region that is display:none when the text arrives is one some
+   screen readers never announce. It has to stay rendered, so the extra gap is
+   cancelled instead. */
 .apply-status:empty {
   min-height: 0;
+  margin-top: calc(-1 * var(--panel-gap));
 }
 
 .apply-status.err {
