@@ -37,7 +37,6 @@
   var ENDPOINT =
     "https://script.google.com/macros/s/AKfycbyiqhCLfyrsszqOGrbHxvIwqsAJvCPwzpW6o1FrN4pB2mwZslfeN2F57bcovuRDX-es/exec";
 
-  var FALLBACK_EMAIL = "wave@avand.fm";
   var DONE_URL = "/headroom/apply/done/";
 
   /* The draft.
@@ -456,12 +455,16 @@
       .catch(function () {
         sending = false;
         submitBtn.disabled = false;
-        say(
-          "That didn't go through. Email me at " +
-            FALLBACK_EMAIL +
-            " and I'll take it from there.",
-          "err"
-        );
+        /* No address in here, deliberately. This string is served to every
+           visitor and to every crawler that reads the page, and an address in
+           page source is an address in a list somebody sells. The site already
+           routes contact through Instagram -- see about.html -- so there is no
+           need to invent a second answer here.
+           
+           What it says instead is the more useful thing anyway: this is a
+           transient failure, retrying is the fix, and the six answers behind
+           them are on their device and will still be there. */
+        say("That didn't go through — try again in a moment. Your answers are saved.", "err");
         track("error / network");
       });
   });
