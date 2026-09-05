@@ -344,20 +344,21 @@
   margin-bottom: 0.25em;
 }
 
-.apply-actions {
-  display: grid;
-  margin-top: 0.5em;
-}
-
 .apply-submit[disabled] {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
+/* Left, not centred. It sat under a full-width button and was centred to
+   match it; it now sits in the column with the fields and the fineprint, all
+   of which start at the same edge. */
 .apply-status {
   font-size: 0.95em;
   min-height: 1.5em;
-  text-align: center;
+}
+
+.apply-status:empty {
+  min-height: 0;
 }
 
 .apply-status.err {
@@ -429,7 +430,19 @@
 
    Same font-size as Back, which is what lets `align-items: center` line the
    two labels up rather than merely stacking their boxes. */
-.apply-next {
+/* Next and Submit are the same control in two places: the way on from this
+   panel. They are never both visible, so they share the auto margin that puts
+   them at the right of the row.
+
+   Deliberately not .btn-primary.btn-comet, which the submit button wore. That
+   is the hero's treatment -- a black face, an accent ring and a light going
+   round it -- and it is the loudest thing the site owns. It is right on a
+   page whose job is to get somebody to press one button. At the end of a form
+   somebody has already spent two minutes on, the decision is made; what is
+   left is the last step, and it should look like the step after the one
+   before it. */
+.apply-next,
+.apply-submit {
   margin-left: auto;
   font-family: inherit;
   font-size: 0.9em;
@@ -440,16 +453,18 @@
   border-radius: 2em;
   padding: 0.5em 1.4em;
   cursor: pointer;
-  transition: background 140ms var(--ease);
+  transition: background 140ms var(--ease), opacity 140ms var(--ease);
 }
 
 @media (hover: hover) {
-  .apply-next:hover {
+  .apply-next:hover,
+  .apply-submit:hover:not([disabled]) {
     background: rgba(146, 7, 195, 0.38);
   }
 }
 
 .apply-next:focus-visible,
+.apply-submit:focus-visible,
 .apply-back:focus-visible {
   outline: none;
   box-shadow: 0 0 0 3px var(--accent-glow);

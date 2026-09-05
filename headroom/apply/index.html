@@ -105,28 +105,6 @@ chrome: false
     </section>
     {% endfor %}
 
-    <!-- One control row for the whole form, sitting directly under whichever
-         panel is visible. Both controls live here rather than inside the
-         panels so they land on a single line, at the column's left and right
-         edges, at the same size -- a Next button inside a panel and a Back
-         button outside one cannot share a row without the two of them being
-         nudged into it by hand.
-
-         Back is hidden on the first panel: there is nowhere to go, and a
-         disabled control is a worse answer than no control. Next appears only
-         on a panel marked data-advance, which the template puts on any
-         question with no options -- tapping an option is what advances the
-         others, and a Next beside them would be a second way to do the same
-         thing.
-
-         The contact panel keeps its own submit button, inside itself and full
-         width. It is the end of the form rather than a step through it, and
-         it should not look like one. -->
-    <div class="apply-controls">
-      <button type="button" class="apply-back" hidden>&lsaquo; Back</button>
-      <button type="button" class="apply-next" hidden>Next &rsaquo;</button>
-    </div>
-
     <!-- ---------------------------------------------------------------
          Screen 7 -- contact.
 
@@ -140,7 +118,7 @@ chrome: false
          as well as a real one. Saying what the number is for is what
          produces correct ones.
          --------------------------------------------------------------- -->
-    <section class="apply-panel apply-panel-contact" data-name="contact" hidden>
+    <section class="apply-panel apply-panel-contact" data-name="contact" data-submit hidden>
       <h1 class="apply-q">Last thing &mdash; how do I reach you?</h1>
 
       <div class="apply-fields">
@@ -167,23 +145,50 @@ chrome: false
         <label>Company <input type="text" name="company" tabindex="-1" autocomplete="off" /></label>
       </div>
 
-      <div class="apply-actions">
-        <button type="submit" class="btn-primary btn-comet apply-submit">Submit application</button>
-      </div>
-
       <p class="apply-status" role="status" aria-live="polite"></p>
 
-      <!-- The disclosure sits at the point the data is collected, and below
-           the button so it informs without standing between somebody and the
-           thing they came to do. It names the phone number specifically:
-           that is the field a reader will hesitate over, and the one this
-           page is asking them to trust it with. -->
+      <!-- The disclosure sits at the point the data is collected, and it names
+           the phone number specifically: that is the field a reader will
+           hesitate over, and the one this page is asking them to trust it
+           with.
+
+           It used to sit below the button, so that it informed without
+           standing between somebody and the thing they came to do. The button
+           is in the control row at the foot of the form now, which puts this
+           above it -- and that is fine at this length. One quiet line is not
+           the wall of legal text that argument was about; a second one would
+           be, so keep it to this. -->
       <p class="apply-fineprint">
         By applying you&rsquo;re agreeing to the
         <a href="/headroom/privacy/">Privacy Policy</a>. Your email and phone
         number are used to talk to you about Headroom, and nothing else.
       </p>
     </section>
+
+    <!-- One control row for the whole form, and it has to be the LAST thing in
+         it. Every panel is a sibling above it, so wherever it sits is where it
+         renders -- put between the loop and the contact panel, as it briefly
+         was, it draws Back and Submit above the question they belong to on
+         the one screen that matters most.
+
+         All three controls live here rather than inside the panels so they
+         land on a single line, at the column's left and right edges, at the
+         same size. A button inside a panel and a button outside one cannot
+         share a row without being nudged into it by hand.
+
+         Back is hidden on the first panel: there is nowhere to go, and a
+         disabled control is a worse answer than no control.
+
+         Next and Submit are the same slot on different panels and are never
+         shown together. Each appears on the panel the template marks for it
+         -- data-advance on a question with no options, data-submit on the
+         contact screen -- rather than on a position, so neither breaks if a
+         question is added or the order changes. -->
+    <div class="apply-controls">
+      <button type="button" class="apply-back" hidden>&lsaquo; Back</button>
+      <button type="button" class="apply-next" hidden>Next &rsaquo;</button>
+      <button type="submit" class="apply-submit" hidden>Submit application</button>
+    </div>
 
   </form>
 
@@ -217,4 +222,4 @@ chrome: false
 
 </div>
 
-<script src="/headroom/apply/apply.js?v=6" defer></script>
+<script src="/headroom/apply/apply.js?v=8" defer></script>

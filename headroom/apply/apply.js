@@ -174,8 +174,14 @@
     if (backBtn) backBtn.hidden = at === 0;
     /* Next belongs only to a panel that cannot advance itself. Every other
        question advances when an option is tapped, and a Next button beside
-       them would be a second way to do one thing. */
+       them would be a second way to do one thing.
+
+       Submit belongs to exactly one panel, and the two are never shown
+       together -- which is what lets both sit at the right of the same row
+       with the same auto margin. Marked in the template rather than inferred
+       from position, so neither depends on the contact screen staying last. */
     if (nextBtn) nextBtn.hidden = !panels[at].hasAttribute("data-advance");
+    if (submitBtn) submitBtn.hidden = !panels[at].hasAttribute("data-submit");
 
     if (!opts || !opts.silent) {
       track("step-" + (at + 1));
@@ -264,7 +270,7 @@
       return true;
     }
     if (error) {
-      error.textContent = "Even one sentence helps — it’s the part I actually read.";
+      error.textContent = "Even one sentence helps.";
       error.hidden = false;
     }
     words.classList.add("is-invalid");
