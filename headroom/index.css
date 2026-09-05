@@ -1584,14 +1584,9 @@ h2 {
   .curr-scroll .curr-copy>*,
   .curr-scroll .module-points li,
   .curr-scroll .read-more,
-  .curr-scroll .curr-head>*,
-  .pl-controls {
+  .curr-scroll .curr-head>* {
     transition: none !important;
     animation: none !important;
-  }
-
-  .pl-spinner {
-    animation-duration: 2s;
   }
 }
 

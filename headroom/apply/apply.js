@@ -253,11 +253,21 @@
     answers[panel.dataset.name] = option.textContent.trim();
     saveDraft();
 
-    // Held lit for a beat, so the answer registers as taken before the
-    // question it belongs to disappears. prefers-reduced-motion is about
-    // motion rather than pacing, and this is not motion -- the panel does not
-    // move, it swaps -- so the beat is the same either way.
-    window.setTimeout(advance, ADVANCE_MS);
+    /* Held lit for a beat, so the answer registers as taken before the
+       question it belongs to disappears. prefers-reduced-motion is about
+       motion rather than pacing, and this is not motion -- the panel does not
+       move, it swaps -- so the beat is the same either way.
+
+       The timer advances only if the answered panel is still the one on
+       screen. Two taps inside the hold -- a changed mind, or an impatient
+       double-tap on a phone -- used to arm two timers, and the second fired
+       from the NEXT panel and skipped it. The question after the one they
+       answered would go past unseen and unanswered, with nothing to show it
+       had. */
+    var from = at;
+    window.setTimeout(function () {
+      if (at === from) advance();
+    }, ADVANCE_MS);
   }
 
   /* The one question that has to be answered, and the only place in this form
@@ -402,9 +412,15 @@
       return;
     }
 
-    // Honeypot tripped -- accept quietly and send nothing.
+    /* Honeypot tripped -- accept quietly and send nothing.
+     *
+     * `false` because nothing was written: finish() otherwise parks the name
+     * and email for the confirmation page, which fires Track.lead() and bills
+     * a lead_created to the ad account. A conversion reported for a
+     * submission the endpoint never stored is a campaign optimising toward
+     * bots, and the ad side has no way to tell that row from a real one. */
     if (form.elements.company.value) {
-      finish();
+      finish(false);
       return;
     }
 
@@ -485,8 +501,12 @@
    * The query string goes with the navigation for the same reason it came in:
    * fromAd() has to be able to see the reference at the moment of conversion.
    */
-  function finish() {
+  function finish(converted) {
     clearDraft();
+    if (converted === false) {
+      window.location.href = DONE_URL + search;
+      return;
+    }
     try {
       /* The first name only, because that is what the pixel wants: OpenAI's
          field is first_name_sha256, and events.js normalises a name by

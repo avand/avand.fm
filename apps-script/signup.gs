@@ -348,12 +348,18 @@ function doPost(e) {
 
       // Capped because nothing upstream of a public URL limits the length of
       // what arrives, and a cell holding a novel is a nuisance to clean up.
+      //
+      // Through cell() like every other write here. The signup form is gone
+      // from the site, but this branch is not dead: it is the backward
+      // compatibility the whole deploy-first rule exists to protect, and a
+      // cached page can post here for as long as a browser holds it. A first
+      // name typed as "-Ana" is a formula, and it lands as #ERROR!.
       sheet.appendRow([
         new Date(),
-        name.slice(0, 100),
-        email.slice(0, 254),
-        String(payload.source || "").slice(0, 200),
-        String(payload.page || "").slice(0, 500),
+        cell(name.slice(0, 100)),
+        cell(email.slice(0, 254)),
+        cell(String(payload.source || "").slice(0, 200)),
+        cell(String(payload.page || "").slice(0, 500)),
       ]);
       // Where that row landed. A position, not a value -- no row is read
       // here, and see sendInvites_ for why that distinction is load-bearing.
@@ -533,7 +539,22 @@ function application(payload) {
 
     // Built in the same three pieces as APPLICATION_HEADERS, from the same
     // list, so a question added in the middle moves the column and the value
-    // together.
+    // together IN THIS FILE.
+    //
+    // The Sheet is the half that does not follow. ensureHeaders writes the
+    // header row once, into an empty tab, and returns early ever after -- so
+    // once the first application has landed, adding a question here widens
+    // every new row against a header row that stays as it was, and every
+    // value after the insertion point sits one column right of its label.
+    // Silently, with old and new rows interleaved.
+    //
+    // Not fixed in code on purpose. Widening it would mean reading row 1 back,
+    // and "doPost never reads a row" is the sentence the whole argument for a
+    // deployment open to Anyone rests on; weakening it to save a manual step
+    // is a bad trade. The manual step: add the column heading to the
+    // Applications tab by hand, in the same position, before deploying. It is
+    // written down again in _data/application.yml, which is the file somebody
+    // adding a question is actually looking at.
     //
     // Every field capped, because nothing upstream of a public URL limits
     // what arrives. The free-text answer gets the same 2000 as a privacy

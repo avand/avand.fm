@@ -21,9 +21,11 @@
 
     apply: true     both application pages. Sets the event-name prefix and
                     loads apply.css.
-    chrome: false   no nav, no footer. Only the wizard sets it: the
-                    confirmation page is the end of the flow and people should
-                    be able to browse away from it.
+    chrome: false   no nav, no footer. Both application pages set it. On the
+                    wizard it keeps six ways out of a half-finished form off
+                    the edges of every question; on the confirmation page it
+                    keeps a colophon from being the last word to somebody who
+                    has just been told they will hear back.
     player: true    loads player.css. The landing page implies it; the
                     confirmation page has to ask, and cannot ask for index.css
                     instead -- that file paints the body the hero's purple,
@@ -174,8 +176,8 @@
        cached the way the scripts are, and an un-bumped edit reaches nobody for
        ten minutes. -->
   <link rel="stylesheet" href="/headroom/headroom.css?v=7" />
-  {% if page.landing %}<link rel="stylesheet" href="/headroom/index.css?v=14" />{% endif %}
-  {% if page.landing or page.player %}<link rel="stylesheet" href="/headroom/player.css?v=2" />{% endif %}
+  {% if page.landing %}<link rel="stylesheet" href="/headroom/index.css?v=15" />{% endif %}
+  {% if page.landing or page.player %}<link rel="stylesheet" href="/headroom/player.css?v=3" />{% endif %}
   {% if page.subsection %}<link rel="stylesheet" href="/headroom/concepts/concepts.css?v=7" />{% endif %}
   {% if page.apply %}<link rel="stylesheet" href="/headroom/apply/apply.css?v=15" />{% endif %}
 

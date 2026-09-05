@@ -16,16 +16,28 @@
 #                                    progress bar and the step events follow
 #                                    on their own.
 #
-#   ADD OR REMOVE A QUESTION         two files, and the second one is easy to
-#                                    forget. Add the block here, then add a
-#                                    matching entry to APPLICATION_CHOICES in
-#                                    apps-script/signup.gs -- in the same
+#   ADD OR REMOVE A QUESTION         three steps, and the last two are easy to
+#                                    forget. Add the block here. Add a matching
+#                                    entry to APPLICATION_CHOICES in
+#                                    apps-script/signup.gs, in the same
 #                                    position, because that list is what builds
 #                                    both the header row and the row of
-#                                    answers. Then `bin/apps-script deploy`.
-#                                    A question with no entry there is
-#                                    collected, posted, and silently dropped
-#                                    on the floor.
+#                                    answers -- a question with no entry there
+#                                    is collected, posted, and silently dropped
+#                                    on the floor. Then `bin/apps-script deploy`.
+#
+#                                    AND, IF ANY APPLICATION HAS ALREADY
+#                                    LANDED: add the column heading to the
+#                                    Applications tab by hand, in that same
+#                                    position, first. The script writes the
+#                                    header row once, into an empty tab, and
+#                                    never revisits it -- so a question added
+#                                    afterwards puts every new value one column
+#                                    to the right of its label, silently, with
+#                                    old and new rows interleaved. The note
+#                                    above appendRow in signup.gs says why that
+#                                    is left to a person rather than fixed in
+#                                    code.
 #
 # `name` is the key the answer is posted under and the tie to that Sheet
 # column. It is the one field here that is not copy: changing it renames a

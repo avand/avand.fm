@@ -348,6 +348,22 @@
   .pl-unmute {
     transition: none;
   }
+
+  /* Left behind in index.css when the rest of the player moved, which meant
+     the control bar still animated and the spinner still whirled at full
+     speed on /headroom/apply/done/ -- the one page that renders a player
+     without loading index.css. The overrides belong to the player, not to the
+     landing page, so they live with it. */
+  .pl-controls {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  /* Slowed rather than stopped: a spinner that does not move says the page
+     has hung, which is the opposite of what it is there to say. */
+  .pl-spinner {
+    animation-duration: 2s;
+  }
 }
 
 /* Buffering spinner */
