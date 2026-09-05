@@ -443,10 +443,10 @@ function privacyRequest(payload) {
     ensureHeaders(sheet, REQUEST_HEADERS);
     sheet.appendRow([
       new Date(),
-      email.slice(0, 254),
+      cell(email.slice(0, 254)),
       kind,
-      String(payload.message || "").slice(0, 2000),
-      String(payload.page || "").slice(0, 500),
+      cell(String(payload.message || "").slice(0, 2000)),
+      cell(String(payload.page || "").slice(0, 500)),
     ]);
   } finally {
     lock.releaseLock();
@@ -478,8 +478,8 @@ function unsubscribeRequest(payload) {
     ensureHeaders(sheet, UNSUB_HEADERS);
     sheet.appendRow([
       new Date(),
-      email.slice(0, 254),
-      String(payload.page || "").slice(0, 500),
+      cell(email.slice(0, 254)),
+      cell(String(payload.page || "").slice(0, 500)),
     ]);
   } finally {
     lock.releaseLock();
@@ -541,16 +541,21 @@ function application(payload) {
     // the longest option on the page and far less than a paragraph somebody
     // posted by hand.
     sheet.appendRow(
-      [new Date(), name.slice(0, 100), email.slice(0, 254), phone.slice(0, 40)]
+      [
+        new Date(),
+        cell(name.slice(0, 100)),
+        cell(email.slice(0, 254)),
+        cell(phone.slice(0, 40)),
+      ]
         .concat(
           APPLICATION_CHOICES.map(function (q) {
-            return String(payload[q.key] || "").slice(0, 200);
+            return cell(String(payload[q.key] || "").slice(0, 200));
           })
         )
         .concat([
-          String(payload.words || "").slice(0, 2000),
-          String(payload.source || "").slice(0, 200),
-          String(payload.page || "").slice(0, 500),
+          cell(String(payload.words || "").slice(0, 2000)),
+          cell(String(payload.source || "").slice(0, 200)),
+          cell(String(payload.page || "").slice(0, 500)),
         ])
     );
   } finally {
@@ -588,6 +593,38 @@ function ensureHeaders(sheet, headers) {
   sheet.appendRow(headers);
   sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold");
   sheet.setFrozenRows(1);
+}
+
+/**
+ * A value safe to put in a cell.
+ *
+ * WHY THIS EXISTS: A PHONE NUMBER CAME BACK AS #ERROR!
+ *
+ * Sheets decides a cell is a formula from its first character, and it does so
+ * for values written by a script exactly as for values typed by a person.
+ * "+1 555 0100" is a formula. So is anything starting with =, -, or @.
+ *
+ * The first application ever posted at this endpoint wrote "#ERROR!" into the
+ * Phone column, which is the one field whose entire purpose is being able to
+ * text somebody back. autocomplete="tel" fills international numbers in
+ * exactly that shape, so this was not an edge case; it was most of them.
+ *
+ * Prose is at risk too, and less obviously: an answer that begins "- " is a
+ * subtraction, and a list is a natural way to answer "what do you want to be
+ * able to do".
+ *
+ * A leading apostrophe is Sheets' own escape for "this is text". It is
+ * consumed on write and never appears in the cell or in anything read back
+ * out of it, so the stored value is the one somebody typed.
+ *
+ * The same escape also closes CSV injection, which is the other reason to do
+ * this at the boundary rather than per field: a cell holding
+ * =IMPORTXML(...) is a formula that runs when this Sheet is exported and
+ * opened somewhere else, under whoever opens it.
+ */
+function cell(value) {
+  var text = String(value == null ? "" : value);
+  return /^[=+\-@]/.test(text) ? "'" + text : text;
 }
 
 function json(obj) {
