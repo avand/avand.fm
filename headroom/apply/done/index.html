@@ -4,6 +4,7 @@ title: "Application received — Headroom"
 description: "Your Headroom application is in. Here's what happens next."
 apply: true
 player: true
+chrome: false
 ---
 
 <!-- ===========================================================================
@@ -26,19 +27,22 @@ player: true
      browser is doing at the time. It is also a URL that can go in a text
      message.
 
-     It keeps the nav and the footer, unlike the wizard. This is the end of
-     the flow and there is no form left to protect: somebody who wants to go
-     and read the glossary now should be able to.
+     No nav and no footer, the same as the wizard. It briefly had both, on
+     the reasoning that this is the end of the flow and somebody might want to
+     browse. What that actually produces is a page whose last word is a
+     colophon: an applicant who has just been told they will hear back in a
+     few days is handed a row of links out. The page has one thing to say and
+     one film to show, and the quiet is part of saying it.
      =========================================================================== -->
 
 <div class="done">
 
-  <h1>Application received</h1>
+  <h1>Application Received!</h1>
 
   <p class="done-lead">
-    I read every one of these myself &mdash; not a form, not a filter. I&rsquo;ll
-    text you within two days, from a Colorado number, about whether this cohort
-    is the right fit.
+    I&rsquo;ll reach out in the next few days. Look for a text from a 209 area
+    code. I&rsquo;m excited to talk about whether this cohort is the right fit
+    for you.
   </p>
 
   <!-- The brand video, and the reason it is here rather than inside the
@@ -51,38 +55,29 @@ player: true
        want this -- which is the moment curiosity about what they applied to
        is highest it will ever be.
 
-       NOT AUTOPLAYED, unlike the hero's copy of the same film. The number
-       this player reports only means something if somebody chose to press
-       play; an autoplay would measure the page rather than the person.
+       ATTRIBUTE FOR ATTRIBUTE THE HERO'S PLAYER, with one exception. Same
+       film, same duration, same autoplay, same captions rendered as page text
+       into the box below rather than over the picture. That is the whole
+       point of it being the same markup: the film behaves the way somebody
+       has already seen it behave on the way in, so nothing about it reads as
+       a different, lesser copy.
 
-       Its own track prefix, deliberately not the landing page's
-       `headroom / brand / video`. Watch coverage among people who have
-       applied is a different finding from watch coverage among people who
-       have just arrived, and one name for both would hide which you had. -->
+       The exception is the track prefix. `headroom / apply / video` and not
+       the hero's `headroom / brand / video`, because watch coverage among
+       people who have applied is a different finding from coverage among
+       people who have just arrived, and one name for both would hide which
+       you had. -->
   <div class="done-video">
-    <h2>While you wait &mdash; what Headroom actually is</h2>
-    <div class="player" data-track-prefix="headroom / apply / video" data-track-progress
-      data-video="brand" data-duration="206.581" data-captions
-      data-label="Why I built Headroom"></div>
+    <div class="player" data-track-prefix="headroom / apply / video" data-track-progress data-video="brand" data-duration="206.581" data-autoplay data-captions
+      data-captions-into="brand-captions" data-label="Why I built Headroom"></div>
   </div>
 
-  <!-- The free class, offered here rather than on the homepage.
-       It is the bridge: a room rather than a one-to-one, so somebody can
-       watch me teach before either of us has to have a conversation. The
-       destination is /headroom/sample/register, which is a redirect this repo
-       owns -- see the note in that file for why the Zoom URL is never linked
-       directly. -->
-  <div class="done-next">
-    <h2>Come sit in on a class</h2>
-    <p>
-      There&rsquo;s a free sample class most weeks &mdash; one hour, the
-      AI-powered workflow I use to find, buy and import new music, then
-      questions. Everyone who applies is welcome, whether or not this turns out
-      to be your cohort.
-    </p>
-    <a class="btn-primary" href="/headroom/sample/register"
-      data-track="headroom / apply / sample-class">Pick a date</a>
-  </div>
+  <!-- The element the player renders its cues into. Its id is what
+       data-captions-into names above; player.js looks it up by that and
+       renders nothing here if it is missing. aria-live="off" because the
+       cues are a transcript of audio that is already playing, and announcing
+       every one of them over the top of it helps nobody. -->
+  <div class="brand-captions" id="brand-captions" aria-live="off"></div>
 
 </div>
 

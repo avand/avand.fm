@@ -396,3 +396,152 @@
 .player.is-failed .pl-spinner {
   display: none;
 }
+
+/* ---------------------------------------------------------------------------
+ * Captions as page text.
+ *
+ * The opt-in half of the player: a player with data-captions-into renders its
+ * cues into the named element instead of over the picture. Moved here from
+ * index.css with the rest of the player when a second page grew one -- these
+ * rules are the player's caption rendering, not the landing page's furniture,
+ * and the only thing that made them look like the latter was that the landing
+ * page was the only place a player had ever been.
+ *
+ * The sizes are still tuned against the hero's copy of the film, which is the
+ * larger of the two. Nothing here is fixed to the hero's width: the box is
+ * max-width and centres itself.
+ * ------------------------------------------------------------------------- */
+
+.brand-captions {
+  position: relative;
+  /* Wide enough for a clause.
+
+     The cues this renders are cut on the clock, not on the sentence -- a
+     caption file generated at two-second intervals -- so at 30em a line
+     like "It's very easy to get started as a DJ" was followed by "these
+     days," on a line of its own. That reads as a bad wrap, but nothing was
+     wrapping: the break was the cue boundary. Re-cut to clause length (see
+     video/brand-captions-merged.vtt) the longest line is 64 characters,
+     and this is what holds one without turning it over. */
+  max-width: 33em;
+  /* No bottom margin of its own. It used to be that the break below owned
+     that gap; there is no break now, and the curriculum's own 92px of top
+     padding owns it instead. Either way not here -- this element's em is a
+     clamped, larger one, so 4em came out as 96px against the 92px used
+     everywhere else, and adjacent margins collapse to the larger of the
+     two, so it would have quietly won. */
+  margin: 0 auto;
+  --cc-pad-x: 1.5em;
+  /* Top padding, not a margin: the outgoing lines rise 0.55em before they
+     are gone, and the clip below happens at the padding edge, so this is
+     the room they rise into without being sliced. */
+  padding: 0.55em var(--cc-pad-x) 0;
+  text-align: center;
+  font-size: clamp(1.03em, 2.15vw, 1.3em);
+  line-height: 1.5;
+  /* Fixed, not a minimum. Three cues are three lines on a wide screen but
+     four, five or six once they start turning over, and a box that grew
+     and shrank with them moved the whole page under the reader every time
+     a line changed -- visible as a jitter while the video plays and you
+     are reading something further down.
+
+     So the height is set and whatever does not fit is cut. The cut is not
+     a hard edge: the mask fades the last 1.6em out, and the read-ahead
+     lines are already the faintest thing here, so a fourth or fifth line
+     dissolves into the page rather than being chopped. Anything past that
+     was unreadable grey anyway.
+
+     4.5em of that is the three lines; the rest is the fade's room. */
+  height: 7em;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 1.6em), transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 1.6em), transparent 100%);
+}
+
+/* One turn of the lines. The outgoing set rises and fades while the
+   incoming set comes up from below into its place. */
+.cc-frame {
+  transition: transform 420ms var(--ease), opacity 420ms var(--ease);
+}
+
+.cc-frame.is-entering {
+  transform: translateY(0.75em);
+  opacity: 0;
+}
+
+.cc-frame.is-out {
+  /* Out of flow so the incoming lines take this space straight away
+     rather than waiting for the transition to finish. Offset by the
+     box's own top padding, which is where the in-flow lines start. */
+  position: absolute;
+  left: var(--cc-pad-x);
+  right: var(--cc-pad-x);
+  top: 0.55em;
+  /* The rise is the same length as that padding on purpose -- the box
+     clips now, and this is what keeps the rise inside it. */
+  transform: translateY(-0.55em);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.brand-captions .cc-line {
+  margin: 0;
+}
+
+/* Not yet spoken: present, so the sentence can be read ahead, but clearly
+   behind the voice. The line after next is knocked back further again, so
+   the two don't read as one block of grey. */
+.brand-captions .cc-word {
+  color: var(--text-muted);
+  opacity: 0.55;
+}
+
+.brand-captions .cc-next {
+  color: var(--text-muted);
+  opacity: 0.38;
+}
+
+/* Two lines read ahead, each a step further back, so the three don't read
+   as one block of grey. */
+.brand-captions .cc-next + .cc-next {
+  opacity: 0.22;
+}
+
+.brand-captions .cc-word {
+  transition: color 220ms var(--ease), opacity 220ms var(--ease);
+}
+
+.brand-captions .cc-word.is-said {
+  color: var(--text);
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .brand-captions .cc-word,
+  .cc-frame {
+    transition: none;
+  }
+}
+
+/* Narrow screens. Lifted out of index.css's phone block with the rules above:
+   it is the same element being tuned, and leaving it behind would have meant
+   the captions on a phone were sized by whether the page happened to load
+   index.css. */
+@media (max-width: 640px) {
+  /* A phone is the one place these lines turn over. The cues run up to 64
+     characters and fitting that on a 390px screen would mean type around
+     11px, which is not worth reading -- so this does not chase the longest
+     line. Smaller type and a narrower gutter buy roughly 44 characters to
+     54, which holds most of the file (the median cue is 45) and leaves the
+     long tail to wrap into the fade below.
+
+     Taller here for the same reason: what does wrap needs somewhere to go,
+     and the empty column under the video on a phone is the one place there
+     is room for it. */
+  .brand-captions {
+    --cc-pad-x: 0.85em;
+    font-size: 0.92em;
+    height: 8.5em;
+  }
+}

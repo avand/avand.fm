@@ -548,54 +548,40 @@
 
 /* ---------- Confirmation ---------- */
 
-/* /headroom/apply/done/ keeps its nav and footer, so this is a section inside
-   a page rather than a page, and it does not repeat .apply's full-height
-   column. */
+/* No chrome here either, so this page paints its own ground the way .apply
+   does -- there is no .sheet around it to do that, and a body left to show
+   through is the bug that put the hero's purple on forty-three glossary
+   pages. */
 .done {
+  min-height: 100vh;
+  min-height: 100svh;
+  background: var(--bg);
   max-width: 44em;
   margin: 0 auto;
-  /* .sheet carries the background and nothing else -- the concept pages get
-     their own inset from concepts.css, and this page has to bring its own or
-     it runs to both edges of a phone. */
-  padding: 3em max(1.5em, env(safe-area-inset-right)) 1em max(1.5em, env(safe-area-inset-left));
+  padding: 3.5em max(1.5em, env(safe-area-inset-right)) 3em max(1.5em, env(safe-area-inset-left));
   display: flex;
   flex-direction: column;
   gap: 1.25em;
 }
 
+/* Centred, and so is the sentence under it. There is one thing on this page
+   above the film, it is two lines long, and a left edge with nothing to line
+   up against is just an edge. */
 .done h1 {
   font-size: 2em;
+  text-align: center;
   text-wrap: balance;
 }
 
 .done-lead {
   font-size: 1.15em;
   color: var(--text);
+  text-align: center;
+  text-wrap: pretty;
 }
 
 .done-video {
   margin-top: 1em;
-}
-
-.done-video h2,
-.done-next h2 {
-  font-size: 1.15em;
-  margin-bottom: 0.5em;
-}
-
-.done-next {
-  border: 1px solid var(--border);
-  border-radius: 0.6em;
-  padding: 1.4em 1.5em;
-  margin-top: 1em;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.75em;
-}
-
-.done-next p {
-  color: var(--text-muted);
 }
 
 @media (max-width: 40em) {
@@ -609,5 +595,9 @@
 
   .done h1 {
     font-size: 1.6em;
+  }
+
+  .done {
+    padding-top: 2.5em;
   }
 }
