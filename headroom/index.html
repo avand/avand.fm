@@ -47,7 +47,7 @@ description: "Advanced DJ training for aspiring performers. An eight-week, end-t
         </span>
       </div>
 
-      <a class="btn-primary btn-comet" href="#cta" data-track="headroom / hero / cta">Apply now</a>
+      <a class="btn-primary btn-comet" href="/headroom/apply/" data-track="headroom / hero / cta">Apply now</a>
     </div>
   </div>
 
@@ -88,7 +88,7 @@ description: "Advanced DJ training for aspiring performers. An eight-week, end-t
     <!-- The Curriculum -->
     <!-- Course timeline: footer of the curriculum title, header of the weeks -->
     <nav class="timeline" id="timeline" aria-label="Course timeline">
-      <span class="tl-cap tl-start">Oct 1</span>
+      <span class="tl-cap tl-start">{{ site.headroom.cohort_starts_short }}</span>
       <div class="tl-track">
         <div class="tl-line"></div>
         <div class="tl-progress"></div>
@@ -129,7 +129,7 @@ description: "Advanced DJ training for aspiring performers. An eight-week, end-t
           <span class="tl-fill"></span><span class="tl-ring">8</span>
         </button>
       </div>
-      <span class="tl-cap tl-end">Nov 19</span>
+      <span class="tl-cap tl-end">{{ site.headroom.cohort_ends_short }}</span>
     </nav>
 
     <div class="curr-scroll" id="curr-scroll" data-anchor="curriculum">
@@ -650,7 +650,7 @@ description: "Advanced DJ training for aspiring performers. An eight-week, end-t
     <div class="format-grid">
       <div class="format-item">
         <div class="value">8 weeks</div>
-        <div class="desc">Thursdays 6&ndash;8 PM MT<br />Oct 1&ndash;Nov 19, 2026</div>
+        <div class="desc">Thursdays 6&ndash;8 PM MT<br />{{ site.headroom.cohort_starts_short}} &ndash; {{ site.headroom.cohort_ends_short }}, 2026</div>
       </div>
       <div class="format-item">
         <div class="value">2 hrs / wk</div>
@@ -716,28 +716,20 @@ description: "Advanced DJ training for aspiring performers. An eight-week, end-t
   <div class="final-cta" id="cta" data-track-view="headroom / cta">
     <h2>Apply for the {{ site.headroom.term }} Cohort</h2>
     <p>
-      Six questions you can answer with a tap, and a couple of sentences in
-      your own words. About two minutes. I read every one myself.
+      The deadline to apply is {{ site.headroom.applications_close }} and
+      there are {{ site.headroom.seats_left }} spots available. The
+      course starts {{ site.headroom.cohort_starts }} and runs till
+      {{ site.headroom.cohort_ends }}.
     </p>
 
     <!-- A plain link with a complete href, so it works with JavaScript off.
-         The script at the foot of this page appends the query string to it;
-         see the note there for why that matters two pages from now. -->
-    <a class="btn-primary btn-comet" id="apply" href="/headroom/apply/" data-track="headroom / cta / apply">Start your application</a>
-
-    <!-- Two facts, and only one of them needs maintaining. The date counts
-         itself down and cannot be caught lying; the count has to be edited in
-         _config.yml as spots go, and the note there says what keeps it
-         honest. -->
-    <p class="cta-urgency">
-      {{ site.headroom.seats_left }} of {{ site.headroom.seats }} spots left &middot;
-      applications close {{ site.headroom.applications_close }} &middot;
-      cohort starts {{ site.headroom.cohort_starts }}
-    </p>
+         The script at the foot of this page appends the query string to every
+         link pointing here; see the note there for why that matters two pages
+         from now. -->
+    <a class="btn-primary btn-comet" href="/headroom/apply/" data-track="headroom / cta / apply">Apply Now</a>
 
     <p class="cta-fineprint">
-      Everyone who applies gets an invite to a free sample class, whether or
-      not this turns out to be your cohort.
+      Takes less than 5 minutes.
     </p>
   </div>
 
@@ -947,8 +939,15 @@ description: "Advanced DJ training for aspiring performers. An eight-week, end-t
        Written as an append to an href that is already complete, so this
        failing -- or never running -- costs the reference and not the link. */
     (function () {
-      var apply = document.getElementById("apply");
-      if (!apply || !location.search) return;
-      apply.href += location.search;
+      if (!location.search) return;
+      /* Every link into the application, matched on where it points rather
+         than on a class or an id. There are three of them now -- the nav, the
+         hero, and the call to action at the foot of the page -- and a marker
+         attribute would be a fourth thing to remember on the day a fourth
+         one is added. */
+      var links = document.querySelectorAll('a[href^="/headroom/apply/"]');
+      Array.prototype.forEach.call(links, function (link) {
+        link.href += location.search;
+      });
     })();
   </script>

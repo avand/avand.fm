@@ -3,7 +3,7 @@
  *
  * Everything here is used by exactly one page: the hero, the curriculum band
  * and its timeline, the video player, the comet, the instructor band, the
- * stats, the module modal, and the call to action's own two lines. What both
+ * stats, the module modal, and the line under the call to action. What both
  * this page and the glossary present the same way lives in headroom.css
  * instead -- including .final-cta itself, which all fifty concept pages
  * render; see the note at the top of that file for why the split falls where
@@ -3113,31 +3113,38 @@ body.modal-open {
    are direct children of it rather than of a centred column like the form
    that used to be here. */
 
-/* The scarcity line. Deliberately plain -- no colour, no weight, no rule
-   above it. A count of remaining spots is believed because of what it says,
-   and dressing it up in warning colours is what makes a reader wonder whether
-   it is a real number. It reads as three facts in a row because that is what
-   it is. */
-.cta-urgency {
-  position: relative;
-  margin: 1.4em auto 0;
-  font-size: 0.95em;
-  color: var(--text);
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
-  max-width: 34em;
-}
+/* The line under the button.
 
-/* Quieter still, and the same treatment the form's disclosure had: smaller
-   and dimmer than the line above it, over the same gradient, hence the same
-   shadow. */
-.cta-fineprint {
+   Selector deliberately more specific than a bare .cta-fineprint, and this is
+   the whole reason the rule exists twice over. `.final-cta > p` above sets
+   1.2em and --text on every paragraph in this block; at 0,1,1 it outranks a
+   lone class, so a plain .cta-fineprint sets a font-size that never lands and
+   reads as a second lead paragraph. Matching its specificity is what makes
+   "quieter" mean anything here.
+
+   The em is against .final-cta, not against that 1.2em -- font-size on the
+   same element resolves from the parent -- so this really is three quarters
+   of body copy rather than three quarters of the paragraph above. */
+.final-cta > .cta-fineprint {
   position: relative;
-  margin: 0.7em auto 0;
-  font-size: 0.8em;
+  margin: 1em auto 0;
+  /* 0 rather than inherited: .final-cta > p carries 2em of bottom margin for
+     the copy above the button, and this sits at the end of the block. */
+  margin-bottom: 0;
+  font-size: 0.85em;
   line-height: 1.5;
-  color: var(--text-muted);
+  /* Near-white rather than --text-muted. This line sits over the brightest
+     part of the photograph, and the muted grey the rest of the site uses for
+     quiet copy is the one value that loses to a lit background. Small and
+     bright reads as quiet here; small and grey read as unreadable. */
+  color: rgba(255, 255, 255, 0.92);
   max-width: 34em;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+  /* Tighter and darker than the shadow on the copy above, not lighter. The
+     photograph behind this block is brightest exactly here, under the button,
+     and muted grey on a lit background is the one combination that vanishes.
+     A small blur at full opacity holds the letterforms; the wide soft shadow
+     the larger text uses would only smudge type this size. */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 1), 0 0 6px rgba(0, 0, 0, 0.85);
 }
 
 

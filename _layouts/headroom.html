@@ -174,7 +174,7 @@
        cached the way the scripts are, and an un-bumped edit reaches nobody for
        ten minutes. -->
   <link rel="stylesheet" href="/headroom/headroom.css?v=7" />
-  {% if page.landing %}<link rel="stylesheet" href="/headroom/index.css?v=10" />{% endif %}
+  {% if page.landing %}<link rel="stylesheet" href="/headroom/index.css?v=13" />{% endif %}
   {% if page.landing or page.player %}<link rel="stylesheet" href="/headroom/player.css?v=1" />{% endif %}
   {% if page.subsection %}<link rel="stylesheet" href="/headroom/concepts/concepts.css?v=7" />{% endif %}
   {% if page.apply %}<link rel="stylesheet" href="/headroom/apply/apply.css?v=5" />{% endif %}
@@ -250,12 +250,20 @@
       <a href="/"{% if page.landing %} data-track="headroom / nav / avand-fm"{% endif %}>avand.fm</a> <span class="brand-sep">/</span>
       {% if page.landing %}<span class="brand-here">headroom</span>{% else %}<a class="brand-here" href="/headroom/">headroom</a>{% endif %}
     </div>
-    <!-- The CTA is an in-page jump to #cta, so it only belongs on a page that
-         has one. The glossary keeps its own lighter call to action at the foot
-         of each entry rather than sending a reader looking up a definition
-         straight into an application form. -->
+    <!-- Straight to the application, not an in-page jump to #cta.
+         It jumped while the thing at #cta was a form: a form has to live
+         somewhere on a page, so "apply" meant "scroll to where the form is".
+         The destination is its own page now, and a button that says Apply
+         should apply rather than scroll past everything to a second button
+         somebody may or may not press.
+
+         Still landing-page only. The glossary keeps its own lighter call to
+         action at the foot of each entry -- and that one deliberately still
+         points at /headroom/#cta, because "learn more about Headroom" and
+         "apply" are different intentions and a reader who looked up a
+         definition has expressed the first one. -->
     <div class="cta-nav">
-      {% if page.landing %}<a href="#cta" data-track="headroom / nav / cta">Apply</a>{% endif %}
+      {% if page.landing %}<a href="/headroom/apply/" data-track="headroom / nav / cta">Apply</a>{% endif %}
     </div>
   </nav>
   {% endif %}
