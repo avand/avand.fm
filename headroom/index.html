@@ -30,7 +30,7 @@ description: "Advanced DJ training for aspiring performers. An eight-week, end-t
       <div class="hero-details">
         <span class="stat"><svg class="stat-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/></svg>8 weeks</span>
         <span class="stat"><svg class="stat-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>2 hrs / week</span>
-        <span class="stat"><svg class="stat-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><path d="M16 5.2a3.2 3.2 0 0 1 0 5.9M17.5 14.9c2.1.6 3.5 2.4 3.5 5.1"/></svg>12 students</span>
+        <span class="stat"><svg class="stat-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><path d="M16 5.2a3.2 3.2 0 0 1 0 5.9M17.5 14.9c2.1.6 3.5 2.4 3.5 5.1"/></svg>{{ site.headroom.seats }} students</span>
         <!-- The fourth cell. The tag sits under the figures rather than beside
              them so the cell stays the same width as the other three. The row
              does not wrap: .hero-details is a grid of either four columns or
@@ -47,7 +47,7 @@ description: "Advanced DJ training for aspiring performers. An eight-week, end-t
         </span>
       </div>
 
-      <a class="btn-primary btn-comet" href="#cta" data-track="headroom / hero / cta">Join a free sample class</a>
+      <a class="btn-primary btn-comet" href="#cta" data-track="headroom / hero / cta">Apply now</a>
     </div>
   </div>
 
@@ -657,7 +657,7 @@ description: "Advanced DJ training for aspiring performers. An eight-week, end-t
         <div class="desc">Live online video calls with ~30 minutes of homework each week</div>
       </div>
       <div class="format-item">
-        <div class="value">12 students</div>
+        <div class="value">{{ site.headroom.seats }} students</div>
         <div class="desc">Small, focused, plenty of space for answering your specific questions</div>
       </div>
       <div class="format-item">
@@ -711,51 +711,31 @@ description: "Advanced DJ training for aspiring performers. An eight-week, end-t
        from anywhere in the site keep working as the pitch changes. -->
   <span id="book" aria-hidden="true"></span>
   <div class="final-cta" id="cta" data-track-view="headroom / cta">
-    <h2>Start with a Free Sample Class</h2>
+    <h2>Apply for the Fall Cohort</h2>
     <p>
-      Sign up for a free 1 hour session to get a feel for the kind of step-function
-      improvements you can expect to get out of Headroom. I&rsquo;ll teach you the
-      AI-powered workflow I use to find, buy, and import new music. Then I&rsquo;ll open
-      it up to your questions.
+      Six questions you can answer with a tap, and a couple of sentences in
+      your own words. About two minutes. I read every one myself.
     </p>
 
-    <form class="signup" id="signup" novalidate>
-      <div class="signup-fields">
-        <label class="sr-only" for="su-name">First name</label>
-        <!-- data-1p-ignore keeps 1Password's inline menu off these two. It is
-             a two-field mailing list, not a login, and the menu covers the
-             button. autocomplete stays: the browser's own fill is wanted. -->
-        <input id="su-name" name="firstName" type="text" placeholder="First name" autocomplete="given-name" data-1p-ignore required />
-        <label class="sr-only" for="su-email">Email address</label>
-        <input id="su-email" name="email" type="email" placeholder="you@example.com" autocomplete="email" data-1p-ignore required />
-        <button class="btn-primary btn-comet" type="submit">Send me the dates</button>
-      </div>
-      <!-- Bots fill this in; people never see it. -->
-      <div class="hp" aria-hidden="true">
-        <label>Company <input type="text" name="company" tabindex="-1" autocomplete="off" /></label>
-      </div>
-      <p class="signup-status" role="status" aria-live="polite"></p>
-      <!-- Required where it is required, and good manners everywhere else:
-           the disclosure has to be at the point the data is collected, not
-           only linked from the footer. Deliberately below the button, so it
-           informs without standing between somebody and the thing they came
-           to do.
+    <!-- A plain link with a complete href, so it works with JavaScript off.
+         The script at the foot of this page appends the query string to it;
+         see the note there for why that matters two pages from now. -->
+    <a class="btn-primary btn-comet" id="apply" href="/headroom/apply/" data-track="headroom / cta / apply">Start your application</a>
 
-           It covers the email and only the email, on purpose. That agreement
-           is specific and is genuinely given by pressing the button. The ad
-           cookie is not mentioned because submission cannot be consent for it:
-           it is set at page load, when the ad reference arrives, long before
-           anybody reaches this form. Wording that implied otherwise would
-           describe something that already happened, and would weaken the half
-           that does work by bundling it with a half that cannot. The cookie is
-           disclosed on the linked page instead. -->
-      <p class="signup-fineprint">
-        By submitting this form you&rsquo;re agreeing to the
-        <a href="/headroom/privacy/" data-track="headroom / cta / privacy">Privacy Policy</a>.
-        Your email is only used to let you know about course offerings.
-        Unsubscribe at any time.
-      </p>
-    </form>
+    <!-- Two facts, and only one of them needs maintaining. The date counts
+         itself down and cannot be caught lying; the count has to be edited in
+         _config.yml as spots go, and the note there says what keeps it
+         honest. -->
+    <p class="cta-urgency">
+      {{ site.headroom.seats_left }} of {{ site.headroom.seats }} spots left &middot;
+      applications close {{ site.headroom.applications_close }} &middot;
+      cohort starts {{ site.headroom.cohort_starts }}
+    </p>
+
+    <p class="cta-fineprint">
+      Everyone who applies gets an invite to a free sample class, whether or
+      not this turns out to be your cohort.
+    </p>
   </div>
 
 </div>
@@ -939,150 +919,33 @@ description: "Advanced DJ training for aspiring performers. An eight-week, end-t
       });
     })();
 
-    /* ---------- Newsletter signup ---------- */
+    /* ---------- Carry the ad reference to the application ----------
+
+       `oppref` arrives in the query string of this page and of a concept
+       page, and nowhere else. The conversion is reported two navigations
+       later, from /headroom/apply/done/, where there is no query string at
+       all -- so without this the only thing left tying that conversion to the
+       click is the __oppref cookie, which is written by a script loaded from
+       an ad-tech hostname that filter lists hit hard. Blocked or slow, no
+       cookie; no cookie, no attribution, and it reports a zero rather than an
+       error.
+
+       Forwarding the query string puts the reference back in front of
+       fromAd() at the moment of conversion, exactly as it is here, and
+       demotes the cookie to the second of two ways rather than the only one.
+       The modal's close handler above rebuilds pathname + search for the same
+       reason.
+
+       The whole search string, not just oppref: utm_content is what joins a
+       lead in the Sheet back to the ad that produced it, and dropping the
+       rest to carry one parameter would be choosing which half of the
+       attribution to keep.
+
+       Written as an append to an href that is already complete, so this
+       failing -- or never running -- costs the reference and not the link. */
     (function () {
-      /*
-       * The Apps Script Web App that writes each signup into a Google Sheet.
-       * The script itself is apps-script/signup.gs, and bin/apps-script
-       * deploys it. It looks like:
-       *
-       *   https://script.google.com/macros/s/<id>/exec
-       *
-       * That <id> is the deployment id, and this line is where it is recorded:
-       * bin/apps-script reads it back out of here rather than keeping its own
-       * copy, so the deployment it advances is by definition the one the form
-       * posts to. Changing this URL changes what gets deployed.
-       *
-       * Safe to ship in a page anyone can read the source of: the deployment
-       * can only append rows to one Sheet, which is exactly what this form
-       * does. It cannot read them back. Until it is filled in, the form falls
-       * back to email so no signup is quietly dropped.
-       */
-      var SIGNUP_ENDPOINT =
-        "https://script.google.com/macros/s/AKfycbyiqhCLfyrsszqOGrbHxvIwqsAJvCPwzpW6o1FrN4pB2mwZslfeN2F57bcovuRDX-es/exec";
-
-      var FALLBACK_EMAIL = "wave@avand.fm";
-
-      var form = document.getElementById("signup");
-      var status = form.querySelector(".signup-status");
-      var button = form.querySelector('button[type="submit"]');
-
-      function say(message, kind) {
-        status.textContent = message;
-        status.className = "signup-status" + (kind ? " " + kind : "");
-      }
-
-      /* Once per visit, on the first field somebody touches. Reaching the
-         form is a pageview; starting to fill it in is the thing that says
-         they meant it, and it is what the submit and success counts below are
-         worth reading against.
-
-         Named for the section it is in -- #cta -- and not for the form, the
-         same way every other name here is the place rather than the feature.
-         The offer has already changed once, from an announcement list to a
-         free sample class; the anchor was renamed for that reason and these
-         names would have had to be too. */
-      form.addEventListener("focusin", function () {
-        if (window.Track) Track.once("headroom / cta / focus");
-      });
-
-      form.addEventListener("submit", function (e) {
-        e.preventDefault();
-        if (window.Track) Track.event("headroom / cta / submit");
-
-        var name = form.elements.firstName.value.trim();
-        var email = form.elements.email.value.trim();
-
-        if (!name) {
-          say("What should I call you?", "err");
-          if (window.Track) Track.event("headroom / cta / error / missing-name");
-          form.elements.firstName.focus();
-          return;
-        }
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-          say("That email doesn't look right.", "err");
-          if (window.Track) Track.event("headroom / cta / error / invalid-email");
-          form.elements.email.focus();
-          return;
-        }
-        // Honeypot tripped — quietly accept and drop it.
-        if (form.elements.company.value) {
-          say("Thanks! You're on the list.", "ok");
-          form.reset();
-          return;
-        }
-
-        if (!SIGNUP_ENDPOINT) {
-          say("Signups aren't wired up yet — email me at " + FALLBACK_EMAIL + " and I'll add you.", "err");
-          return;
-        }
-
-        button.disabled = true;
-        say("Adding you…");
-
-        /* No Content-Type header, deliberately, and this is the one thing
-           that reliably breaks this integration.
-
-           A cross-origin POST labelled application/json is not a "simple"
-           request, so the browser sends an OPTIONS preflight first -- and Apps
-           Script Web Apps do not answer OPTIONS. The preflight fails, the real
-           request is never sent, and the script is never reached, so there is
-           nothing in its execution log to find either. It presents as a CORS
-           error against a URL that works perfectly when opened directly.
-
-           A string body with no Content-Type set is sent as text/plain, which
-           is on the CORS safelist, so no preflight happens. The body is still
-           JSON; it is just labelled as text, and signup.gs parses it by hand.
-           Do not add a Content-Type header here. */
-        fetch(SIGNUP_ENDPOINT, {
-          method: "POST",
-          body: JSON.stringify({
-            firstName: name,
-            email: email,
-            source: "headroom-website",
-            page: window.location.href,
-          }),
-        })
-          .then(function (res) {
-            if (!res.ok) throw new Error("bad status " + res.status);
-            return res.json();
-          })
-          .then(function (data) {
-            // Apps Script answers 200 whatever happens; the verdict is in the
-            // body. Treating the status line as the answer would report a
-            // rejected signup as a successful one.
-            if (!data || !data.ok) throw new Error(data && data.error);
-            say("You're in. I'll send the class dates shortly.", "ok");
-            form.reset();
-            /* Same moment, two audiences: the first counts a signup, the
-               second tells the OpenAI ad account that a click it charged for
-               became one. Only success gets the pair -- the submit and error
-               events have no ad-side equivalent, because a lead is a lead only
-               once it lands.
-
-               try/catch because this runs INSIDE the success .then(), where an
-               exception is indistinguishable from a failed signup: it would
-               fall to the .catch below, replace "You're in" with "That didn't
-               go through, email me" for somebody already on the list, and
-               report a network error that did not happen. Nothing in here is
-               worth that. The throw above it is deliberate and must still
-               reach the .catch, which is why this wraps the analytics only. */
-            try {
-              if (window.Track) {
-                Track.event("headroom / cta / success");
-                Track.lead(name, email);
-              }
-            } catch (err) {
-              if (window.console) console.error(err);
-            }
-          })
-          .catch(function () {
-            say("That didn't go through. Email me at " + FALLBACK_EMAIL + " and I'll add you.", "err");
-            if (window.Track) Track.event("headroom / cta / error / network");
-          })
-          .finally(function () {
-            button.disabled = false;
-          });
-      });
+      var apply = document.getElementById("apply");
+      if (!apply || !location.search) return;
+      apply.href += location.search;
     })();
   </script>

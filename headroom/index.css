@@ -3,9 +3,11 @@
  *
  * Everything here is used by exactly one page: the hero, the curriculum band
  * and its timeline, the video player, the comet, the instructor band, the
- * stats, the module modal, and the signup form. What both this page and the
- * glossary present the same way lives in headroom.css instead; see the note at
- * the top of that file for why the split falls where it does.
+ * stats, the module modal, and the call to action's own two lines. What both
+ * this page and the glossary present the same way lives in headroom.css
+ * instead -- including .final-cta itself, which all fifty concept pages
+ * render; see the note at the top of that file for why the split falls where
+ * it does.
  *
  * Rule of thumb when adding to either: if a concept page would look wrong
  * without it, it belongs in headroom.css. If a concept page would never
@@ -3475,115 +3477,42 @@ body.modal-open {
   overflow: hidden;
 }
 
-/* --- Final CTA + signup form --- */
+/* --- Final CTA --- */
 
+/* The two lines under the button. Both are quiet on purpose: this section
+   already has a heading, a paragraph and a comet going round a button, and a
+   fourth thing asking to be looked at would leave nothing leading.
 
-/* Narrower than the paragraph above it. A stacked form is a short column
-   of three identical bars, and it wants to be about as wide as one of them
-   should be rather than as wide as the text it sits under -- a 640px-wide
-   text field reads as a page element, not as something to type a first
-   name into. Centred under the copy instead of edge-matched to it. */
-.signup {
+   .final-cta is centred, so both of these need their own auto margins -- they
+   are direct children of it rather than of a centred column like the form
+   that used to be here. */
+
+/* The scarcity line. Deliberately plain -- no colour, no weight, no rule
+   above it. A count of remaining spots is believed because of what it says,
+   and dressing it up in warning colours is what makes a reader wonder whether
+   it is a real number. It reads as three facts in a row because that is what
+   it is. */
+.cta-urgency {
   position: relative;
-  max-width: 480px;
-  margin: 0 auto;
-}
-
-/* One column at every width. It was two fields and a button in a row on
-   desktop, which put three different jobs on one line and left each of
-   them narrower than it wanted; stacked, they are the same shape and the
-   eye runs straight down them. The fields stretch to the column, and so
-   does the button -- a grid item fills its track unless told not to. */
-.signup-fields {
-  display: grid;
-  gap: 0.6em;
-}
-
-.signup input[type="text"],
-.signup input[type="email"] {
-  font-family: inherit;
-  font-size: 1em;
-  padding: 0.75em 1.1em;
-  border-radius: 2em;
-  border: 1px solid var(--border);
-  background: rgba(10, 10, 15, 0.75);
-  color: var(--text);
-  min-width: 0;
-}
-
-.signup input::placeholder {
-  color: var(--text-muted);
-}
-
-.signup input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-glow);
-}
-
-/* No size of its own: it takes .btn-primary's type and padding, the same
-   as the hero's, so the two really are one button in two places rather
-   than two that resemble each other. Its padding no longer competes with
-   anything now that it has a row to itself. nowrap so a narrow phone
-   breaks the column before it breaks the label. */
-.signup button[type="submit"] {
-  white-space: nowrap;
-}
-
-.signup button[disabled] {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.signup-status {
-  margin-top: 1em;
+  margin: 1.4em auto 0;
   font-size: 0.95em;
-  min-height: 1.5em;
+  color: var(--text);
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+  max-width: 34em;
 }
 
-.signup-status.ok {
-  color: #6ee7a8;
-}
-
-.signup-status.err {
-  color: #ff8a6b;
-}
-
-/* The disclosure under the form. Quiet by design -- smaller and dimmer than
-   the status line above it, which is the one thing in this block that has to
-   be read. It sits over the hero's gradient like everything else here, hence
-   the same shadow the status line carries. */
-.signup-fineprint {
-  margin-top: 0.6em;
+/* Quieter still, and the same treatment the form's disclosure had: smaller
+   and dimmer than the line above it, over the same gradient, hence the same
+   shadow. */
+.cta-fineprint {
+  position: relative;
+  margin: 0.7em auto 0;
   font-size: 0.8em;
   line-height: 1.5;
   color: var(--text-muted);
   max-width: 34em;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
 }
-
-.signup-fineprint a {
-  color: var(--text-muted);
-  /* Underlined rather than coloured: it is the only link in this block, and
-     accenting it would have it competing with the button beside it. */
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
-}
-
-.signup-fineprint a:hover {
-  color: var(--text);
-}
-
-/* Honeypot: hidden from people, tempting to bots. */
-.signup .hp {
-  position: absolute;
-  left: -9999px;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-}
-
 
 
 /* --- Background art ---

@@ -153,7 +153,7 @@
        cached the way the scripts are, and an un-bumped edit reaches nobody for
        ten minutes. -->
   <link rel="stylesheet" href="/headroom/headroom.css?v=7" />
-  {% if page.landing %}<link rel="stylesheet" href="/headroom/index.css?v=9" />{% endif %}
+  {% if page.landing %}<link rel="stylesheet" href="/headroom/index.css?v=10" />{% endif %}
   {% if page.subsection %}<link rel="stylesheet" href="/headroom/concepts/concepts.css?v=7" />{% endif %}
 
   <!-- Analytics. The Fathom snippet used to sit here; both vendors are loaded
@@ -215,10 +215,10 @@
     </div>
     <!-- The CTA is an in-page jump to #cta, so it only belongs on a page that
          has one. The glossary keeps its own lighter call to action at the foot
-         of each entry rather than asking a reader looking up a definition for
-         an email address. -->
+         of each entry rather than sending a reader looking up a definition
+         straight into an application form. -->
     <div class="cta-nav">
-      {% if page.landing %}<a href="#cta" data-track="headroom / nav / cta">Free sample class</a>{% endif %}
+      {% if page.landing %}<a href="#cta" data-track="headroom / nav / cta">Apply</a>{% endif %}
     </div>
   </nav>
 
