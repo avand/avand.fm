@@ -70,7 +70,11 @@
   var exitLink = document.querySelector(".apply-exit");
   var status = form.querySelector(".apply-status");
   var submitBtn = form.querySelector(".apply-submit");
-  var words = form.elements.words;
+  var nextBtn = form.querySelector(".apply-next");
+  /* Found as an element rather than as form.elements.words, because the name
+     belongs to _data/application.yml now and renaming the free-text question
+     there should not quietly stop its answer being saved. */
+  var words = form.querySelector("textarea");
 
   var answers = {};
   var at = 0;
@@ -168,6 +172,10 @@
     // Nowhere to go back to from the first panel, and a disabled control is a
     // worse answer than no control.
     if (backBtn) backBtn.hidden = at === 0;
+    /* Next belongs only to a panel that cannot advance itself. Every other
+       question advances when an option is tapped, and a Next button beside
+       them would be a second way to do one thing. */
+    if (nextBtn) nextBtn.hidden = !panels[at].hasAttribute("data-advance");
 
     if (!opts || !opts.silent) {
       track("step-" + (at + 1));
@@ -200,6 +208,7 @@
       return;
     }
     if (e.target.closest(".apply-next")) {
+      if (!answered()) return;
       record();
       saveDraft();
       advance();
@@ -227,17 +236,52 @@
     window.setTimeout(advance, ADVANCE_MS);
   }
 
+  /* The one question that has to be answered, and the only place in this form
+     that refuses to advance.
+     
+     It was skippable, on the theory that somebody who will not write a
+     paragraph is still worth talking to. That is true of a mailing list and
+     not of an application: this is the field that gets read before a call,
+     the only screen that asks for any effort at all, and the moment somebody
+     puts their own want into words -- which is what makes them care about the
+     answer. An application with this blank is six taps.
+     
+     The bar is a non-empty answer and not a length. A minimum turns "too
+     short" into a scold at the one screen where somebody is being asked to be
+     candid, and anyone determined to type a full stop will, which is itself
+     worth knowing.
+     
+     Whether this costs more than it collects is now visible rather than
+     arguable: step-6 against step-7 in Fathom is exactly the number of people
+     who reached this question and did not get past it. */
+  function answered() {
+    if (!panels[at].hasAttribute("data-advance")) return true;
+    if (!words) return true;
+    var error = panels[at].querySelector(".apply-error");
+    if (words.value.trim()) {
+      if (error) error.hidden = true;
+      words.classList.remove("is-invalid");
+      return true;
+    }
+    if (error) {
+      error.textContent = "Even one sentence helps — it’s the part I actually read.";
+      error.hidden = false;
+    }
+    words.classList.add("is-invalid");
+    words.focus();
+    track("error / missing-words");
+    return false;
+  }
+
   /* The free-text answer, read from the field rather than tracked as it is
-     typed. Skipping is allowed: the person who will not write a paragraph is
-     still worth talking to, and a required box here would lose them at the
-     last question rather than telling anybody why. */
+     typed. */
   function record() {
     if (!words) return;
     var value = words.value.trim();
     if (value) {
-      answers.words = value;
+      answers[words.name] = value;
     } else {
-      delete answers.words;
+      delete answers[words.name];
     }
   }
 
@@ -249,6 +293,16 @@
      page -- and the draft is what makes that survivable: coming back lands on
      the question they left, with every answer still there. The two decisions
      only work as a pair. */
+
+  if (words) {
+    // The message has done its job the moment they start typing; leaving it
+    // up would be telling somebody off while they comply.
+    words.addEventListener("input", function () {
+      var error = words.closest(".apply-panel").querySelector(".apply-error");
+      if (error) error.hidden = true;
+      words.classList.remove("is-invalid");
+    });
+  }
 
   if (backBtn) {
     backBtn.addEventListener("click", function () {
@@ -448,7 +502,7 @@
         if (el.textContent.trim() === saved) el.classList.add("is-chosen");
       });
     });
-    if (words && answers.words) words.value = answers.words;
+    if (words && answers[words.name]) words.value = answers[words.name];
   }
 
   /* A resumed application fires no step event for the panel it opens on. The

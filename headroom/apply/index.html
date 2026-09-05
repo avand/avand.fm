@@ -83,7 +83,7 @@ chrome: false
          thing.
          --------------------------------------------------------------- -->
     {% for q in site.data.application %}
-    <section class="apply-panel" data-name="{{ q.name }}" hidden>
+    <section class="apply-panel" data-name="{{ q.name }}"{% unless q.options %} data-advance{% endunless %} hidden>
       <h1 class="apply-q">{{ q.question | replace: "[starts]", site.headroom.cohort_starts | replace: "[ends]", site.headroom.cohort_ends }}</h1>
       {% if q.context %}<p class="apply-context">{{ q.context | replace: "[starts]", site.headroom.cohort_starts | replace: "[ends]", site.headroom.cohort_ends }}</p>{% endif %}
       {% if q.options %}
@@ -97,20 +97,35 @@ chrome: false
       <textarea id="ap-{{ q.name }}" name="{{ q.name }}" rows="5" maxlength="2000"
         placeholder="{{ q.placeholder }}"></textarea>
       {% if q.hint %}<p class="apply-hint">{{ q.hint }}</p>{% endif %}
-      <div class="apply-actions">
-        <button type="button" class="btn-primary apply-next">Next &rsaquo;</button>
-      </div>
+      <!-- role="alert" rather than a live region: this is only ever written
+           when somebody has just pressed Next on an empty box, so it wants
+           announcing at that moment and never otherwise. -->
+      <p class="apply-error" role="alert" hidden></p>
       {% endif %}
     </section>
     {% endfor %}
 
-    <!-- Inside the form, after the panels, so it sits directly under whichever
-         one is visible rather than at the foot of the page. The form is a
-         centred column and the panels are its other children, so this lands
-         against the same left edge as the options above it. Hidden on the
-         first panel -- there is nowhere to go back to, and a disabled control
-         is a worse answer than no control. -->
-    <button type="button" class="apply-back" hidden>&lsaquo; Back</button>
+    <!-- One control row for the whole form, sitting directly under whichever
+         panel is visible. Both controls live here rather than inside the
+         panels so they land on a single line, at the column's left and right
+         edges, at the same size -- a Next button inside a panel and a Back
+         button outside one cannot share a row without the two of them being
+         nudged into it by hand.
+
+         Back is hidden on the first panel: there is nowhere to go, and a
+         disabled control is a worse answer than no control. Next appears only
+         on a panel marked data-advance, which the template puts on any
+         question with no options -- tapping an option is what advances the
+         others, and a Next beside them would be a second way to do the same
+         thing.
+
+         The contact panel keeps its own submit button, inside itself and full
+         width. It is the end of the form rather than a step through it, and
+         it should not look like one. -->
+    <div class="apply-controls">
+      <button type="button" class="apply-back" hidden>&lsaquo; Back</button>
+      <button type="button" class="apply-next" hidden>Next &rsaquo;</button>
+    </div>
 
     <!-- ---------------------------------------------------------------
          Screen 7 -- contact.
@@ -202,4 +217,4 @@ chrome: false
 
 </div>
 
-<script src="/headroom/apply/apply.js?v=4" defer></script>
+<script src="/headroom/apply/apply.js?v=6" defer></script>

@@ -110,7 +110,7 @@
 # asked. Any question can take one.
 - name: commitment
   question: What’s between you and a yes?
-  context: Class is on Thursdays, 6–8 PM Mountain, [starts] through [ends]. Two hours live with about 30m of homework each week.
+  context: Classes are Thursdays, 6–8 PM MT, [starts] through [ends]. Two hours live with about 30m of homework each week.
   options:
     - Nothing. I’m in!
     - The money
@@ -119,6 +119,6 @@
     - I’m just exploring
 
 - name: words
-  question: Best case scenario, where does Headroom leave you come December?
+  question: What do you hope to get out of Headroom? Dream big.
   placeholder: A sentence or two is plenty.
-  hint: Some people name a venue they want to play, mastering something they’ve been struggling with, or name a vibe they can feel but not express yet.
+  hint: A venue they want to play? Mastering something you’ve been struggling with?

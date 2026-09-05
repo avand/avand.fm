@@ -257,10 +257,32 @@
   color: var(--text-muted);
 }
 
+/* The complaint when Next is pressed on an empty box. Same colour as the
+   contact screen's errors, so the one red in this form always means the same
+   thing. It sits under the hint rather than replacing it: the prompts are
+   still what somebody needs in order to answer. */
+.apply-error {
+  font-size: 0.85em;
+  line-height: 1.5;
+  color: #ff8a6b;
+  margin-top: -0.5em;
+}
+
 .apply-panel textarea:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+/* After :focus, and stated for the focused case too.
+   Both selectors are 0,2,1, so order alone decides -- and this one has to
+   win, because the field is focused BY the validation that flagged it. Left
+   above, the red border was set and immediately overridden by the accent
+   ring, every time, and the only red anybody saw was the message. */
+.apply-panel textarea.is-invalid,
+.apply-panel textarea.is-invalid:focus {
+  border-color: #ff8a6b;
+  box-shadow: 0 0 0 3px rgba(255, 138, 107, 0.25);
 }
 
 /* Quiet, and under the thing it is about in both places it appears -- the
@@ -306,10 +328,15 @@
   box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
-/* The field a validation error landed on. Colour and nothing else: the
-   message itself is in the status line, where a screen reader will hear it. */
-.apply-fields input.is-invalid {
+/* The field a validation error landed on -- and stated for the focused case
+   as well, for the reason given above the textarea's copy of this: fieldOk()
+   focuses the field it just flagged, so a rule that loses to :focus is a rule
+   that never applies. The message itself is in the status line, where a
+   screen reader will hear it. */
+.apply-fields input.is-invalid,
+.apply-fields input.is-invalid:focus {
   border-color: #ff8a6b;
+  box-shadow: 0 0 0 3px rgba(255, 138, 107, 0.25);
 }
 
 .apply-hint-phone {
@@ -364,21 +391,69 @@
 
 /* ---------- Back and exit ---------- */
 
-/* Back lives in the form, under the panel it undoes. align-self keeps it at
-   the column's left edge -- flush with the option boxes and the question
-   above them -- rather than centred like the exit link at the foot of the
-   page. No horizontal padding for the same reason: padding would inset the
-   label from the edge everything else starts on. */
+/* One row under the panel, holding both controls. They are the same size and
+   centred against each other, so they read as a pair of navigation controls
+   rather than as two unrelated things that happened to land near each other.
+
+   Back sits at the column's left edge -- flush with the option boxes and the
+   question above them -- and Next is pushed to the right edge by its own auto
+   margin rather than by space-between, so Back stays put on the panels where
+   Next is hidden. */
+.apply-controls {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  margin-top: 1.25em;
+  min-height: 2.4em;
+}
+
+/* Text, not a button, on purpose. Back is the way out of a mistake and Next
+   is the way on; if both were buttons the eye would have to read them to tell
+   which was which. No horizontal padding, so the label starts on the same
+   edge as everything above it. */
 .apply-back {
-  align-self: flex-start;
   font-family: inherit;
   font-size: 0.9em;
   color: var(--text-muted);
   background: none;
   border: 0;
   padding: 0.4em 0;
-  margin-top: 1.25em;
   cursor: pointer;
+}
+
+/* Sized to its label, not to the column. It was .btn-primary, which is the
+   hero's button -- 1.1em and 2.5em of side padding, full width in a grid --
+   and at the foot of one optional question it read as the most important
+   thing on the page. It is a step, and it should look like the smallest
+   thing that still looks pressable.
+
+   Same font-size as Back, which is what lets `align-items: center` line the
+   two labels up rather than merely stacking their boxes. */
+.apply-next {
+  margin-left: auto;
+  font-family: inherit;
+  font-size: 0.9em;
+  font-weight: 700;
+  color: var(--text);
+  background: rgba(146, 7, 195, 0.22);
+  border: 1px solid var(--accent);
+  border-radius: 2em;
+  padding: 0.5em 1.4em;
+  cursor: pointer;
+  transition: background 140ms var(--ease);
+}
+
+@media (hover: hover) {
+  .apply-next:hover {
+    background: rgba(146, 7, 195, 0.38);
+  }
+}
+
+.apply-next:focus-visible,
+.apply-back:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-glow);
+  border-radius: 2em;
 }
 
 /* Only the exit link now, at the foot of the page and deliberately far from
