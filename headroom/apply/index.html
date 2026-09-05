@@ -121,22 +121,43 @@ chrome: false
     <section class="apply-panel apply-panel-contact" data-name="contact" data-submit hidden>
       <h1 class="apply-q">Last thing &mdash; how do I reach you?</h1>
 
+      <!-- One .apply-field per input, each carrying its own message.
+           The three errors used to share the status line at the foot of the
+           panel, which meant reading a sentence and then working out which of
+           three boxes it was about. A message under the field it belongs to
+           needs no such step, and it is where somebody is already looking:
+           validation focuses the field it flagged.
+
+           The status line is still here, for the two things that are about
+           the whole submission rather than one field -- "Sending…" and the
+           network error. -->
       <div class="apply-fields">
-        <label for="ap-name">Name</label>
-        <!-- data-1p-ignore for the same reason the old signup form carried
-             it: this is not a login, and 1Password's inline menu covers the
-             button. The browser's own autofill is wanted and stays. -->
-        <input id="ap-name" name="name" type="text" autocomplete="name" data-1p-ignore required />
+        <div class="apply-field">
+          <label for="ap-name">Name</label>
+          <!-- data-1p-ignore for the same reason the old signup form carried
+               it: this is not a login, and 1Password's inline menu covers the
+               button. The browser's own autofill is wanted and stays. -->
+          <input id="ap-name" name="name" type="text" autocomplete="name" data-1p-ignore required />
+          <p class="apply-error" role="alert" hidden></p>
+        </div>
 
-        <label for="ap-email">Email</label>
-        <input id="ap-email" name="email" type="email" autocomplete="email" data-1p-ignore required />
+        <div class="apply-field">
+          <label for="ap-email">Email</label>
+          <input id="ap-email" name="email" type="email" autocomplete="email" data-1p-ignore required />
+          <p class="apply-error" role="alert" hidden></p>
+        </div>
 
-        <label for="ap-phone">Phone</label>
-        <input id="ap-phone" name="phone" type="tel" autocomplete="tel" data-1p-ignore required />
-        <p class="apply-hint apply-hint-phone">
-          I&rsquo;d rather text than email &mdash; it&rsquo;s how I actually
-          reply. I won&rsquo;t call out of the blue.
-        </p>
+        <div class="apply-field">
+          <label for="ap-phone">Phone</label>
+          <input id="ap-phone" name="phone" type="tel" autocomplete="tel" data-1p-ignore required />
+          <p class="apply-error" role="alert" hidden></p>
+          <!-- Below the error, not above it: the hint is always true and the
+               error is the thing that just happened. -->
+          <p class="apply-hint apply-hint-phone">
+            I&rsquo;d rather text than email &mdash; it&rsquo;s how I actually
+            reply. I won&rsquo;t call out of the blue.
+          </p>
+        </div>
       </div>
 
       <!-- Bots fill this in; people never see it. Same field name the other
@@ -222,4 +243,4 @@ chrome: false
 
 </div>
 
-<script src="/headroom/apply/apply.js?v=9" defer></script>
+<script src="/headroom/apply/apply.js?v=10" defer></script>

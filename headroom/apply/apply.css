@@ -260,14 +260,21 @@
   color: var(--text-muted);
 }
 
-/* The complaint when Next is pressed on an empty box. Same colour as the
-   contact screen's errors, so the one red in this form always means the same
-   thing. It sits under the hint rather than replacing it: the prompts are
-   still what somebody needs in order to answer. */
+/* Every complaint in this form, in one colour, under the thing it is about.
+   On the contact screen there is one per field; on the free-text panel there
+   is one under the box. */
 .apply-error {
   font-size: 0.85em;
   line-height: 1.5;
   color: #ff8a6b;
+}
+
+/* The free-text panel's copy is a direct child of the panel, so it pays the
+   panel's gap on the way in. Tucked up by half of it, the same way the hint
+   above it is, so the message reads as attached to the box rather than as the
+   next thing down the page. Errors inside .apply-field need no such thing --
+   the group's own gap is already tight. */
+.apply-panel > .apply-error {
   margin-top: -0.5em;
 }
 
@@ -300,7 +307,16 @@
 
 /* ---------- Contact ---------- */
 
+/* A grid of field groups, not a grid of labels and inputs. Each group owns
+   its label, its input and its message, so a message can sit under the field
+   it belongs to instead of at the foot of the panel -- and so the spacing
+   between groups is one number rather than a margin hung off the input. */
 .apply-fields {
+  display: grid;
+  gap: 0.9em;
+}
+
+.apply-field {
   display: grid;
   gap: 0.35em;
 }
@@ -308,10 +324,6 @@
 .apply-fields label {
   font-size: 0.85em;
   color: var(--text-muted);
-}
-
-.apply-fields label + input {
-  margin-bottom: 0.75em;
 }
 
 .apply-fields input {

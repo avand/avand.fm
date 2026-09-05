@@ -319,6 +319,18 @@
      the question they left, with every answer still there. The two decisions
      only work as a pair. */
 
+  /* The message has done its job the moment somebody starts fixing the field;
+     leaving it up is telling them off while they comply. One listener on the
+     form rather than three on the inputs, so a field added later is covered
+     by having been added. */
+  form.addEventListener("input", function (e) {
+    var field = e.target;
+    if (!field.closest || !field.closest(".apply-field")) return;
+    field.classList.remove("is-invalid");
+    var slot = fieldError(field);
+    if (slot) slot.hidden = true;
+  });
+
   if (words) {
     // The message has done its job the moment they start typing; leaving it
     // up would be telling somebody off while they comply.
@@ -360,25 +372,23 @@
     var email = form.elements.email.value.trim();
     var phone = form.elements.phone.value.trim();
 
-    if (!fieldOk(form.elements.name, !!name, "What should I call you?", "missing-name")) return;
-    if (
-      !fieldOk(
+    /* All three are checked, and every failure is reported. Stopping at the
+       first meant somebody with three empty fields fixed one, pressed the
+       button, and was told about the next -- three round trips to learn what
+       one glance could have said. Focus goes to the first one, which is where
+       they would have started anyway. */
+    var bad = [
+      fieldOk(form.elements.name, !!name, "What should I call you?", "missing-name"),
+      fieldOk(
         form.elements.email,
         /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),
         "That email doesn't look right.",
         "invalid-email"
-      )
-    ) {
-      return;
-    }
-    if (
-      !fieldOk(
-        form.elements.phone,
-        !!phone,
-        "I need a number to text you at.",
-        "missing-phone"
-      )
-    ) {
+      ),
+      fieldOk(form.elements.phone, !!phone, "I need a number to text you at.", "missing-phone"),
+    ].indexOf(false);
+    if (bad !== -1) {
+      [form.elements.name, form.elements.email, form.elements.phone][bad].focus();
       return;
     }
 
@@ -483,13 +493,24 @@
     window.location.href = DONE_URL + search;
   }
 
+  /* Reports into the field's own message slot rather than into the status
+     line at the foot of the panel, and does not focus -- the caller does that,
+     once, for the first failure. Returns whether the field passed. */
   function fieldOk(field, ok, message, event) {
     field.classList.toggle("is-invalid", !ok);
+    var slot = fieldError(field);
+    if (slot) {
+      slot.textContent = ok ? "" : message;
+      slot.hidden = ok;
+    }
     if (ok) return true;
-    say(message, "err");
     track("error / " + event);
-    field.focus();
     return false;
+  }
+
+  function fieldError(field) {
+    var group = field.closest(".apply-field");
+    return group ? group.querySelector(".apply-error") : null;
   }
 
   function say(message, kind) {
