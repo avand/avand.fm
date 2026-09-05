@@ -372,23 +372,34 @@
     var email = form.elements.email.value.trim();
     var phone = form.elements.phone.value.trim();
 
-    /* All three are checked, and every failure is reported. Stopping at the
-       first meant somebody with three empty fields fixed one, pressed the
-       button, and was told about the next -- three round trips to learn what
-       one glance could have said. Focus goes to the first one, which is where
-       they would have started anyway. */
-    var bad = [
-      fieldOk(form.elements.name, !!name, "What should I call you?", "missing-name"),
-      fieldOk(
+    /* One at a time, in field order, stopping at the first failure. Three
+       messages at once is a page telling somebody everything they have done
+       wrong; one is a page asking for the next thing. The field it is about
+       is the field that just took focus, so there is never any question of
+       which box the sentence belongs to.
+
+       Cleared first, so nothing from a previous attempt is still on screen
+       under a field this pass never reached. */
+    clearFieldErrors();
+    if (!fieldOk(form.elements.name, !!name, "What should I call you?", "missing-name")) return;
+    if (
+      !fieldOk(
         form.elements.email,
         /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),
         "That email doesn't look right.",
         "invalid-email"
-      ),
-      fieldOk(form.elements.phone, !!phone, "I need a number to text you at.", "missing-phone"),
-    ].indexOf(false);
-    if (bad !== -1) {
-      [form.elements.name, form.elements.email, form.elements.phone][bad].focus();
+      )
+    ) {
+      return;
+    }
+    if (
+      !fieldOk(
+        form.elements.phone,
+        !!phone,
+        "I need a number to text you at.",
+        "missing-phone"
+      )
+    ) {
       return;
     }
 
@@ -494,8 +505,8 @@
   }
 
   /* Reports into the field's own message slot rather than into the status
-     line at the foot of the panel, and does not focus -- the caller does that,
-     once, for the first failure. Returns whether the field passed. */
+     line at the foot of the panel, and takes focus, because it is only ever
+     called for the one failure being shown. */
   function fieldOk(field, ok, message, event) {
     field.classList.toggle("is-invalid", !ok);
     var slot = fieldError(field);
@@ -505,12 +516,22 @@
     }
     if (ok) return true;
     track("error / " + event);
+    field.focus();
     return false;
   }
 
   function fieldError(field) {
     var group = field.closest(".apply-field");
     return group ? group.querySelector(".apply-error") : null;
+  }
+
+  function clearFieldErrors() {
+    [].forEach.call(form.querySelectorAll(".apply-field"), function (group) {
+      var input = group.querySelector("input");
+      var slot = group.querySelector(".apply-error");
+      if (input) input.classList.remove("is-invalid");
+      if (slot) slot.hidden = true;
+    });
   }
 
   function say(message, kind) {
