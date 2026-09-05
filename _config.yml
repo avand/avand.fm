@@ -44,6 +44,7 @@ exclude:
 # never equal to `seats` -- a course advertised as twelve students with twelve
 # spots remaining is telling the reader that nobody has signed up.
 headroom:
+  term: Fall 2026
   seats: 12
   seats_left: 10
   applications_close: September 24

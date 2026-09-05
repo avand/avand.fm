@@ -116,7 +116,7 @@
 
 .apply-form {
   width: 100%;
-  max-width: 34em;
+  max-width: min(34em, 100%);
   /* The column does not resize as the panels change height. Without this a
      five-option question followed by a four-option one pulls the whole page
      up mid-tap, and on a phone the second tap lands on whatever moved into
@@ -128,10 +128,28 @@
   justify-content: center;
 }
 
+/* The panels are <section>s, and headroom.css gives every section 3.75em of
+   vertical padding, 2em of horizontal, and a 960px cap -- sensible for the
+   bands on the landing page and wrong for a panel that is already sitting in
+   a 34em column with its own spacing. Reset rather than renamed: a question
+   IS a section of this page, and the element is the right one. */
 .apply-panel {
   display: flex;
   flex-direction: column;
   gap: 1.1em;
+  padding: 0;
+  max-width: none;
+  margin: 0;
+}
+
+/* Required, and the bug it fixes is not obvious.
+   `[hidden] { display: none }` lives in the browser's own stylesheet, and any
+   author rule beats it at equal specificity -- so the `display: flex` above
+   silently un-hides every panel, and the page renders all seven questions
+   stacked. The attribute is still the state; this is what makes it mean
+   something. */
+.apply-panel[hidden] {
+  display: none;
 }
 
 /* Every panel's heading is an h1: only one panel is ever visible, and the
@@ -142,6 +160,17 @@
   font-weight: 700;
   line-height: 1.3;
   text-wrap: balance;
+}
+
+/* apply.js moves focus here on every advance so a screen reader reads the new
+   question, and headroom.css draws an orange ring on anything focused. On a
+   control that ring is the affordance; on a heading nobody can interact with
+   it is an error state flashing once per question. The heading stays
+   focusable -- that is the part that matters -- and simply does not announce
+   it visually. */
+.apply-q:focus,
+.apply-q:focus-visible {
+  outline: none;
 }
 
 .apply-options {
@@ -389,7 +418,10 @@
 .done {
   max-width: 44em;
   margin: 0 auto;
-  padding: 3em 0 1em;
+  /* .sheet carries the background and nothing else -- the concept pages get
+     their own inset from concepts.css, and this page has to bring its own or
+     it runs to both edges of a phone. */
+  padding: 3em max(1.5em, env(safe-area-inset-right)) 1em max(1.5em, env(safe-area-inset-left));
   display: flex;
   flex-direction: column;
   gap: 1.25em;
