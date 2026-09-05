@@ -296,7 +296,7 @@ var APPLICATION_CHOICES = [
   { key: "stage", label: "Stage" },
   { key: "gear", label: "Gear" },
   { key: "goal", label: "Goal" },
-  { key: "obstacle", label: "Obstacle" },
+  { key: "focus", label: "Focus" },
   { key: "commitment", label: "Commitment" },
 ];
 

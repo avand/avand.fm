@@ -85,6 +85,7 @@ chrome: false
     {% for q in site.data.application %}
     <section class="apply-panel" data-name="{{ q.name }}" hidden>
       <h1 class="apply-q">{{ q.question | replace: "[starts]", site.headroom.cohort_starts | replace: "[ends]", site.headroom.cohort_ends }}</h1>
+      {% if q.context %}<p class="apply-context">{{ q.context | replace: "[starts]", site.headroom.cohort_starts | replace: "[ends]", site.headroom.cohort_ends }}</p>{% endif %}
       {% if q.options %}
       <div class="apply-options">
         {% for option in q.options %}
@@ -102,6 +103,14 @@ chrome: false
       {% endif %}
     </section>
     {% endfor %}
+
+    <!-- Inside the form, after the panels, so it sits directly under whichever
+         one is visible rather than at the foot of the page. The form is a
+         centred column and the panels are its other children, so this lands
+         against the same left edge as the options above it. Hidden on the
+         first panel -- there is nowhere to go back to, and a disabled control
+         is a worse answer than no control. -->
+    <button type="button" class="apply-back" hidden>&lsaquo; Back</button>
 
     <!-- ---------------------------------------------------------------
          Screen 7 -- contact.
@@ -163,16 +172,17 @@ chrome: false
 
   </form>
 
-  <!-- Back is in-page state, not history. It appears from the second panel
-       on -- there is nowhere to go back to from the first, and a disabled
-       control is a worse answer than no control.
+  <!-- Exit is a real navigation, and it is deliberately nowhere near Back.
+       One is a step inside the form and the other is leaving it, and a pair
+       of quiet links side by side is how somebody loses six answers by
+       tapping the one that worked a moment ago. Back sits with the question
+       it undoes; this sits at the foot of the page, where somebody looking
+       for a way out will go.
 
-       Exit is a real navigation, and it is separate from back on purpose:
-       one of them is a step and the other is leaving, and a single control
-       that silently changes meaning on the first panel is how somebody loses
-       six answers by tapping the thing that worked a moment ago. -->
+       Back is in-page state and not history, which means the browser's own
+       back gesture leaves the page. The saved draft is what makes that
+       survivable -- coming back lands on the question they left. -->
   <nav class="apply-nav">
-    <button type="button" class="apply-back" hidden>&lsaquo; Back</button>
     <a class="apply-exit" href="/headroom/">Exit application</a>
   </nav>
 
@@ -192,4 +202,4 @@ chrome: false
 
 </div>
 
-<script src="/headroom/apply/apply.js?v=3" defer></script>
+<script src="/headroom/apply/apply.js?v=4" defer></script>

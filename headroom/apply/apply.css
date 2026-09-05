@@ -178,6 +178,17 @@
   outline: none;
 }
 
+/* What a question needs to be answerable, under the heading rather than
+   inside it. The schedule was in the h1 and made it four lines of display
+   type, which reads as a paragraph somebody set too large rather than as a
+   question. Body size, and slightly quiet: it is the premise, not the ask. */
+.apply-context {
+  font-size: 1em;
+  line-height: 1.55;
+  color: var(--text-muted);
+  margin-top: -0.4em;
+}
+
 .apply-options {
   display: grid;
   gap: 0.5em;
@@ -353,25 +364,30 @@
 
 /* ---------- Back and exit ---------- */
 
-/* Both quiet, and stacked rather than side by side: they are not a pair of
-   equal choices. One is a step inside the form and the other leaves it. */
-.apply-nav {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.6em;
-  margin-top: auto;
-  padding-top: 2em;
-}
-
+/* Back lives in the form, under the panel it undoes. align-self keeps it at
+   the column's left edge -- flush with the option boxes and the question
+   above them -- rather than centred like the exit link at the foot of the
+   page. No horizontal padding for the same reason: padding would inset the
+   label from the edge everything else starts on. */
 .apply-back {
+  align-self: flex-start;
   font-family: inherit;
   font-size: 0.9em;
   color: var(--text-muted);
   background: none;
   border: 0;
-  padding: 0.4em 0.8em;
+  padding: 0.4em 0;
+  margin-top: 1.25em;
   cursor: pointer;
+}
+
+/* Only the exit link now, at the foot of the page and deliberately far from
+   Back: one is a step inside the form and the other leaves it. */
+.apply-nav {
+  display: flex;
+  justify-content: center;
+  margin-top: auto;
+  padding-top: 2em;
 }
 
 .apply-back:hover {

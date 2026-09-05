@@ -39,13 +39,9 @@
 #   [starts]   site.headroom.cohort_starts
 #   [ends]     site.headroom.cohort_ends
 #
-# WRITE CURLY QUOTES AND DASHES AS REAL CHARACTERS -- ’ and — and –, not
-# &rsquo; and &mdash;. The page is UTF-8 and Liquid does not escape them, so
-# they arrive as themselves, and the entities are only harder to read here.
-#
-# The straight apostrophe is the one to watch. "I'm" and "I’m" are both valid
-# YAML and only one of them matches the rest of the site; nothing errors, the
-# page just renders one typewriter mark in a page full of proper ones.
+# Curly quotes and dashes are written as real characters. The page is UTF-8
+# and Liquid does not escape them, so ' and — arrive as themselves. There is
+# no need for &rsquo; and it is harder to read.
 #
 # THREE RULES THE OPTION SETS ARE HELD TO, and each of them has been broken
 # here at least once:
@@ -64,169 +60,65 @@
 #      below, is simply not ordered, and inventing a hierarchy there would be
 #      worse than leaving it alone.
 
-# ---------------------------------------------------------------------------
-# 1. Identity. One tap, no wrong answer, and the fit filter.
-#
-# ONE AXIS, IN ORDER: every option answers "where do you play", running from
-# nowhere to for a living. It once also carried "something's plateaued", which
-# is how somebody FEELS -- so a DJ who gigs every week and feels stuck fitted
-# two options equally, and the order stopped carrying anything. A plateau is a
-# want, and question 3 asks about wants.
-#
-# No self-assessment in any of them. "I mix at home and I'm good at it" asked
-# somebody to rate themselves before they had been asked anything, and left
-# the person who mixes at home and is not sure with nowhere to go.
-#
-# The last rung is separate because a working DJ applying to this is a
-# different conversation from an ambitious hobbyist applying to it.
-# ---------------------------------------------------------------------------
 - name: stage
   question: Where are you with DJing right now?
   options:
     - I’m just getting started
-    - I mix at home — I haven’t played for anyone yet
-    - I’ve played a few times. Friends’ parties, small rooms
+    - I play at home — I haven’t played for anyone yet
+    - I’ve played a few times (for friends, small rooms)
     - I play out regularly
     - I’m gigging a lot, and it’s part of how I earn
 
-# ---------------------------------------------------------------------------
-# 2. Rapport. The question DJs actually ask each other first: it costs
-# nothing, it is not a judgement, and it says what to teach. A question about
-# frequency would do more work here and would also sting, which is the wrong
-# thing to do on the second screen.
-#
-# "PRACTISE ON MOST" IS DOING ALL THE WORK IN THAT SENTENCE. It was "what are
-# you playing on", and most people play on more than one thing -- a controller
-# at home, whatever the club has installed. Add an option for the venue's gear
-# and it overlaps every option above it, so a bedroom-controller DJ who gigs
-# on CDJs was torn three ways on a question meant to be free. What somebody
-# practises on is the more useful answer anyway: it is what they will sit in
-# front of to do the homework.
-# ---------------------------------------------------------------------------
 - name: gear
-  question: What do you practice on most?
+  question: What do you play on most?
   options:
-    - A controller
-    - CDJs or XDJs
+    - A laptop or controller (e.g., FLX4)
+    - Standalone players or all-in-one (e.g., CDJ, XDJ)
     - Turntables
-    - A mix of things, depending
+    - A mix of gear
     - I don’t have a setup yet
 
-# ---------------------------------------------------------------------------
-# 3. The turn. The first question about a future rather than a fact, and
-# picking one is a small act of admitting you want something.
-#
-# "WHICH ONE WOULD MEAN THE MOST" IS NOT A FLOURISH. Every option here is
-# desirable and most people want three of them. Asked as "what's different a
-# year from now", picking one means disowning the other four, and an answer
-# somebody does not believe is worth nothing to the person reading it. Asked
-# which matters most, a single pick is honest: the others stay true, they just
-# come second.
-#
-# Deliberately unordered, unlike question 1. There is no progression from
-# wanting to feel calm to wanting to get paid -- different people, not
-# different stages.
-#
-# "Making real money from it" rather than "getting booked, and paid", which
-# overlapped "playing the rooms I want": both read as validation, and somebody
-# chasing rooms and somebody chasing income want different things.
-# ---------------------------------------------------------------------------
 - name: goal
-  question: A year from now, which one would mean the most?
+  question: One year from now, what do you want most?
   options:
-    - Playing the rooms I actually want to play
-    - Feeling calm up there instead of white-knuckling it
-    - Having a sound people recognize as mine
-    - Making real money from it
-    - Actually understanding what I’m doing under the hood
+    - Playing rooms I actually want to play
+    - Feeling calm instead of white-knuckling it
+    - Having a vibe people recognize as mine
+    - Making real money from DJing
+    - Actually understanding what I’m doing
 
-# ---------------------------------------------------------------------------
-# 4. The gap, and the most important screen here.
-#
-# The first four options are the syllabus: gain staging, mixing, library and
-# metadata, performance. Somebody tapping one is finding out that the course
-# was built for the exact thing they were embarrassed about ten seconds ago --
-# which is true, and is the reason not to reword them into something more
-# flattering.
-#
-# THE FIFTH OPTION IS NOT A DODGE. It is what makes this question answerable
-# at all. Every specific option assumes experience: "my transitions are clean"
-# assumes transitions, "I freeze reading a room" assumes having played to one.
-# Anybody who answered "I'm just getting started" on question 1 -- an option
-# question 1 has to offer -- arrived here with nothing true to tap, and a
-# wizard with no way forward is a wizard somebody closes.
-#
-# It is last because it is the general case. A catch-all at the top invites
-# everybody to take it.
-#
-# "I'm technically solid and creatively stuck" used to be here and sat on top
-# of the transitions option. Question 3 already offers "a sound people
-# recognize as mine" for that person.
-# ---------------------------------------------------------------------------
-- name: obstacle
-  question: What’s most in the way right now?
+# Five domains, and they are the curriculum: Sound/Signal Flow, Gear,
+# Tracks/Library, Playing, Attunement/Showtime. Asked as a choice rather than
+# a confession -- the version before this listed five specific faults, and
+# naming your own fault takes the expertise somebody is applying to get.
+# There is deliberately no option about getting booked or paid: no module
+# teaches it, and offering it here would promise something the course does
+# not deliver.
+- name: focus
+  question: Which part do you most want to get good at?
   options:
-    - My mixes sound great at home and thin on a real system
-    - My transitions are clean but they don’t feel like anything
-    - My library’s a mess — I can’t find the right track in the moment
-    - I freeze when I’m trying to read a room
-    - Honestly, all of it. I want the whole foundation
+    - Understanding sound — why it changes on a real system
+    - Being at home on any gear, including the venue’s
+    - Finding and organizing music worth playing
+    - The mix itself — transitions, energy, range across a set
+    - Performing — reading a room and running a night
 
-# ---------------------------------------------------------------------------
-# 5. The real ask, and the honest place for price to surface.
-#
-# Tapping "Nothing. I'm in" is a commitment, and people keep small stated
-# commitments better than private intentions. Money is folded into an option
-# rather than made its own question: a screen that asks about budget halfway
-# through an application is a cold shower.
-#
-# The schedule is in the question rather than assumed, because this is the
-# screen where somebody decides, and sending them back to the homepage to
-# check a day of the week is how a decision becomes a maybe.
-#
-# A BLOCKER, NOT A STATE. It asked "where are you with that", and the answers
-# were states -- which overlap, because somebody can be checking their
-# Thursdays AND thinking about the money at once. Asked for the one thing in
-# the way, there is a single true answer, and a stack of "the money" and a
-# stack of "those Thursdays" say different things about what to change.
-#
-# Ordered by distance from yes. The fourth option is the best thing anybody
-# could say here: it is a person asking for the conversation this whole flow
-# exists to start.
-#
-# "Those specific Thursdays" did not exist before and its absence was a hole.
-# Somebody who cannot do Thursday evenings had to file themselves under "just
-# exploring", which reads as indifference and is nothing of the kind. Enough
-# of them is the signal that the night is wrong, and it was being thrown away.
-# ---------------------------------------------------------------------------
+# `context` is the detail a question needs to be answerable, set below the
+# heading at normal size. It exists because the schedule is not the question
+# -- it is what somebody has to know before the question means anything, and
+# a heading carrying both reads as a paragraph rather than as a thing being
+# asked. Any question can take one.
 - name: commitment
-  question: It’s Thursdays, 6–8 PM Mountain, [starts] through [ends]. Two hours live, about thirty minutes of homework. What’s between you and a yes?
+  question: What’s between you and a yes?
+  context: Class is on Thursdays, 6–8 PM Mountain, [starts] through [ends]. Two hours live with about 30m of homework each week.
   options:
-    - Nothing. I’m in
+    - Nothing. I’m in!
     - The money
-    - Those specific Thursdays
-    - Whether it’s right for me — that’s what I want to talk about
+    - The time or schedule
+    - I’m not sure it’s right for me
     - I’m just exploring
 
-# ---------------------------------------------------------------------------
-# 6. Their own words, and the only screen that asks for effort.
-#
-# The effort is the point. Articulating a want is what makes somebody feel it,
-# so this is the screen that earns the "I hope I get in" the submit button
-# then collects. It is also the field worth reading before a call.
-#
-# December rather than "when the course ends": three weeks past the last
-# session, so it asks them to picture the other side of it.
-#
-# `hint` is prompts, not quotes. Real applicant quotes belong here once there
-# are some -- inventing them on a page whose whole premise is a person reading
-# real applications is the thing that poisons it if it is ever noticed.
-#
-# No `options`, which is how the template knows to render a textarea and a
-# Next button rather than a list. Skippable: the person who will not write a
-# paragraph is still worth talking to.
-# ---------------------------------------------------------------------------
 - name: words
-  question: What do you want to be able to do in December that you can’t do today?
+  question: Best case scenario, where does Headroom leave you come December?
   placeholder: A sentence or two is plenty.
-  hint: Some people name a room. Some name a thing they keep messing up. Some name a sound they can hear in their head and can’t make yet.
+  hint: Some people name a venue they want to play, mastering something they’ve been struggling with, or name a vibe they can feel but not express yet.
