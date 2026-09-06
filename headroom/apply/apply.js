@@ -459,8 +459,7 @@
     record();
 
     sending = true;
-    submitBtn.disabled = true;
-    say("Sending…");
+    busy(submitBtn, "Submitting…");
 
     var payload = {
       kind: "application",
@@ -502,7 +501,7 @@
       })
       .catch(function () {
         sending = false;
-        submitBtn.disabled = false;
+        idle(submitBtn);
         /* No address in here, deliberately. This string is served to every
            visitor and to every crawler that reads the page, and an address in
            page source is an address in a list somebody sells. The site already
@@ -587,6 +586,44 @@
       if (input) input.classList.remove("is-invalid");
       if (slot) slot.hidden = true;
     });
+  }
+
+  /*
+   * A button that is doing something, and says so itself.
+   *
+   * The state used to live in two places: the button went disabled and a
+   * separate line under it read "Sending…". Two elements describing one fact,
+   * and the one carrying the words was at the foot of the panel rather than
+   * under the thumb that had just pressed. The button says it now, and the
+   * status line is left for the thing it is actually needed for -- a failure,
+   * which is the only message here that is not about the control itself.
+   *
+   * `disabled` is what stops the second press, not a flag: a disabled button
+   * emits no click at all, so the double-submit cannot reach any code to be
+   * guarded against. The `sending` flag stays as the belt to that pair of
+   * braces, for a submit that arrives some other way -- Enter in a text field
+   * still submits a form whose button is disabled.
+   *
+   * The label is stashed on the element rather than in a closure so that this
+   * works for any button, without each caller having to remember what its own
+   * one said.
+   */
+  function busy(button, label) {
+    if (!button || "idleLabel" in button.dataset) return;
+    button.dataset.idleLabel = button.textContent;
+    button.textContent = label;
+    button.disabled = true;
+    // Announced as busy rather than silently going dead: to a screen reader a
+    // disabled control with no explanation is a control that vanished.
+    button.setAttribute("aria-busy", "true");
+  }
+
+  function idle(button) {
+    if (!button || !("idleLabel" in button.dataset)) return;
+    button.textContent = button.dataset.idleLabel;
+    delete button.dataset.idleLabel;
+    button.disabled = false;
+    button.removeAttribute("aria-busy");
   }
 
   function say(message, kind) {

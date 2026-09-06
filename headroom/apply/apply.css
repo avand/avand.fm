@@ -349,11 +349,6 @@
   margin-bottom: 0.25em;
 }
 
-.apply-submit[disabled] {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 /* Left, not centred. It sat under a full-width button and was centred to
    match it; it now sits in the column with the fields and the fineprint, all
    of which start at the same edge. */
@@ -468,7 +463,26 @@
   border-radius: 2em;
   padding: 0.5em 1.4em;
   cursor: pointer;
-  transition: background 140ms var(--ease), opacity 140ms var(--ease);
+  transition: background 140ms var(--ease), border-color 140ms var(--ease),
+    color 140ms var(--ease);
+}
+
+/* Working. Grey rather than a faded purple: opacity alone reads as the same
+   button behind a veil, which is what "disabled because you may not" looks
+   like. This is not that -- the press landed and the thing is running -- so it
+   changes into a different, quieter control rather than dimming.
+
+   cursor is default and not not-allowed for the same reason. not-allowed says
+   you did something wrong; nothing here is wrong, it is just busy.
+
+   Applies to both buttons in this row, so a Next that ever has to wait gets
+   the state by having been written here. */
+.apply-next[disabled],
+.apply-submit[disabled] {
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--border);
+  cursor: default;
 }
 
 @media (hover: hover) {
