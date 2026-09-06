@@ -60,7 +60,6 @@
 
   var bar = document.querySelector(".apply-progress-bar");
   var count = document.querySelector(".apply-count");
-  var resumed = document.querySelector(".apply-resumed");
   var backBtn = document.querySelector(".apply-back");
   var exitLink = document.querySelector(".apply-exit");
   var status = form.querySelector(".apply-status");
@@ -162,8 +161,6 @@
     if (count) {
       count.textContent = "Step " + (at + 1) + " of " + panels.length;
     }
-    // True on arrival and not after.
-    if (resumed && previous !== at) resumed.hidden = true;
     // Nowhere to go back to from the first panel, and a disabled control is a
     // worse answer than no control.
     if (backBtn) backBtn.hidden = at === 0;
@@ -637,15 +634,14 @@
 
      `resumed` is fired instead, and it is the only event on this page that is
      not part of the funnel. It is here because it is the one number that says
-     whether saving drafts is worth the code that saves them. */
+     whether saving drafts is worth the code that saves them.
+
+     Nothing is said on screen about it. There was a line -- "Picking up where
+     you left off" -- and it explained something the page does not need to
+     explain: somebody who left in the middle and came back is not confused to
+     find themselves in the middle. */
   var resuming = !!(draft && draft.at);
   show(draft ? draft.at || 0 : 0, { silent: !!draft });
 
-  if (resuming) {
-    track("resumed");
-    // Its own line rather than the status element, which lives at the foot of
-    // the contact panel and would be off screen. show() hides it again on the
-    // first advance.
-    if (resumed) resumed.hidden = false;
-  }
+  if (resuming) track("resumed");
 })();
