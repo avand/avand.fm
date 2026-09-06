@@ -171,7 +171,7 @@ signup form used to wrap its analytics for that reason; the application does
 not need to, because its conversion fires on a *different page* from the one
 that accepted it — see below.
 
-## The OpenAI pixel is a different animal
+## The ad pixels are a different animal
 
 Fathom counts behaviour and nobody is billed by the answer. The OpenAI pixel
 exists to tell an ad account that money produced an application, and it reports
@@ -204,6 +204,31 @@ that looks like nobody applied.
 
 Its event names come from OpenAI's fixed vocabulary and have nothing to do with
 the `page / section / element` scheme above.
+
+**Reddit's pixel is the same animal on the same terms**, and `lead()` fans out
+to both from the one call site so the confirmation page does not have to know
+how many advertisers exist. It loads only for a visitor carrying `rdt_cid`,
+Reddit's click id — which rides through the whole funnel for free, because
+every link into `/headroom/apply/` already forwards `location.search`.
+
+Two differences from the OpenAI half, both deliberate:
+
+`fromReddit()` checks **only the query string**, with no cookie fallback.
+`__oppref` is a *click* reference, written only when `oppref` was in the URL, so
+testing it asks "did this browser arrive from an ad once" — a fair question.
+Reddit's `_rdt_uuid` is a per-browser id written for everyone the pixel runs
+for, so testing it would ask whether the pixel had already run, which is
+circular. The cost is that a visitor returning days later by typing the URL is
+not recognised.
+
+`REDDIT` is **empty until somebody pastes the advertiser id in**, and every
+path checks it first, so the file is safe to ship ahead of the account
+existing. Nothing loads, nothing is stored, nothing is sent while it is blank.
+
+The conversion carries a `conversionId` — the same `eventId()` the OpenAI half
+uses. That is the deduplication key for the Conversions API: if the server-side
+half is ever wired up, the same application is reported twice and Reddit
+collapses the pair only when both carry the same id.
 
 It **initialises on the concept pages too, but only for visitors who arrived
 from an ad** — `fromAd()` in `events.js`. Both halves of that matter. An ad can
