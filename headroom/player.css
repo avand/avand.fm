@@ -1,0 +1,563 @@
+/*
+ * player.css -- the video player's own presentation.
+ *
+ * Extracted from index.css when a second page started rendering a player. It
+ * is not landing-page furniture any more: the landing page has one in the
+ * hero, and /headroom/apply/done/ has one showing the same film to somebody
+ * who has just applied.
+ *
+ * The alternative was loading index.css on that page, and it is worth writing
+ * down why that is not a smaller change than this one. index.css sets
+ * `body { background: var(--hero-top) }` -- the purple the hero fades out of
+ * -- and a page with no hero to justify it renders as a purple slab. That
+ * exact bug already shipped once, to all forty-three glossary entries, and it
+ * was found on a phone rather than by anything in this repo.
+ *
+ * What stayed behind in index.css is the part that is genuinely about the
+ * landing page: `.hero-video .player`, which sizes the hero's copy, and
+ * `.hero-video` itself. This file is the player at any size, which is what
+ * lets the same markup be 1200px wide in a hero and 640px on a confirmation
+ * page.
+ *
+ * Loaded by _layouts/headroom.html wherever `landing` or `player` is set in
+ * the front matter, and cached like every other asset here: bump its ?v= in
+ * the same commit as any change.
+ */
+
+.player {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  /* Lets the chrome size itself against the player rather than the root
+     font, since the same player is 1200px wide in the hero and 360px on a
+     phone. */
+  container-type: inline-size;
+  /* The one knob for the whole control bar: everything in it is sized in
+     em from here, so this is what trades chrome for picture. */
+  --ctl: clamp(0.76rem, 1.84cqw, 1.16rem);
+  background: #000;
+  border-radius: 0.75em;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  isolation: isolate;
+}
+
+.player video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  cursor: pointer;
+  background: #000;
+}
+
+.player.is-playing:not(.show-controls) video {
+  cursor: none;
+}
+
+.player:fullscreen video {
+  object-fit: contain;
+}
+
+/* Captions are rendered by the player rather than by a <track>, so they can
+   sit above the control bar and match the page's type. */
+.pl-captions {
+  position: absolute;
+  left: 50%;
+  bottom: max(1.4em, 8%);
+  transition: bottom 220ms var(--ease);
+  transform: translateX(-50%);
+  z-index: 3;
+  pointer-events: none;
+  max-width: 88%;
+  text-align: center;
+  font-size: clamp(1.05rem, 4.65cqw, 2rem);
+  font-weight: 600;
+  line-height: 1.35;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.62);
+  padding: 0.25em 0.65em;
+  border-radius: 0.25em;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  text-wrap: balance;
+}
+
+.pl-captions.is-empty,
+.player:not(.cc-on) .pl-captions,
+/* Moved out of the picture entirely for this one; see .brand-captions. */
+.player.has-lyrics .pl-captions {
+  display: none;
+}
+
+/* Sit above the control bar rather than behind it while it is showing. */
+.player.show-controls .pl-captions,
+.player:not(.is-playing) .pl-captions {
+  bottom: calc(var(--ctl) * 4.6 + 1.1em);
+}
+
+/* Control bar */
+.pl-controls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* Everything below is sized in em from here, and this scales with the
+     player's own width — the same control bar serves a 1200px hero and a
+     360px phone, and a single fixed size can't suit both. */
+  font-size: var(--ctl);
+  /* The 3em top is the gradient's run-up, not spacing; the sides and
+     bottom are the actual inset, kept tight to give the picture the
+     room. */
+  padding: 3em 0.68em 0.56em;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
+  display: flex;
+  flex-direction: column;
+  /* Tight: the seek bar belongs to the row under it, and the gap was
+     reading as two separate strips of chrome. */
+  gap: 0.1em;
+  opacity: 0;
+  transform: translateY(0.5em);
+  transition: opacity 220ms, transform 220ms;
+  z-index: 3;
+  /* Invisible controls must not intercept clicks meant for the picture. */
+  pointer-events: none;
+}
+
+/* Visible whenever nothing is playing -- including before the first play,
+   which is what invites it -- and whenever the viewer is interacting. */
+.player.show-controls .pl-controls,
+.player:not(.is-playing) .pl-controls {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.pl-bar {
+  position: relative;
+  /* Still a comfortable touch target -- the visible track is only 0.3em,
+     the rest is grab room. */
+  height: 1.1em;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.pl-bar::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0.3em;
+  border-radius: 0.3em;
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.pl-buffered,
+.pl-played {
+  position: absolute;
+  left: 0;
+  height: 0.3em;
+  border-radius: 0.3em;
+  width: 0;
+}
+
+.pl-buffered {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.pl-played {
+  background: var(--accent);
+}
+
+.pl-knob {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 0.95em;
+  height: 0.95em;
+  border-radius: 50%;
+  background: #fff;
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 150ms;
+  pointer-events: none;
+}
+
+.pl-bar:hover .pl-knob,
+.pl-bar:focus-visible .pl-knob {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.pl-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  color: #fff;
+}
+
+.pl-btn {
+  /* Buttons don't inherit font-size from their parent, they take a UA
+     default of about 13px. Without this, every em below sizes against that
+     instead of against the control bar. */
+  font: inherit;
+  /* The icon inside is 1.35em, so this is 0.43em of surround rather than
+     the 0.48em it was -- tighter chrome, same glyph. */
+  width: 2.2em;
+  height: 2.2em;
+  background: rgba(10, 10, 15, 0.78);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.45em;
+  transition: background 180ms, transform 180ms;
+}
+
+.pl-btn svg {
+  width: 1.35em;
+  height: 1.35em;
+  fill: currentColor;
+  display: block;
+}
+
+/* Only where there is a real pointer. On a touch screen :hover sticks
+   after a tap, which left the button sitting there purple. */
+@media (hover: hover) {
+  .pl-btn:hover {
+    background: var(--accent);
+    transform: scale(1.06);
+  }
+}
+
+/* Stepped volume for a pointer, a single mute toggle for touch -- see the
+   note in player.js's render. Both are in the markup; this picks one. */
+.pl-mute {
+  display: none;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .pl-vol-down,
+  .pl-vol-up {
+    display: none;
+  }
+
+  .pl-mute {
+    display: flex;
+  }
+}
+
+/* These need to out-specify `.pl-btn svg { display: block }` above, or both
+   states of the toggle render at once. */
+.pl-btn .pl-icon-pause,
+.player.is-playing .pl-btn .pl-icon-play {
+  display: none;
+}
+
+.player.is-playing .pl-btn .pl-icon-pause {
+  display: block;
+}
+
+/* The mute toggle, where the platform won't take a volume level. Same
+   two-icons-one-button pattern as play/pause above. */
+.pl-btn .pl-icon-muted,
+.player.is-muted .pl-btn .pl-icon-loud {
+  display: none;
+}
+
+.player.is-muted .pl-btn .pl-icon-muted {
+  display: block;
+}
+
+/* At either end of the range. Still legible, so the pair doesn't appear to
+   lose a button, but plainly not pressable. */
+.pl-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.pl-btn:disabled:hover {
+  background: rgba(10, 10, 15, 0.78);
+  transform: none;
+}
+
+/* Plain text: it is a readout, not a control, and a slab around it read as
+   something to press. */
+.pl-time {
+  font-size: 0.85em;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+  white-space: nowrap;
+  padding-left: 0.3em;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+}
+
+.pl-spacer {
+  flex: 1;
+}
+
+/* The standing invitation to turn the sound on. Deliberately not part of
+   .pl-controls: that bar retires after a few seconds, and muted video
+   with no visible way back to sound reads as broken rather than as a
+   choice. Up whenever the sound is off, down the moment it isn't. */
+.pl-unmute {
+  position: absolute;
+  top: 0.8em;
+  right: 0.8em;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  font: inherit;
+  font-size: calc(var(--ctl) * 0.72);
+  font-weight: 700;
+  color: var(--text);
+  background: rgba(10, 10, 15, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 2em;
+  padding: 0.5em 0.9em 0.5em 0.7em;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms var(--ease);
+}
+
+.pl-unmute svg {
+  width: 1.15em;
+  height: 1.15em;
+  fill: currentColor;
+  display: block;
+}
+
+.player.is-muted.has-started .pl-unmute {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* While the full bar is up it carries its own mute control; two speakers
+   on screen at once is just noise. */
+.player.show-controls .pl-unmute,
+.player:not(.is-playing) .pl-unmute {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pl-unmute {
+    transition: none;
+  }
+
+  /* Left behind in index.css when the rest of the player moved, which meant
+     the control bar still animated and the spinner still whirled at full
+     speed on /headroom/apply/done/ -- the one page that renders a player
+     without loading index.css. The overrides belong to the player, not to the
+     landing page, so they live with it. */
+  .pl-controls {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  /* Slowed rather than stopped: a spinner that does not move says the page
+     has hung, which is the opposite of what it is there to say. */
+  .pl-spinner {
+    animation-duration: 2s;
+  }
+}
+
+/* Buffering spinner */
+.pl-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2.6em;
+  height: 2.6em;
+  margin: -1.3em 0 0 -1.3em;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 4;
+  animation: pl-spin 800ms linear infinite;
+}
+
+.player.is-busy .pl-spinner {
+  opacity: 1;
+}
+
+@keyframes pl-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.pl-error {
+  position: absolute;
+  inset: auto 0 0;
+  display: none;
+  padding: 1em;
+  text-align: center;
+  font-size: 0.9em;
+  background: rgba(0, 0, 0, 0.85);
+  color: var(--text);
+  z-index: 5;
+}
+
+.player.is-failed .pl-error {
+  display: block;
+}
+
+.player.is-failed .pl-spinner {
+  display: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * Captions as page text.
+ *
+ * The opt-in half of the player: a player with data-captions-into renders its
+ * cues into the named element instead of over the picture. Moved here from
+ * index.css with the rest of the player when a second page grew one -- these
+ * rules are the player's caption rendering, not the landing page's furniture,
+ * and the only thing that made them look like the latter was that the landing
+ * page was the only place a player had ever been.
+ *
+ * The sizes are still tuned against the hero's copy of the film, which is the
+ * larger of the two. Nothing here is fixed to the hero's width: the box is
+ * max-width and centres itself.
+ * ------------------------------------------------------------------------- */
+
+.brand-captions {
+  position: relative;
+  /* Wide enough for a clause.
+
+     The cues this renders are cut on the clock, not on the sentence -- a
+     caption file generated at two-second intervals -- so at 30em a line
+     like "It's very easy to get started as a DJ" was followed by "these
+     days," on a line of its own. That reads as a bad wrap, but nothing was
+     wrapping: the break was the cue boundary. Re-cut to clause length (see
+     video/brand-captions-merged.vtt) the longest line is 64 characters,
+     and this is what holds one without turning it over. */
+  max-width: 33em;
+  /* No bottom margin of its own. It used to be that the break below owned
+     that gap; there is no break now, and the curriculum's own 92px of top
+     padding owns it instead. Either way not here -- this element's em is a
+     clamped, larger one, so 4em came out as 96px against the 92px used
+     everywhere else, and adjacent margins collapse to the larger of the
+     two, so it would have quietly won. */
+  margin: 0 auto;
+  --cc-pad-x: 1.5em;
+  /* Top padding, not a margin: the outgoing lines rise 0.55em before they
+     are gone, and the clip below happens at the padding edge, so this is
+     the room they rise into without being sliced. */
+  padding: 0.55em var(--cc-pad-x) 0;
+  text-align: center;
+  font-size: clamp(1.03em, 2.15vw, 1.3em);
+  line-height: 1.5;
+  /* Fixed, not a minimum. Three cues are three lines on a wide screen but
+     four, five or six once they start turning over, and a box that grew
+     and shrank with them moved the whole page under the reader every time
+     a line changed -- visible as a jitter while the video plays and you
+     are reading something further down.
+
+     So the height is set and whatever does not fit is cut. The cut is not
+     a hard edge: the mask fades the last 1.6em out, and the read-ahead
+     lines are already the faintest thing here, so a fourth or fifth line
+     dissolves into the page rather than being chopped. Anything past that
+     was unreadable grey anyway.
+
+     4.5em of that is the three lines; the rest is the fade's room. */
+  height: 7em;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 1.6em), transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 1.6em), transparent 100%);
+}
+
+/* One turn of the lines. The outgoing set rises and fades while the
+   incoming set comes up from below into its place. */
+.cc-frame {
+  transition: transform 420ms var(--ease), opacity 420ms var(--ease);
+}
+
+.cc-frame.is-entering {
+  transform: translateY(0.75em);
+  opacity: 0;
+}
+
+.cc-frame.is-out {
+  /* Out of flow so the incoming lines take this space straight away
+     rather than waiting for the transition to finish. Offset by the
+     box's own top padding, which is where the in-flow lines start. */
+  position: absolute;
+  left: var(--cc-pad-x);
+  right: var(--cc-pad-x);
+  top: 0.55em;
+  /* The rise is the same length as that padding on purpose -- the box
+     clips now, and this is what keeps the rise inside it. */
+  transform: translateY(-0.55em);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.brand-captions .cc-line {
+  margin: 0;
+}
+
+/* Not yet spoken: present, so the sentence can be read ahead, but clearly
+   behind the voice. The line after next is knocked back further again, so
+   the two don't read as one block of grey. */
+.brand-captions .cc-word {
+  color: var(--text-muted);
+  opacity: 0.55;
+}
+
+.brand-captions .cc-next {
+  color: var(--text-muted);
+  opacity: 0.38;
+}
+
+/* Two lines read ahead, each a step further back, so the three don't read
+   as one block of grey. */
+.brand-captions .cc-next + .cc-next {
+  opacity: 0.22;
+}
+
+.brand-captions .cc-word {
+  transition: color 220ms var(--ease), opacity 220ms var(--ease);
+}
+
+.brand-captions .cc-word.is-said {
+  color: var(--text);
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .brand-captions .cc-word,
+  .cc-frame {
+    transition: none;
+  }
+}
+
+/* Narrow screens. Lifted out of index.css's phone block with the rules above:
+   it is the same element being tuned, and leaving it behind would have meant
+   the captions on a phone were sized by whether the page happened to load
+   index.css. */
+@media (max-width: 640px) {
+  /* A phone is the one place these lines turn over. The cues run up to 64
+     characters and fitting that on a 390px screen would mean type around
+     11px, which is not worth reading -- so this does not chase the longest
+     line. Smaller type and a narrower gutter buy roughly 44 characters to
+     54, which holds most of the file (the median cue is 45) and leaves the
+     long tail to wrap into the fade below.
+
+     Taller here for the same reason: what does wrap needs somewhere to go,
+     and the empty column under the video on a phone is the one place there
+     is room for it. */
+  .brand-captions {
+    --cc-pad-x: 0.85em;
+    font-size: 0.92em;
+    height: 8.5em;
+  }
+}

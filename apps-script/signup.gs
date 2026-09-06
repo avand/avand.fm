@@ -23,10 +23,11 @@
  * this got here originally. It is now the way to lose work: the next push
  * overwrites it with whatever is in the repo, without asking.
  *
- * The Sheet is "Headroom CRM" -- SPREADSHEET_ID below. Both tabs it writes to
- * are named in the constants below and must already exist under exactly those
- * names, capitals included. Renaming a tab in the Sheet without changing the
- * constant breaks that form.
+ * The Sheet is "Headroom CRM" -- SPREADSHEET_ID below. Every tab it writes to
+ * is named in a constant below, and renaming one in the Sheet without changing
+ * its constant breaks that form. Three of the four are created on first use if
+ * they are missing; the signup tab deliberately is not, for the reason given
+ * at SHEET_NAME.
  *
  * The deployment's own settings, made once and carried in appsscript.json:
  *      Execute as:      Me
@@ -250,6 +251,63 @@ var UNSUB_HEADERS = ["Timestamp", "Email", "Page"];
 /** What the form may ask for. Anything else is recorded as "other". */
 var REQUEST_KINDS = ["copy", "correct", "delete", "other"];
 
+/**
+ * Applications, from the wizard on /headroom/apply.
+ *
+ * Its own tab for the same reason the two above have theirs: these rows are
+ * read by a person deciding who to talk to, and a mailing list is read by a
+ * script deciding who to mail. Mixing them means every query on either one
+ * has to start by excluding the other.
+ *
+ * Created on first use, like the privacy and unsubscribe tabs and unlike the
+ * signup tab. The argument at SHEET_NAME -- that creating hides a typo behind
+ * a plausible-looking empty tab -- does not apply where the name exists once,
+ * here, and is never typed anywhere else. What it buys is that the first
+ * application cannot be lost to a setup step somebody forgot.
+ */
+var APPLICATION_SHEET_NAME = "Applications";
+
+/**
+ * The five multiple-choice answers, in the order they are asked and therefore
+ * the order they appear as columns.
+ *
+ * THE QUESTIONS THEMSELVES LIVE IN _data/application.yml, IN THE SITE REPO.
+ * This list is the other half of that file and has to be kept in step with
+ * it: same keys, same order. They cannot be one list, because this file is
+ * deployed to Google and that one is published to Pages -- two releases, and
+ * the whole reason doPost has to stay backward compatible.
+ *
+ * A question added there and not here is collected from the applicant, posted
+ * to this endpoint, and dropped without a word. The note at the top of that
+ * file says so too, on the theory that whoever adds a question is reading
+ * that one and not this one.
+ *
+ * Named here rather than written out twice because the header row and the
+ * appended row have to agree, and two hand-maintained lists in the same order
+ * is a bug waiting for somebody to insert a question in the middle. The
+ * headers below are built from this, and so is the row in application().
+ *
+ * The keys are what the page posts. The labels are what a human reads at the
+ * top of a column in the Sheet -- short, because the question is not in the
+ * column and does not need to be: every answer this file stores is a whole
+ * sentence that stands on its own.
+ */
+var APPLICATION_CHOICES = [
+  { key: "stage", label: "Stage" },
+  { key: "gear", label: "Gear" },
+  { key: "goal", label: "Goal" },
+  { key: "focus", label: "Focus" },
+  { key: "commitment", label: "Commitment" },
+];
+
+var APPLICATION_HEADERS = ["Timestamp", "Name", "Email", "Phone"]
+  .concat(
+    APPLICATION_CHOICES.map(function (q) {
+      return q.label;
+    })
+  )
+  .concat(["In their words", "Source", "Page"]);
+
 function doPost(e) {
   try {
     var payload = parseBody(e);
@@ -260,6 +318,7 @@ function doPost(e) {
     var kind = String(payload.kind || "");
     if (kind === "privacy") return privacyRequest(payload);
     if (kind === "unsubscribe") return unsubscribeRequest(payload);
+    if (kind === "application") return application(payload);
 
     var name = String(payload.firstName || "").trim();
     var email = String(payload.email || "").trim();
@@ -289,12 +348,18 @@ function doPost(e) {
 
       // Capped because nothing upstream of a public URL limits the length of
       // what arrives, and a cell holding a novel is a nuisance to clean up.
+      //
+      // Through cell() like every other write here. The signup form is gone
+      // from the site, but this branch is not dead: it is the backward
+      // compatibility the whole deploy-first rule exists to protect, and a
+      // cached page can post here for as long as a browser holds it. A first
+      // name typed as "-Ana" is a formula, and it lands as #ERROR!.
       sheet.appendRow([
         new Date(),
-        name.slice(0, 100),
-        email.slice(0, 254),
-        String(payload.source || "").slice(0, 200),
-        String(payload.page || "").slice(0, 500),
+        cell(name.slice(0, 100)),
+        cell(email.slice(0, 254)),
+        cell(String(payload.source || "").slice(0, 200)),
+        cell(String(payload.page || "").slice(0, 500)),
       ]);
       // Where that row landed. A position, not a value -- no row is read
       // here, and see sendInvites_ for why that distinction is load-bearing.
@@ -384,10 +449,10 @@ function privacyRequest(payload) {
     ensureHeaders(sheet, REQUEST_HEADERS);
     sheet.appendRow([
       new Date(),
-      email.slice(0, 254),
+      cell(email.slice(0, 254)),
       kind,
-      String(payload.message || "").slice(0, 2000),
-      String(payload.page || "").slice(0, 500),
+      cell(String(payload.message || "").slice(0, 2000)),
+      cell(String(payload.page || "").slice(0, 500)),
     ]);
   } finally {
     lock.releaseLock();
@@ -419,8 +484,8 @@ function unsubscribeRequest(payload) {
     ensureHeaders(sheet, UNSUB_HEADERS);
     sheet.appendRow([
       new Date(),
-      email.slice(0, 254),
-      String(payload.page || "").slice(0, 500),
+      cell(email.slice(0, 254)),
+      cell(String(payload.page || "").slice(0, 500)),
     ]);
   } finally {
     lock.releaseLock();
@@ -430,9 +495,106 @@ function unsubscribeRequest(payload) {
 }
 
 /**
- * Both tabs are found by name now -- there is no "first tab" fallback left, on
- * purpose. `create` makes the tab if it is missing, which the requests tab
- * needs and the signup tab must not have, for the reason given at SHEET_NAME.
+ * An application, from the wizard on /headroom/apply.
+ *
+ * WHY THIS VALIDATES THREE FIELDS AND NOTHING ELSE
+ *
+ * Name, email and phone are the three the page itself requires, repeated here
+ * because the page's copy of a rule can be skipped by anyone posting to this
+ * URL directly. The six answers are not checked at all -- not for presence,
+ * not against the list of options they were picked from.
+ *
+ * Presence, because every question is skippable by design and a blank column
+ * is a true record of somebody who did not answer. Rejecting one would throw
+ * away the other eleven fields to punish a gap.
+ *
+ * The list of options, because this file would then hold a second copy of the
+ * question copy, and the two would drift the first time a word in an answer
+ * gets edited on the page. Everything stored here arrives as a whole sentence
+ * from a fixed set of buttons; somebody who posts their own sentence instead
+ * has written in a Sheet cell that a person reads, which is a nuisance and not
+ * a hazard. The cap below is what keeps it to a nuisance.
+ */
+function application(payload) {
+  var name = String(payload.name || "").trim();
+  var email = String(payload.email || "").trim();
+  var phone = String(payload.phone || "").trim();
+
+  if (!name) return json({ ok: false, error: "name required" });
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return json({ ok: false, error: "email invalid" });
+  }
+  if (!phone) return json({ ok: false, error: "phone required" });
+
+  // Same honeypot as the other three: answer as though it worked, write
+  // nothing.
+  if (String(payload.company || "").trim()) return json({ ok: true });
+
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(20000)) return json({ ok: false, error: "busy" });
+
+  try {
+    var sheet = targetSheet(APPLICATION_SHEET_NAME, true);
+    ensureHeaders(sheet, APPLICATION_HEADERS);
+
+    // Built in the same three pieces as APPLICATION_HEADERS, from the same
+    // list, so a question added in the middle moves the column and the value
+    // together IN THIS FILE.
+    //
+    // The Sheet is the half that does not follow. ensureHeaders writes the
+    // header row once, into an empty tab, and returns early ever after -- so
+    // once the first application has landed, adding a question here widens
+    // every new row against a header row that stays as it was, and every
+    // value after the insertion point sits one column right of its label.
+    // Silently, with old and new rows interleaved.
+    //
+    // Not fixed in code on purpose. Widening it would mean reading row 1 back,
+    // and "doPost never reads a row" is the sentence the whole argument for a
+    // deployment open to Anyone rests on; weakening it to save a manual step
+    // is a bad trade. The manual step: add the column heading to the
+    // Applications tab by hand, in the same position, before deploying. It is
+    // written down again in _data/application.yml, which is the file somebody
+    // adding a question is actually looking at.
+    //
+    // Every field capped, because nothing upstream of a public URL limits
+    // what arrives. The free-text answer gets the same 2000 as a privacy
+    // request's message; the choices get 200, which is comfortably more than
+    // the longest option on the page and far less than a paragraph somebody
+    // posted by hand.
+    sheet.appendRow(
+      [
+        new Date(),
+        cell(name.slice(0, 100)),
+        cell(email.slice(0, 254)),
+        cell(phone.slice(0, 40)),
+      ]
+        .concat(
+          APPLICATION_CHOICES.map(function (q) {
+            return cell(String(payload[q.key] || "").slice(0, 200));
+          })
+        )
+        .concat([
+          cell(String(payload.words || "").slice(0, 2000)),
+          cell(String(payload.source || "").slice(0, 200)),
+          cell(String(payload.page || "").slice(0, 500)),
+        ])
+    );
+  } finally {
+    lock.releaseLock();
+  }
+
+  // No mail from here, unlike a signup. The confirmation an applicant gets is
+  // the page they land on, and what happens next is a text message sent by a
+  // person who has read what they wrote -- which is the entire premise of
+  // asking them to apply rather than to join a list.
+  return json({ ok: true });
+}
+
+/**
+ * Every tab is found by name -- there is no "first tab" fallback left, on
+ * purpose. `create` makes the tab if it is missing, which the requests,
+ * unsubscribe and application tabs all pass, and which the signup tab must not
+ * have, for the reason given at SHEET_NAME.
  */
 function targetSheet(name, create) {
   var book = SpreadsheetApp.openById(SPREADSHEET_ID);
@@ -452,6 +614,38 @@ function ensureHeaders(sheet, headers) {
   sheet.appendRow(headers);
   sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold");
   sheet.setFrozenRows(1);
+}
+
+/**
+ * A value safe to put in a cell.
+ *
+ * WHY THIS EXISTS: A PHONE NUMBER CAME BACK AS #ERROR!
+ *
+ * Sheets decides a cell is a formula from its first character, and it does so
+ * for values written by a script exactly as for values typed by a person.
+ * "+1 555 0100" is a formula. So is anything starting with =, -, or @.
+ *
+ * The first application ever posted at this endpoint wrote "#ERROR!" into the
+ * Phone column, which is the one field whose entire purpose is being able to
+ * text somebody back. autocomplete="tel" fills international numbers in
+ * exactly that shape, so this was not an edge case; it was most of them.
+ *
+ * Prose is at risk too, and less obviously: an answer that begins "- " is a
+ * subtraction, and a list is a natural way to answer "what do you want to be
+ * able to do".
+ *
+ * A leading apostrophe is Sheets' own escape for "this is text". It is
+ * consumed on write and never appears in the cell or in anything read back
+ * out of it, so the stored value is the one somebody typed.
+ *
+ * The same escape also closes CSV injection, which is the other reason to do
+ * this at the boundary rather than per field: a cell holding
+ * =IMPORTXML(...) is a formula that runs when this Sheet is exported and
+ * opened somewhere else, under whoever opens it.
+ */
+function cell(value) {
+  var text = String(value == null ? "" : value);
+  return /^[=+\-@]/.test(text) ? "'" + text : text;
 }
 
 function json(obj) {

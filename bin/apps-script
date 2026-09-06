@@ -27,11 +27,16 @@
 #
 # THE DEPLOYMENT IS NOT PINNED IN THIS FILE
 #
-# It is read out of headroom/index.html, from the SIGNUP_ENDPOINT the form
-# actually posts to. That string is the deployment id, so the URL the site uses
-# and the deployment this script advances cannot drift apart -- change the
-# endpoint and this follows it. A second copy here would be a second thing to
-# remember.
+# It is read out of the page, from the endpoint a form actually posts to. That
+# string is the deployment id, so the URL the site uses and the deployment this
+# script advances cannot drift apart -- change the endpoint and this follows
+# it. A second copy here would be a second thing to remember.
+#
+# ENDPOINT_FILE was headroom/index.html, which held the mailing-list signup
+# until that form became the application. It is now the application's own
+# script. If the endpoint ever moves again, this line moves with it -- and the
+# failure if it does not is loud, which is the point: deployment_id() dies
+# rather than guessing.
 #
 # WHO YOU ARE
 #
@@ -44,7 +49,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-ENDPOINT_FILE="headroom/index.html"
+ENDPOINT_FILE="headroom/apply/apply.js"
 
 die() { printf '\033[31m%s\033[0m\n' "$*" >&2; exit 1; }
 say() { printf '\033[36m%s\033[0m\n' "$*"; }
@@ -78,7 +83,7 @@ script_id() { grep -o '"scriptId": *"[^"]*"' .clasp.json | cut -d'"' -f4; }
 deployment_id() {
   local id
   id=$(grep -oE 'macros/s/[A-Za-z0-9_-]+/exec' "$ENDPOINT_FILE" | head -1 | cut -d/ -f3)
-  [ -n "$id" ] || die "No /exec URL found in $ENDPOINT_FILE -- has SIGNUP_ENDPOINT moved?"
+  [ -n "$id" ] || die "No /exec URL found in $ENDPOINT_FILE -- has the endpoint moved? Update ENDPOINT_FILE above."
   printf '%s' "$id"
 }
 

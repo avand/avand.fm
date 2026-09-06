@@ -1,7 +1,8 @@
 # avand.fm
 
 A static site on GitHub Pages. The substantial part is `/headroom/` — a course
-landing page and a 43-entry glossary, sharing one Jekyll layout.
+landing page, a 43-entry glossary, and a two-page application, all sharing one
+Jekyll layout.
 
 Most of what you need to know is in comments next to the thing it explains, and
 that is on purpose: this file is only for what you cannot find by opening the
@@ -36,20 +37,30 @@ renditions. `video/README.md` covers the ladder, captions, and uploads.
 
 ## Where a new CSS rule goes
 
-Three stylesheets, split by audience, not by tidiness:
+Five stylesheets, split by audience, not by tidiness:
 
 | | |
 |---|---|
-| `headroom/headroom.css` | what the landing page and the glossary present **identically** — tokens, fonts, nav, footer, buttons, the CTA's presentation |
-| `headroom/index.css` | the landing page's own furniture — hero, curriculum, player, timeline, modal, signup |
+| `headroom/headroom.css` | what every page under `/headroom/` presents **identically** — tokens, fonts, nav, footer, buttons, `.final-cta` (which all 50 concept pages render too) |
+| `headroom/index.css` | the landing page's own furniture — hero, curriculum, timeline, modal, the CTA's two extra lines |
+| `headroom/player.css` | the video player, at any size, wherever one appears |
 | `headroom/concepts/concepts.css` | the glossary's own layout |
+| `headroom/apply/apply.css` | the application and its confirmation page |
 
 The test: **if a concept page would look wrong without it, it is shared. If a
 concept page never renders the element, it is not.**
 
-`_layouts/headroom.html` is the shell. One front-matter flag, `landing: true`,
-turns on everything specific to the landing page. The order of the stylesheet
-links is load-bearing — `index.css` overrides `headroom.css`.
+`player.css` is the exception that proves it, and worth reading before you
+merge anything back into `index.css`. The player was landing-page furniture
+until `/headroom/apply/done/` grew one. Loading `index.css` there instead
+would have been the smaller diff and the wrong answer: that file sets
+`body { background: var(--hero-top) }`, so any page without a hero renders as
+a purple slab — the exact bug that once shipped to all 43 glossary entries.
+
+`_layouts/headroom.html` is the shell, and its header comment lists the four
+front-matter flags (`landing`, `apply`, `chrome`, `player`) and what each one
+is for. The order of the stylesheet links is load-bearing — `index.css`
+overrides `headroom.css`.
 
 ## Analytics
 
@@ -62,8 +73,13 @@ every event in the console; on any host but `avand.fm` that is the default.
 Most events need no JavaScript. A `data-track` attribute is one:
 
 ```html
-<a href="#cta" data-track="headroom / hero / cta">Join a free sample class</a>
+<a href="#cta" data-track="headroom / hero / cta">Apply now</a>
 ```
+
+Note what that name is **not**: it does not say "apply". Every name here is the
+place, not this month's offer — the same reason the anchor is `#cta` and not
+`#notify`. The button has now said three different things and the name has
+never had to move, which is what keeps a year of Fathom history comparable.
 
 It works on a **container** too — one attribute on `.related-list` reports for
 every link inside it — and a click only counts when it landed on a link or a
@@ -115,13 +131,32 @@ is four hundred, nearly all of them holding a one. Fathom only lists names that
 have fired, so the number that matters is smaller than that — but the ceiling
 is what decides whether the page is legible on the day everything works.
 
-Coverage is the **only** thing a player reports. There is no play, pause,
-autoplay, mute, volume or complete event, and the code for them is gone rather
-than switched off — `Player.prototype.track` has one caller. `pause` was the
-last to go: on a video that autoplays muted, reaching the sound through the
-control bar means pressing play once to pause and again to resume, so every
-viewer who wanted audio filed a pause on the way and the signal was a mix of
-"stop this" and "let me hear it".
+Coverage and **one** other thing: `started`, fired from the `playing` event.
+There is still no pause, autoplay, mute, volume or complete event, and the code
+for them is gone rather than switched off. `pause` was the last to go: on a
+video that autoplays muted, reaching the sound through the control bar means
+pressing play once to pause and again to resume, so every viewer who wanted
+audio filed a pause on the way and the signal was a mix of "stop this" and
+"let me hear it".
+
+`started` came back because coverage has no denominator. It says nothing at
+all below its first step, and that step is a fifth of the video — 42 seconds
+of the brand film against 8 of a curriculum clip. Seven days of the brand
+video reporting nothing was indistinguishable from seven days of it being
+broken. Against `started`, a run of zeroes is an answer rather than an
+absence.
+
+Read it as **the video began**, not as somebody chose it. On the autoplaying
+brand film it fires when the player scrolls a quarter into view, so it counts
+arrivals at that part of the page; on the `data-manual` curriculum players it
+does mean a press. That ambiguity is why the old play/autoplay events were
+removed and it is not a reason to leave this one out — a denominator counts
+everybody, and the muted and unmuted coverage series are what separate the two
+afterwards.
+
+It is on `playing` rather than `play`, because `play` fires on the attempt: an
+autoplay the browser then refuses, or a press that stalls on a dead
+connection, would each count a start that never happened.
 
 Where JavaScript is unavoidable, call through the guard: `if (window.Track)
 Track.event("…")`. The guard is not superstition — the file is same-origin but
@@ -131,17 +166,41 @@ all-or-nothing, so there is no state where `Track` exists but a method on it
 does not, and `if (window.Track && Track.lead)` would imply a hazard that
 cannot happen.
 
-Nothing in that guard, though, keeps a throw *inside* it from escaping. See
-the note at the signup form's success branch.
+Nothing in that guard, though, keeps a throw *inside* it from escaping. The
+signup form used to wrap its analytics for that reason; the application does
+not need to, because its conversion fires on a *different page* from the one
+that accepted it — see below.
 
 ## The OpenAI pixel is a different animal
 
 Fathom counts behaviour and nobody is billed by the answer. The OpenAI pixel
-exists to tell an ad account that money produced a signup, and it reports
-exactly one thing — `lead_created`, from `Track.lead()`, on the success branch
-of the signup form. Not on submit: a submission the Apps Script rejects is not
-a lead, and a campaign bidding toward a number that includes failures buys the
-wrong traffic.
+exists to tell an ad account that money produced an application, and it reports
+exactly one thing — `lead_created`, from `Track.lead()`, fired **once, from
+`/headroom/apply/done/`**. Not on submit: an application the Apps Script
+rejects is not a lead, and a campaign bidding toward a number that includes
+failures buys the wrong traffic.
+
+Three things about that placement, each of which was a bug on the way here:
+
+**It fires on the page after the one that accepted it.** `Track.lead()` is an
+async call into a script fetched from `bzrcdn.openai.com`; firing it on the
+apply page and navigating in the next line is a race the navigation usually
+wins. `/headroom/sample/register` documents the same race for a Fathom event,
+which is why that page tracks nothing at all.
+
+**The confirmation page therefore needs the applicant's details, and gets them
+through `sessionStorage`.** The stash is removed *before* the call, so a reload
+cannot report a second conversion for one application, and someone who types
+the URL converts nothing. Only the **first** name is stashed: OpenAI's field is
+`first_name_sha256`, and `normalizeName` strips whitespace, so handing it a
+full name hashes `firstnamelastname` and matches nobody.
+
+**Every link into the flow forwards `location.search`.** `fromAd()` matches on
+`oppref` in the query string *or* the `__oppref` cookie. On the landing page
+the query string is always there, so the cookie never mattered; two navigations
+later there is none, and the cookie is written by that same ad-tech script — so
+without forwarding, a blocked SDK means no cookie, no attribution, and a zero
+that looks like nobody applied.
 
 Its event names come from OpenAI's fixed vocabulary and have nothing to do with
 the `page / section / element` scheme above.
@@ -157,13 +216,14 @@ against the SDK, not the docs.
 
 None of it can be exercised locally: it is inside the same `avand.fm` gate as
 Fathom, and `crypto.subtle` (used to hash the email) does not exist over plain
-http anyway. Verifying means one real signup on production.
+http anyway. Verifying means one real application on production.
 
 ## The signup endpoint lives in Google, and is deployed from here
 
-`apps-script/signup.gs` is the Apps Script Web App the signup form POSTs to. It
-writes into the "Headroom CRM" Sheet, and it is the only server-side code in
-this repo. Its own header comment covers what it does and why it is shaped that
+`apps-script/signup.gs` is the Apps Script Web App every form on the site POSTs
+to — the application, privacy requests and unsubscribes, told apart by a `kind`
+field. It writes into the "Headroom CRM" Sheet, one tab per kind, and it is the
+only server-side code in this repo. Its own header comment covers what it does and why it is shaped that
 way; this is about moving it.
 
 ```sh
@@ -201,10 +261,14 @@ visitor can see, and the execution log will show the old code running while your
 new file sits right there. `deploy` is what closes that.
 
 It advances the **existing** deployment rather than making a new one: a new
-deployment means a new `/exec` URL, and the form would still be posting at the
-old one. `bin/apps-script` finds that deployment by reading `SIGNUP_ENDPOINT`
-out of `headroom/index.html` — the URL the site uses and the deployment that
-gets advanced are then the same fact, not two copies of it.
+deployment means a new `/exec` URL, and the forms would still be posting at the
+old one. `bin/apps-script` finds that deployment by reading the endpoint URL out
+of the page — the URL the site uses and the deployment that gets advanced are
+then the same fact, not two copies of it. It reads `headroom/apply/apply.js`
+now — it used to read `headroom/index.html`, which held the mailing-list form
+until that form became the application. If the endpoint ever moves again,
+`ENDPOINT_FILE` in `bin/apps-script` moves with it; the failure if it does not
+is a loud one.
 
 `clasp`'s login is global, not per-repo. The Sheet and the script are both under
 `avand@avandamiri.com`; pushing as anyone else fails with a bare 404 on the
@@ -223,8 +287,10 @@ simply reaches nobody, including you.
 | you changed | bump |
 |---|---|
 | `headroom/*.js` | `?v=` on the script tags in `headroom/index.html` (all five together) |
+| `headroom/player.js` | those five **and** the one in `headroom/apply/done/index.html` — two pages load it now |
 | `headroom/events.js` | its `?v=` in `_layouts/headroom.html` — it is loaded there, not from `index.html` |
-| `headroom/headroom.css`, `index.css`, `concepts/concepts.css` | that file's `?v=` in `_layouts/headroom.html` |
+| `headroom/apply/apply.js` | its `?v=` in `headroom/apply/index.html` |
+| any `.css` under `headroom/` | that file's `?v=` in `_layouts/headroom.html` — all five are linked from there |
 | any `captions.vtt` re-uploaded to R2 | `CAPTIONS_V` in `headroom/player.js` |
 
 Bump in the **same commit** as the change. A hook warns when you don't.

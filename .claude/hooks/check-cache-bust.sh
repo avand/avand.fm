@@ -33,6 +33,18 @@ case "$rel" in
   # index.html that has nothing to do with it -- which warns even when the
   # layout was bumped correctly, and stays quiet when it was not.
   headroom/events.js)             holder="_layouts/headroom.html"; pattern='events\.js\?v=[0-9]+' ;;
+  # The two stylesheets that arrived with the application, and the player's,
+  # which was pulled out of index.css when a second page started rendering one.
+  # Without these three they matched nothing and fell through to the catch-all,
+  # which exits 0 -- so the one file in this repo whose whole job is to make a
+  # forgotten bump loud was silent about them.
+  headroom/player.css)            holder="_layouts/headroom.html"; pattern='player\.css\?v=[0-9]+' ;;
+  headroom/apply/apply.css)       holder="_layouts/headroom.html"; pattern='apply\.css\?v=[0-9]+' ;;
+  # And the application's script, for the same reason as events.js: `*` matches
+  # `/` in a case glob, so this would otherwise fall through to the line below
+  # and be checked against the landing page's five-script version, which has
+  # nothing to do with it. Its own ?v= is in the page that loads it.
+  headroom/apply/apply.js)        holder="headroom/apply/index.html"; pattern='apply\.js\?v=[0-9]+' ;;
   headroom/*.js)                  holder="headroom/index.html";    pattern='\?v=[0-9]+' ;;
   *)                              exit 0 ;;
 esac

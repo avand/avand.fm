@@ -31,3 +31,24 @@ exclude:
   - Gemfile
   - Gemfile.lock
   - vendor
+
+# The cohort's own facts, in one place because they are said in several.
+#
+# The seat count appears in the hero, in "How it works", and in the call to
+# action; the dates appear there and in the application's commitment question.
+# Written out at each site, changing "10 spots left" to "3 spots left" is a
+# hunt through two files with nothing to say when one is missed.
+#
+# seats_left is the one that has to be maintained by hand, and it is the one
+# that lies if it is not. Two rules for it: it only ever goes down, and it is
+# never equal to `seats` -- a course advertised as twelve students with twelve
+# spots remaining is telling the reader that nobody has signed up.
+headroom:
+  term: Fall 2026
+  seats: 12
+  seats_left: 10
+  applications_close: September 24
+  cohort_starts: October 1st
+  cohort_starts_short: Oct 1
+  cohort_ends: November 19th
+  cohort_ends_short: Nov 19

@@ -1,0 +1,137 @@
+# The application's questions, in the order they are asked.
+#
+# WHY THIS IS IN _data AND NOT _config.yml
+#
+# Jekyll watches _data and rebuilds when it changes. A _config.yml edit needs
+# the server restarted, and `bin/dev` will happily keep serving the old copy
+# while you wonder why nothing moved.
+#
+# HOW TO EDIT
+#
+#   Reword a question or an option   change the text here, and nothing else.
+#   Reorder the options              move the lines. The order on screen is
+#                                    the order here.
+#   Reorder the questions            move the blocks. Same rule. apply.js
+#                                    numbers the panels by position, so the
+#                                    progress bar and the step events follow
+#                                    on their own.
+#
+#   ADD OR REMOVE A QUESTION         three steps, and the last two are easy to
+#                                    forget. Add the block here. Add a matching
+#                                    entry to APPLICATION_CHOICES in
+#                                    apps-script/signup.gs, in the same
+#                                    position, because that list is what builds
+#                                    both the header row and the row of
+#                                    answers -- a question with no entry there
+#                                    is collected, posted, and silently dropped
+#                                    on the floor. Then `bin/apps-script deploy`.
+#
+#                                    AND, IF ANY APPLICATION HAS ALREADY
+#                                    LANDED: add the column heading to the
+#                                    Applications tab by hand, in that same
+#                                    position, first. The script writes the
+#                                    header row once, into an empty tab, and
+#                                    never revisits it -- so a question added
+#                                    afterwards puts every new value one column
+#                                    to the right of its label, silently, with
+#                                    old and new rows interleaved. The note
+#                                    above appendRow in signup.gs says why that
+#                                    is left to a person rather than fixed in
+#                                    code.
+#
+# `name` is the key the answer is posted under and the tie to that Sheet
+# column. It is the one field here that is not copy: changing it renames a
+# column mid-flight and files new answers apart from old ones. The visible
+# text can change as often as you like -- rows already in the Sheet keep the
+# wording they were given, which is honest.
+#
+# Two tokens are substituted when the page renders, so the schedule is stated
+# once in _config.yml and not typed again here:
+#
+#   [starts]   site.headroom.cohort_starts
+#   [ends]     site.headroom.cohort_ends
+#
+# Curly quotes and dashes are written as real characters. The page is UTF-8
+# and Liquid does not escape them, so ' and — arrive as themselves. There is
+# no need for &rsquo; and it is harder to read.
+#
+# THREE RULES THE OPTION SETS ARE HELD TO, and each of them has been broken
+# here at least once:
+#
+#   1. Everybody can answer. Every set needs a true option for a beginner and
+#      for somebody at the far end. A person with nothing to tap closes the
+#      tab, and you never learn that they came.
+#   2. Nobody is torn. If two options can both be true of one person, the
+#      question is asking about two things at once -- split it, or narrow the
+#      question until one answer is right. "What do you practise on MOST" and
+#      "which would mean the MOST" are both that word doing that job.
+#   3. Any progression lives in the order. A set that runs from least to most
+#      must not double back -- "I'm just getting started" sat at the bottom of
+#      an otherwise ordered list, which is the one thing an ordered list
+#      cannot survive. A set with no natural progression, like the wants
+#      below, is simply not ordered, and inventing a hierarchy there would be
+#      worse than leaving it alone.
+
+- name: stage
+  question: Where are you with DJing right now?
+  options:
+    - I’m just getting started
+    - I play at home — I haven’t played for anyone yet
+    - I’ve played a few times (for friends, small rooms)
+    - I play out regularly
+    - I’m gigging a lot, and it’s part of how I earn
+
+- name: gear
+  question: What do you play on most?
+  options:
+    - A laptop or controller (e.g., FLX4)
+    - Standalone players or all-in-one (e.g., CDJ, XDJ)
+    - Turntables
+    - A mix of gear
+    - I don’t have a setup yet
+
+- name: goal
+  question: One year from now, what do you want most?
+  options:
+    - Playing rooms I actually want to play
+    - Feeling calm instead of white-knuckling it
+    - Having a vibe people recognize as mine
+    - Making real money from DJing
+    - Actually understanding what I’m doing
+
+# Five domains, and they are the curriculum: Sound/Signal Flow, Gear,
+# Tracks/Library, Playing, Attunement/Showtime. Asked as a choice rather than
+# a confession -- the version before this listed five specific faults, and
+# naming your own fault takes the expertise somebody is applying to get.
+# There is deliberately no option about getting booked or paid: no module
+# teaches it, and offering it here would promise something the course does
+# not deliver.
+- name: focus
+  question: Which part do you most want to get good at?
+  options:
+    - Understanding how to create really good sound
+    - Feeling comfortable playing in any environment
+    - Having the perfect song always at my fingertips
+    - Mixing, transitions, effects, creating energy, range
+    - How to put on an amazing show
+    - Something else
+
+# `context` is the detail a question needs to be answerable, set below the
+# heading at normal size. It exists because the schedule is not the question
+# -- it is what somebody has to know before the question means anything, and
+# a heading carrying both reads as a paragraph rather than as a thing being
+# asked. Any question can take one.
+- name: commitment
+  question: What’s between you and a yes?
+  context: Classes are Thursdays, 6–8 PM MT, [starts] through [ends]. Two hours live with about 30m of homework each week.
+  options:
+    - Nothing. I’m in!
+    - The money
+    - The time or schedule
+    - I’m not sure it’s right for me
+    - I’m just exploring
+
+- name: words
+  question: What do you hope to get out of Headroom? Dream big.
+  placeholder: A sentence or two is plenty.
+  hint: A venue they want to play? Mastering something you’ve been struggling with?

@@ -1,0 +1,247 @@
+---
+layout: headroom
+title: "Apply — Headroom"
+description: "Six questions and a couple of sentences. About two minutes. Every application is read by a person."
+apply: true
+chrome: false
+---
+
+<!-- ===========================================================================
+     The application.
+
+     Seven panels, all present in the markup, one visible at a time. Server-
+     rendered rather than built by apply.js for two reasons: the copy is
+     content and belongs in a file somebody can edit without reading a
+     script, and a question that exists in the DOM can be styled and measured
+     before anybody has answered anything.
+
+     The panels are laid out in source order and the script only toggles
+     `hidden`. Nothing here knows what question it is -- the numbering, the
+     progress line, the back link and the event names are all derived from
+     position in apply.js, so inserting a question is inserting a <section>.
+     =========================================================================== -->
+
+<div class="apply">
+
+  <header class="apply-head">
+    <a class="apply-mark" href="/headroom/">
+      <span class="apply-mark-name">HEADROOM</span>
+    </a>
+    <p class="apply-kicker">Application &middot; {{ site.headroom.term }}</p>
+  </header>
+
+  <!-- The progress line counts all seven panels, contact included. A bar that
+       fills at 6 of 6 and then asks for a phone number is a small betrayal at
+       the one moment in this flow where trust is actually being spent.
+
+       The bar is the only VISIBLE progress. "Step 1 of 7" used to sit under
+       it and read as a warning about how much was left rather than as
+       reassurance about how little -- a number at the top of a form is a
+       price. A filling bar says the same thing without quantifying it.
+
+       The count is still here, and still written on every advance, because
+       the bar is aria-hidden: a filling rectangle says nothing to a screen
+       reader, so this element is the whole of what progress means to one.
+       Removing it rather than hiding it would have taken the number away
+       from the people it was helping and left it for the ones it was
+       daunting. -->
+  <div class="apply-progress" aria-hidden="true">
+    <div class="apply-progress-bar"></div>
+  </div>
+  <p class="apply-count sr-only" role="status" aria-live="polite"></p>
+
+
+  <form class="apply-form" id="application" novalidate>
+
+    <!-- ---------------------------------------------------------------
+         The six questions, from _data/application.yml.
+
+         The copy lives there, and the reasoning behind each option set lives
+         there beside it, because those two go stale together. What is left
+         here is the shape: a panel per question, options where a question has
+         them, a textarea where it does not.
+
+         Nothing in this loop knows which question it is on. apply.js reads
+         the panels' order and their data-name out of the rendered DOM, so
+         reordering the questions means reordering blocks in the YAML -- the
+         progress bar, the back button and the step event names all follow
+         without being told.
+
+         The [starts] and [ends] tokens are substituted here rather than
+         written into the data file, so the cohort dates are stated once, in
+         _config.yml. A data file is never run through Liquid, which is why
+         they are tokens at all.
+
+         Square brackets and not curly ones: Liquid 4 tokenises a variable
+         with /{{.*?}}?/ -- one closing brace is enough to end it -- so the
+         "}" inside a {starts} written here would terminate the tag early and
+         fail the whole build with a syntax error pointing at the wrong
+         thing.
+         --------------------------------------------------------------- -->
+    {% for q in site.data.application %}
+    <section class="apply-panel" data-name="{{ q.name }}"{% unless q.options %} data-advance{% endunless %} hidden>
+      <h1 class="apply-q">{{ q.question | replace: "[starts]", site.headroom.cohort_starts | replace: "[ends]", site.headroom.cohort_ends }}</h1>
+      {% if q.context %}<p class="apply-context">{{ q.context | replace: "[starts]", site.headroom.cohort_starts | replace: "[ends]", site.headroom.cohort_ends }}</p>{% endif %}
+      {% if q.options %}
+      <div class="apply-options">
+        {% for option in q.options %}
+        <button type="button" class="apply-option">{{ option }}</button>
+        {% endfor %}
+      </div>
+      {% else %}
+      <label class="sr-only" for="ap-{{ q.name }}">Your answer</label>
+      <textarea id="ap-{{ q.name }}" name="{{ q.name }}" rows="5" maxlength="2000"
+        placeholder="{{ q.placeholder }}"></textarea>
+      {% if q.hint %}<p class="apply-hint">{{ q.hint }}</p>{% endif %}
+      <!-- role="alert" rather than a live region: this is only ever written
+           when somebody has just pressed Next on an empty box, so it wants
+           announcing at that moment and never otherwise. -->
+      <p class="apply-error" role="alert" hidden></p>
+      {% endif %}
+    </section>
+    {% endfor %}
+
+    <!-- ---------------------------------------------------------------
+         Screen 7 -- contact.
+
+         Last, and deliberately the smallest screen here: by now they have
+         answered six questions, and these three fields read as "where do I
+         send the answer" rather than as a toll booth.
+
+         The line under the phone field is doing the work verification would
+         not. The risk was never mistyped numbers -- it is people who would
+         rather not be phoned, and a hedged number passes an SMS check just
+         as well as a real one. Saying what the number is for is what
+         produces correct ones.
+         --------------------------------------------------------------- -->
+    <section class="apply-panel apply-panel-contact" data-name="contact" data-submit hidden>
+      <h1 class="apply-q">Last thing &mdash; how do I reach you?</h1>
+
+      <!-- One .apply-field per input, each carrying its own message.
+           The three errors used to share the status line at the foot of the
+           panel, which meant reading a sentence and then working out which of
+           three boxes it was about. A message under the field it belongs to
+           needs no such step, and it is where somebody is already looking:
+           validation focuses the field it flagged.
+
+           The status line is still here, for the two things that are about
+           the whole submission rather than one field -- "Sending…" and the
+           network error. -->
+      <div class="apply-fields">
+        <div class="apply-field">
+          <label for="ap-name">Name</label>
+          <!-- data-1p-ignore for the same reason the old signup form carried
+               it: this is not a login, and 1Password's inline menu covers the
+               button. The browser's own autofill is wanted and stays. -->
+          <input id="ap-name" name="name" type="text" autocomplete="name" data-1p-ignore required />
+          <p class="apply-error" role="alert" hidden></p>
+        </div>
+
+        <div class="apply-field">
+          <label for="ap-email">Email</label>
+          <input id="ap-email" name="email" type="email" autocomplete="email" data-1p-ignore required />
+          <p class="apply-error" role="alert" hidden></p>
+        </div>
+
+        <div class="apply-field">
+          <label for="ap-phone">Phone</label>
+          <input id="ap-phone" name="phone" type="tel" autocomplete="tel" data-1p-ignore required />
+          <p class="apply-error" role="alert" hidden></p>
+          <!-- Below the error, not above it: the hint is always true and the
+               error is the thing that just happened. -->
+          <p class="apply-hint apply-hint-phone">
+            I&rsquo;d rather text than email &mdash; it&rsquo;s how I actually
+            reply. I won&rsquo;t call out of the blue.
+          </p>
+        </div>
+      </div>
+
+      <!-- Bots fill this in; people never see it. Same field name the other
+           three forms use, so signup.gs checks one thing. -->
+      <div class="apply-hp" aria-hidden="true">
+        <label>Company <input type="text" name="company" tabindex="-1" autocomplete="off" /></label>
+      </div>
+
+      <p class="apply-status" role="status" aria-live="polite"></p>
+
+      <!-- The disclosure sits at the point the data is collected, and it names
+           the phone number specifically: that is the field a reader will
+           hesitate over, and the one this page is asking them to trust it
+           with.
+
+           It used to sit below the button, so that it informed without
+           standing between somebody and the thing they came to do. The button
+           is in the control row at the foot of the form now, which puts this
+           above it -- and that is fine at this length. One quiet line is not
+           the wall of legal text that argument was about; a second one would
+           be, so keep it to this. -->
+      <p class="apply-fineprint">
+        By applying you&rsquo;re agreeing to the
+        <a href="/headroom/privacy/">Privacy Policy</a>. Your email and phone
+        number are used to talk to you about Headroom, and nothing else.
+      </p>
+    </section>
+
+    <!-- One control row for the whole form, and it has to be the LAST thing in
+         it. Every panel is a sibling above it, so wherever it sits is where it
+         renders -- put between the loop and the contact panel, as it briefly
+         was, it draws Back and Submit above the question they belong to on
+         the one screen that matters most.
+
+         All three controls live here rather than inside the panels so they
+         land on a single line, at the column's left and right edges, at the
+         same size. A button inside a panel and a button outside one cannot
+         share a row without being nudged into it by hand.
+
+         Back is hidden on the first panel: there is nowhere to go, and a
+         disabled control is a worse answer than no control.
+
+         Next and Submit are the same slot on different panels and are never
+         shown together. Each appears on the panel the template marks for it
+         -- data-advance on a question with no options, data-submit on the
+         contact screen -- rather than on a position, so neither breaks if a
+         question is added or the order changes. -->
+    <div class="apply-controls">
+      <button type="button" class="apply-back" hidden>&lsaquo; Back</button>
+      <button type="button" class="apply-next" hidden>Next &rsaquo;</button>
+      <button type="submit" class="apply-submit" hidden>Submit application</button>
+    </div>
+
+  </form>
+
+  <!-- Exit is a real navigation, and it is deliberately nowhere near Back.
+       One is a step inside the form and the other is leaving it, and a pair
+       of quiet links side by side is how somebody loses six answers by
+       tapping the one that worked a moment ago. Back sits with the question
+       it undoes; this sits at the foot of the page, where somebody looking
+       for a way out will go.
+
+       Back is in-page state and not history, which means the browser's own
+       back gesture leaves the page. The saved draft is what makes that
+       survivable -- coming back lands on the question they left. -->
+  <nav class="apply-nav">
+    <a class="apply-exit" href="/headroom/">Exit application</a>
+  </nav>
+
+  <noscript>
+    <div class="apply-noscript">
+      <h1>This application needs JavaScript</h1>
+      <!-- Instagram rather than a mailto, and not only because this is the
+           last address left in anything the site serves. It is the route
+           about.html already sends booking enquiries down, so it is the one
+           somebody may already have used. A mailto: is also the single
+           easiest thing on a page for a harvester to find. -->
+      <p>
+        It asks one question at a time, and that part is script. If you&rsquo;d
+        rather not turn it on, message me on
+        <a href="https://instagram.com/avand.fm" rel="noopener">Instagram</a>
+        and tell me about your DJing &mdash; that is all the form does anyway,
+        and I read those myself too.
+      </p>
+      <p><a href="/headroom/">Back to Headroom</a></p>
+    </div>
+  </noscript>
+
+</div>
+
+<script src="/headroom/apply/apply.js?v=17" defer></script>
