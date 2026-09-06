@@ -764,6 +764,43 @@
     this.reportCoverage("watched-muted", this.mutedSlots, slots);
   };
 
+  /*
+   * The denominator.
+   *
+   * Coverage alone cannot tell "nobody watched this" from "everybody watched
+   * some of it", because it says nothing at all below its first step -- and
+   * that step is a fifth of the video, which for the brand film is 42 seconds.
+   * Seven days of it reporting nothing was indistinguishable from seven days
+   * of it being broken, which is the state this exists to end. Against
+   * `started`, a run of zeroes is an answer rather than an absence.
+   *
+   * READ IT AS "THE VIDEO BEGAN", NOT "SOMEBODY CHOSE IT".
+   *
+   * On a player that autoplays -- the brand film -- this fires when the thing
+   * scrolls a quarter of the way into view, so it counts arrivals at that part
+   * of the page. That is the whole reason the old play and autoplay events
+   * were taken out, and it is not a reason to leave the number out here: a
+   * denominator is supposed to count everybody. On the curriculum players,
+   * which are data-manual and only move when somebody presses something, the
+   * same name does mean a deliberate press.
+   *
+   * The muted and unmuted coverage series are what separate the two
+   * afterwards, so nothing is lost by giving them one name.
+   *
+   * On `playing` rather than `play`, because play fires on the attempt: an
+   * autoplay a browser then refuses, or a press that stalls on a dead
+   * connection, would both count a start that never happened. `playing` is the
+   * frame actually arriving. It also fires again after every buffer stall,
+   * which once() absorbs.
+   *
+   * Gated on data-track-progress like the coverage it belongs to, so a player
+   * that reports nothing keeps reporting nothing.
+   */
+  Player.prototype.trackStarted = function () {
+    if (!this.root.hasAttribute("data-track-progress")) return;
+    this.track("started");
+  };
+
   /* Every step up to where the coverage has got to, rather than only the one
      just crossed. On a short clip a single second is worth more than one step
      -- half a minute of video moves 3.3% at a time against 20% buckets -- so
@@ -1183,6 +1220,7 @@
     v.addEventListener("playing", function () {
       self.setBusy(false);
       self.root.classList.remove("is-ended");
+      self.trackStarted();
     });
     v.addEventListener("waiting", function () {
       self.setBusy(true);

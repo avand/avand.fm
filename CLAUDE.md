@@ -131,13 +131,32 @@ is four hundred, nearly all of them holding a one. Fathom only lists names that
 have fired, so the number that matters is smaller than that — but the ceiling
 is what decides whether the page is legible on the day everything works.
 
-Coverage is the **only** thing a player reports. There is no play, pause,
-autoplay, mute, volume or complete event, and the code for them is gone rather
-than switched off — `Player.prototype.track` has one caller. `pause` was the
-last to go: on a video that autoplays muted, reaching the sound through the
-control bar means pressing play once to pause and again to resume, so every
-viewer who wanted audio filed a pause on the way and the signal was a mix of
-"stop this" and "let me hear it".
+Coverage and **one** other thing: `started`, fired from the `playing` event.
+There is still no pause, autoplay, mute, volume or complete event, and the code
+for them is gone rather than switched off. `pause` was the last to go: on a
+video that autoplays muted, reaching the sound through the control bar means
+pressing play once to pause and again to resume, so every viewer who wanted
+audio filed a pause on the way and the signal was a mix of "stop this" and
+"let me hear it".
+
+`started` came back because coverage has no denominator. It says nothing at
+all below its first step, and that step is a fifth of the video — 42 seconds
+of the brand film against 8 of a curriculum clip. Seven days of the brand
+video reporting nothing was indistinguishable from seven days of it being
+broken. Against `started`, a run of zeroes is an answer rather than an
+absence.
+
+Read it as **the video began**, not as somebody chose it. On the autoplaying
+brand film it fires when the player scrolls a quarter into view, so it counts
+arrivals at that part of the page; on the `data-manual` curriculum players it
+does mean a press. That ambiguity is why the old play/autoplay events were
+removed and it is not a reason to leave this one out — a denominator counts
+everybody, and the muted and unmuted coverage series are what separate the two
+afterwards.
+
+It is on `playing` rather than `play`, because `play` fires on the attempt: an
+autoplay the browser then refuses, or a press that stalls on a dead
+connection, would each count a start that never happened.
 
 Where JavaScript is unavoidable, call through the guard: `if (window.Track)
 Track.event("…")`. The guard is not superstition — the file is same-origin but
