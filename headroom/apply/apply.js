@@ -51,10 +51,6 @@
   var DRAFT_KEY = "headroom.application.v1";
   var DRAFT_TTL = 30 * 24 * 60 * 60 * 1000;
 
-  /* Long enough for the choice to register as made, short enough that nobody
-     experiences it as waiting. The chosen option is held lit for exactly this
-     long, so the advance reads as a consequence of the tap. */
-  var ADVANCE_MS = 260;
 
   var form = document.getElementById("application");
   if (!form) return;
@@ -225,6 +221,49 @@
      Answering
      ------------------------------------------------------------------------- */
 
+  /* ADVANCING ON THE WAY UP, NOT ON THE CLICK, AND LIT ON THE WAY DOWN.
+   *
+   * There used to be two delays stacked here and neither was necessary. A
+   * click fires after the finger lifts AND after the browser has decided the
+   * gesture was a click; on top of that the answer was held lit for 260ms so
+   * the choice would register before the question it belonged to disappeared.
+   * Together they made a form that is six taps long feel like a form that is
+   * thinking about it.
+   *
+   * pointerdown lights the option, which is the feedback the hold was there
+   * to provide -- and it arrives sooner than the hold ever did, under the
+   * finger, before it lifts. pointerup then advances with no wait at all.
+   *
+   * Not pointerdown for the advance itself, which is the tempting version. A
+   * scroll that begins on an option fires pointerdown on it, so a swipe down
+   * a panel that does not fit the screen would answer the question on the way
+   * past. Scrolling fires pointercancel instead of pointerup, so this is the
+   * earliest moment that is certainly a tap and not the start of a drag.
+   *
+   * The click listener stays for two audiences that never produce a
+   * pointerup: somebody pressing Enter or Space on a focused option, and any
+   * browser without pointer events. choose() bails when the option's panel is
+   * no longer the one on screen, so the click that follows every pointerup is
+   * a no-op rather than a second advance. */
+  form.addEventListener("pointerdown", function (e) {
+    var option = e.target.closest(".apply-option");
+    if (option) light(option);
+  });
+
+  form.addEventListener("pointerup", function (e) {
+    var option = e.target.closest(".apply-option");
+    if (option) choose(option);
+  });
+
+  /* A drag or a scroll that started on an option: take the light back off,
+     because nothing was chosen. */
+  form.addEventListener("pointercancel", function (e) {
+    var option = e.target.closest(".apply-option");
+    if (option && answers[option.closest(".apply-panel").dataset.name] !== option.textContent.trim()) {
+      option.classList.remove("is-chosen");
+    }
+  });
+
   form.addEventListener("click", function (e) {
     var option = e.target.closest(".apply-option");
     if (option) {
@@ -239,35 +278,31 @@
     }
   });
 
-  function choose(option) {
+  /* The light, on the way down. Visual only -- nothing is recorded and nothing
+     advances, so a scroll that begins here costs a highlight and not an
+     answer. */
+  function light(option) {
     var panel = option.closest(".apply-panel");
-    if (!panel) return;
-
-    // One answer per question: a second tap replaces the first rather than
-    // adding to it, which matters when somebody uses Back and changes an
-    // answer.
+    if (!panel || panel !== panels[at]) return;
     [].forEach.call(panel.querySelectorAll(".apply-option"), function (el) {
       el.classList.toggle("is-chosen", el === option);
     });
+  }
 
+  function choose(option) {
+    var panel = option.closest(".apply-panel");
+    /* Not merely "has a panel" -- has THE panel, the one on screen. Every tap
+       produces a pointerup and then a click, and both reach here; this is what
+       makes the second one a no-op instead of a second advance. It also
+       retires a bug the old 260ms hold had, where two taps inside the hold
+       armed two timers and the second fired from the next panel and skipped
+       it. There is no timer now, so that cannot happen at all. */
+    if (!panel || panel !== panels[at]) return;
+
+    light(option);
     answers[panel.dataset.name] = option.textContent.trim();
     saveDraft();
-
-    /* Held lit for a beat, so the answer registers as taken before the
-       question it belongs to disappears. prefers-reduced-motion is about
-       motion rather than pacing, and this is not motion -- the panel does not
-       move, it swaps -- so the beat is the same either way.
-
-       The timer advances only if the answered panel is still the one on
-       screen. Two taps inside the hold -- a changed mind, or an impatient
-       double-tap on a phone -- used to arm two timers, and the second fired
-       from the NEXT panel and skipped it. The question after the one they
-       answered would go past unseen and unanswered, with nothing to show it
-       had. */
-    var from = at;
-    window.setTimeout(function () {
-      if (at === from) advance();
-    }, ADVANCE_MS);
+    advance();
   }
 
   /* The one question that has to be answered, and the only place in this form

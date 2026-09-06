@@ -109,11 +109,11 @@
 - name: focus
   question: Which part do you most want to get good at?
   options:
-    - Understanding sound — why it changes on a real system
-    - Being at home on any gear, including the venue’s
-    - Finding and organizing music worth playing
-    - The mix itself — transitions, energy, range across a set
-    - Performing — reading a room and running a night
+    - Understanding how to create really good sound
+    - Feeling comfortable playing in any environment
+    - Having the perfect song always at my fingertips
+    - Mixing, transitions, effects, creating energy, range
+    - How to put on an amazing show
 
 # `context` is the detail a question needs to be answerable, set below the
 # heading at normal size. It exists because the schedule is not the question
