@@ -335,7 +335,7 @@
     }
     words.classList.add("is-invalid");
     words.focus();
-    track("error / missing-words");
+    trackError("missing-words");
     return false;
   }
 
@@ -408,6 +408,11 @@
     if (sending) return;
 
     track("submit");
+    /* The step this submission left from. Back is still live while a request
+       is in flight, so `at` can have moved by the time a failure returns; the
+       step it was sent from is the true answer, not wherever the reader is
+       standing when it fails. */
+    var sentFrom = at + 1;
 
     var name = form.elements.name.value.trim();
     var email = form.elements.email.value.trim();
@@ -512,7 +517,7 @@
            transient failure, retrying is the fix, and the six answers behind
            them are on their device and will still be there. */
         say("That didn't go through — try again in a moment. Your answers are saved.", "err");
-        track("error / network");
+        trackError("network", sentFrom);
       });
   });
 
@@ -569,7 +574,7 @@
       slot.hidden = ok;
     }
     if (ok) return true;
-    track("error / " + event);
+    trackError(event);
     field.focus();
     return false;
   }
@@ -638,6 +643,26 @@
      so there is no state where Track exists but event() does not. */
   function track(name) {
     if (window.Track) window.Track.event("headroom / apply / " + name);
+  }
+
+  /* Errors carry the step they happened on:
+   *
+   *     headroom / apply / step-7 / error / invalid-email
+   *
+   * Fathom's names are flat strings, so this is a sorting convention rather
+   * than a hierarchy -- and that is the whole of what it buys. An error sorts
+   * directly beneath the step-N it belongs to, so the funnel and the reasons
+   * people fall out of it read as one list instead of two that have to be
+   * matched up by hand.
+   *
+   * `step` is passed in where the error can outlive the panel it started on:
+   * a submission is in flight for as long as the network takes, and Back is
+   * still live while it is, so `at` may have moved by the time a failure
+   * comes back. The step a request was sent from is the true answer there,
+   * not wherever the reader happens to be standing when it fails.
+   */
+  function trackError(name, step) {
+    track("step-" + (step || at + 1) + " / error / " + name);
   }
 
   /* -------------------------------------------------------------------------
