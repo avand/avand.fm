@@ -28,17 +28,42 @@
 # outbound connection to Cloudflare, and requests for the hostname are routed
 # down that live connection. No process, no tunnel.
 #
-# This uses its own tunnel, separate from The Intern's. Separate tunnels never
-# compete, so both projects can run at once and neither affects the other --
-# where sharing one meant The Intern's idle watchdog would take this down after
-# thirty minutes of *its* inactivity.
+# ONE TUNNEL PER MACHINE NOW, NOT ONE PER PROJECT.
+#
+# This used to have its own tunnel and its own config, ~/.cloudflared/avand-fm.yml.
+# That file is in ~/.cloudflared/archive/ and the four per-project tunnels have
+# been collapsed into one, m5, whose config lists every hostname this machine
+# serves. A hostname routes to a tunnel, so fm.avand.dev now points at m5 and
+# any cloudflared running m5 answers for it.
+#
+# Projects still do not compete, but for a different reason than before: each
+# hostname in that config points at a different port, and each port belongs to
+# an app started separately. Whichever apps are up serve their hostnames; the
+# rest return 502.
+#
+# TWO CONSEQUENCES, both of which this script has to handle.
+#
+# The "already running" check can no longer look for this project's config on
+# the command line, because the tunnel serving fm.avand.dev may well have been
+# started by another project's bin/dev, with a different invocation. Two
+# cloudflareds on the same tunnel both register with Cloudflare, which then
+# round-robins between them -- the config file says so at the top. So the check
+# is for any cloudflared tunnel at all, which on a one-tunnel machine is the
+# right question.
+#
+# And the tunnel this script starts is now shared infrastructure. Cleanup still
+# stops only what this script started, which is the right rule, but the effect
+# has changed: quitting here takes intern.avand.dev and the rest down with it
+# if this was the process holding them up. To keep a tunnel that outlives any
+# one project, start it yourself -- `cloudflared tunnel run` -- and this script
+# will find it and leave it alone.
 
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 SITE_PORT="${SITE_PORT:-8100}"
 HOSTNAME_FM="fm.avand.dev"
-TUNNEL_CONFIG="$HOME/.cloudflared/avand-fm.yml"
+TUNNEL_CONFIG="$HOME/.cloudflared/config.yml"
 SITE_DIR="_site"
 # Both background processes log here instead of /dev/null. They used to be
 # silenced, which is fine right up until one of them has something to say.
@@ -233,7 +258,10 @@ echo "  local   http://localhost:$SITE_PORT/headroom/"
 if [ "${NO_TUNNEL:-}" = "1" ]; then
   echo "  tunnel  skipped (NO_TUNNEL=1)"
 else
-  if pgrep -f "cloudflared tunnel --config $TUNNEL_CONFIG" >/dev/null 2>&1; then
+  # Any cloudflared tunnel, not one started with this config: see the note at
+  # the top. The machine has one tunnel, so one running cloudflared is it --
+  # whoever started it.
+  if pgrep -f "cloudflared tunnel" >/dev/null 2>&1; then
     echo "  tunnel  https://$HOSTNAME_FM/headroom/  (already running)"
   elif ! command -v cloudflared >/dev/null 2>&1; then
     echo "  tunnel  unavailable (cloudflared not installed)"
