@@ -157,7 +157,12 @@ chrome: false
        thing that lets an ad network collapse the two into one conversion
        instead of counting a person twice. */
     if (window.Track) {
-      window.Track.lead(applicant.firstName, applicant.email, applicant.conversionId);
+      window.Track.lead(
+        applicant.firstName,
+        applicant.email,
+        applicant.conversionId,
+        applicant.phoneE164
+      );
     }
   });
 </script>

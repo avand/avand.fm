@@ -122,14 +122,30 @@ subsection: Privacy
   </ul>
 
   <p>
-    Reddit's pixel does the same job on the same terms. It runs only if you
-    arrived from a Reddit ad, which is what puts a <code>rdt_cid</code>
+    Reddit's pixel does the same job, and one thing differently. It runs only
+    if you arrived from a Reddit ad, which is what puts a <code>rdt_cid</code>
     reference code in the web address; it stores <code>_rdt_uuid</code>, a
     random number identifying your browser to Reddit; and if you apply, it
-    tells Reddit that an application happened and scrambles your email address
-    the same way, for the same matching. As with OpenAI, what comes back is a
-    count and not a name. <strong>Neither of them is ever sent your phone
-    number.</strong>
+    tells Reddit that an application happened.
+  </p>
+
+  <p>
+    The difference is what they are sent. OpenAI receives your email
+    scrambled, because this site scrambles it first, and never your phone
+    number. <strong>Reddit receives your email address and your phone number
+    as they are.</strong> Their system has no way to take a scrambled one
+    &mdash; it would match nobody &mdash; so sending them at all means sending
+    them as they are, and the honest thing is to say so rather than describe
+    them as protected when they are not.
+  </p>
+
+  <p>
+    What Reddit does with them is match your application to the ad you
+    clicked, and build a picture of the kind of person these ads reach, which
+    is what decides who gets shown them next. If you would rather they did not
+    have your details, not clicking a Reddit ad is enough &mdash; the pixel
+    never runs for anyone else, and applying after arriving some other way
+    sends them nothing at all.
   </p>
 
   <p>
