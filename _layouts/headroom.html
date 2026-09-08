@@ -175,8 +175,8 @@
        Bump ?v= in the same commit as any change to these files. They are
        cached the way the scripts are, and an un-bumped edit reaches nobody for
        ten minutes. -->
-  <link rel="stylesheet" href="/headroom/headroom.css?v=7" />
-  {% if page.landing %}<link rel="stylesheet" href="/headroom/index.css?v=15" />{% endif %}
+  <link rel="stylesheet" href="/headroom/headroom.css?v=8" />
+  {% if page.landing %}<link rel="stylesheet" href="/headroom/index.css?v=16" />{% endif %}
   {% if page.landing or page.player %}<link rel="stylesheet" href="/headroom/player.css?v=3" />{% endif %}
   {% if page.subsection %}<link rel="stylesheet" href="/headroom/concepts/concepts.css?v=7" />{% endif %}
   {% if page.apply %}<link rel="stylesheet" href="/headroom/apply/apply.css?v=17" />{% endif %}
@@ -248,9 +248,25 @@
     reaches nobody for ten minutes and says nothing about it.
   {% endcomment %}{% else %}
   <nav class="site-nav">
+    <!-- The lockup, in place of the words it used to spell out. Still a link
+         home from everywhere except home, which is where the old markup put
+         its only unlinked element too: a logo that navigates to the page you
+         are already on is a control that does nothing.
+
+         width and height are both set, and they are the drawn size rather
+         than the viewBox's. An SVG with a viewBox and only one dimension in
+         CSS still gets its aspect ratio right, but the browser does not know
+         it until the file arrives -- so the bar reflows the moment it lands.
+         Two numbers make the space before it loads the same shape as the
+         thing that fills it. -->
     <div class="brand">
-      <a href="/"{% if page.landing %} data-track="headroom / nav / avand-fm"{% endif %}>avand.fm</a> <span class="brand-sep">/</span>
-      {% if page.landing %}<span class="brand-here">headroom</span>{% else %}<a class="brand-here" href="/headroom/">headroom</a>{% endif %}
+      {% if page.landing %}
+      <img class="brand-logo" src="/headroom/logo/lockup.svg" width="112" height="28" alt="Headroom" />
+      {% else %}
+      <a href="/headroom/">
+        <img class="brand-logo" src="/headroom/logo/lockup.svg" width="112" height="28" alt="Headroom" />
+      </a>
+      {% endif %}
     </div>
     <!-- Straight to the application, not an in-page jump to #cta.
          It jumped while the thing at #cta was a form: a form has to live
@@ -292,19 +308,31 @@
       {% endif %}
       <p class="footer-signoff">Built with passion and purpose.</p>
       <div class="colophon">
-        <a href="/"{% if page.landing %} data-track="headroom / footer / avand-fm"{% endif %}>avand.fm</a> &middot;
-        {% if page.landing %}Headroom{% else %}<a href="/headroom/">Headroom</a>{% endif %}
-        {% if page.section %}&middot; {% if page.section_url %}<a href="{{ page.section_url }}">{{ page.section }}</a>{% else %}{{ page.section }}{% endif %}{% endif %}
-        {% if page.subsection %}&middot; {{ page.subsection }}{% endif %}
+        {% comment %}
+          "avand.fm" and "Headroom" are gone from this line, which leaves the
+          section breadcrumb where a page has one -- a concept entry still
+          reads "Concepts / Limiter / Privacy / 2026" -- and leaves the
+          landing page reading simply "Privacy / 2026".
+
+          Worth knowing rather than discovering: with the nav's wordmark link
+          also pointing at /headroom/, no page under here links to avand.fm
+          any more. Headroom stands on its own now, which is a decision and
+          not an oversight.
+        {% endcomment %}{% if page.section %}{% if page.section_url %}<a href="{{ page.section_url }}">{{ page.section }}</a>{% else %}{{ page.section }}{% endif %} &middot; {% endif %}
+        {% if page.subsection %}{{ page.subsection }} &middot; {% endif %}
         {% comment %}
           Privacy is in the colophon on every page, landing and glossary alike,
           because the thing it discloses -- the ads pixel -- initialises on all
           of them. On the privacy page itself it is already sitting above as
           the subsection, so it is not repeated as a link, the same way the
           landing page renders "Headroom" as text rather than a link to itself.
-        {% endcomment %}{% unless page.url == "/headroom/privacy/" %}&middot; <a href="/headroom/privacy/">Privacy</a>{% endunless %}
-        &middot; 2026
+        {% endcomment %}{% unless page.url == "/headroom/privacy/" %}<a href="/headroom/privacy/">Privacy</a> &middot; {% endunless %}2026
       </div>
+
+      <!-- The mark, on its own under the line. Decorative: everything it
+           could say the page has already said, so an alt would be one more
+           thing read aloud to no purpose. -->
+      <img class="footer-mark" src="/headroom/logo/mark.svg" width="44" height="44" alt="" />
     </div>
   </footer>
   {% endif %}

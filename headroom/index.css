@@ -198,12 +198,30 @@
   opacity: 0.75;
 }
 
+/* The heading is a picture of the word now, so every type property here had
+   nothing left to shape -- except the margin, which still separates it from
+   the subtitle, and line-height, which an h1 wrapping an image would
+   otherwise use to add space around it. */
 .hero-content h1 {
-  font-size: clamp(2.4em, 6vw, 4.5em);
-  font-weight: 900;
-  line-height: 1.1;
   margin-bottom: 0.3em;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  line-height: 0;
+}
+
+.hero-wordmark img {
+  display: block;
+  /* Sized by width rather than height, because what it replaced was as wide
+     as the words were and the eye compares it to the subtitle underneath.
+     The clamp tracks the type it stands in for: the h1 was
+     clamp(2.4em, 6vw, 4.5em), and these are the widths that word took at
+     those sizes. */
+  width: clamp(220px, 32vw, 440px);
+  height: auto;
+  margin: 0 auto;
+  /* The same shadow the text carried, and for the same reason: it sits over
+     a photograph. A drop-shadow filter rather than text-shadow, because
+     there is no text left to shadow -- and this one follows the letterforms
+     rather than boxing the image. */
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.6));
 }
 
 .hero-content .subtitle {
