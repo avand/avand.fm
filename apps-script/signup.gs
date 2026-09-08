@@ -95,6 +95,19 @@
  * out on. It was listed here before anything sent, deliberately, so that the
  * consent was already in place when it did.
  *
+ * script.external_request is what UrlFetchApp needs, and it arrived the way
+ * this comment predicts one does: the Reddit conversion call was written,
+ * deployed, and then failed at the first attempt with "Specified permissions
+ * are not sufficient to call UrlFetchApp.fetch". Nothing about writing the
+ * code asked for the scope, and nothing warned that it was missing until
+ * something tried to use it.
+ *
+ * Adding a scope means the account has to authorise the project again -- the
+ * editor prompts on the next run. And any change to this manifest is worth
+ * checking against the two settings above it: `access` reverting from
+ * ANYONE_ANONYMOUS does not error, it just starts refusing every visitor who
+ * is not signed in to Google.
+ *
  * ---------------------------------------------------------------------------
  * SENDING AS headroom@avand.fm TAKES THE GMAIL API, NOT MailApp
  * ---------------------------------------------------------------------------
