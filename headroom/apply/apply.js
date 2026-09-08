@@ -495,10 +495,21 @@
        without this the conversion it sends is close to anonymous. */
     var rdtCid = (search.match(/[?&]rdt_cid=([^&]*)/) || [])[1] || "";
 
+    /* Reddit's own browser identifier, out of the cookie their pixel writes.
+       Their API takes it as user.uuid and their example shows the shape --
+       "1684189007728.7c73f2ae-..." -- so it is forwarded verbatim rather than
+       parsed or hashed: it is their value going back to them.
+
+       Only present for somebody the pixel ran for, which is somebody who
+       arrived from a Reddit ad, which is the same population that has a click
+       id. Two match keys for the same visitor rather than one. */
+    var rdtUuid = (document.cookie.match(/(?:^|;\s*)_rdt_uuid=([^;]*)/) || [])[1] || "";
+
     var payload = {
       kind: "application",
       conversionId: conversionId,
       rdtCid: decodeURIComponent(rdtCid),
+      rdtUuid: decodeURIComponent(rdtUuid),
       name: name,
       email: email,
       phone: phone,

@@ -615,19 +615,22 @@
    * conversion it belongs to. Calls queue in order, so the matching is in
    * place before the Lead is sent.
    *
-   * Raw, not hashed. Reddit's own example passes a plain address and their
-   * pixel does the hashing client-side -- which is the opposite of OpenAI's
-   * half of this function, where the hashing is ours to do. Two vendors, two
-   * contracts; the thing to not do is assume the second works like the first.
+   * THE SECOND init IS NOT A MISTAKE. Reddit's advanced matching goes in the
+   * init call, and at page load there is nobody to match -- the address only
+   * exists once somebody has applied. So the pixel is initialised bare on the
+   * way in and again here, with the identifier, immediately before the
+   * conversion it belongs to. Calls queue in order.
    *
-   * EMAIL ONLY, AND NOT THE PHONE NUMBER, though Reddit accepts one and it
-   * would raise the match rate. The fine print above the submit button says
-   * the phone number is used to talk to somebody about Headroom and nothing
-   * else, and shipping it to an advertiser would make that sentence false.
-   * The email is different only because the privacy page has always disclosed
-   * that an ad network receives it scrambled. Sending the phone is a decision
-   * about what this site promises, not a tuning knob, and it belongs to
-   * whoever writes the promise.
+   * Raw, which is the opposite of the OpenAI half of this same function,
+   * where the hashing is ours to do. Reddit's field reference takes
+   * "{{Email address}}" and names no digest anywhere, so a hash here would
+   * match nobody while looking careful. Their pixel may hash it in the
+   * browser before it leaves; that is their business and not something to
+   * describe in a privacy policy as though it were ours.
+   *
+   * The endpoint sends the same address server-side, and the two collapse on
+   * the shared conversionId. Both halves report it because either one can be
+   * the one that arrives: this can be blocked, and that cannot see an IP.
    */
   function redditLead(id, email) {
     if (!REDDIT || !window.rdt) return;

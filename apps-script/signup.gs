@@ -558,40 +558,97 @@ var REDDIT_CAPI = "https://ads-api.reddit.com/api/v3/pixels/" + REDDIT_PIXEL + "
  * show what happened, and so a future caller could log it. Nothing acts on
  * the return value in the request path.
  */
-function redditConversion_(payload) {
+function redditConversion_(payload, testId) {
   var token = PropertiesService.getScriptProperties().getProperty("REDDIT_CAPI_TOKEN");
   if (!token) return { skipped: "no REDDIT_CAPI_TOKEN in Script Properties" };
 
   var event = {
-    /* Milliseconds, not seconds. Reddit's own example says so and it is the
-       kind of thing that silently lands every conversion in 1970. */
+    /* Milliseconds. Reddit's example carries 1514764800000, thirteen digits;
+       seconds would land every conversion in 1970 and nothing would say so. */
     event_at: Date.now(),
-    action_source: "website",
-    type: { tracking_type: "Lead" },
+    /* UPPERCASE, and this was wrong for two deploys. "website" comes back
+       "invalid action_source: website" -- a value error, not a field error,
+       so the event is otherwise perfect and thrown away entire. */
+    action_source: "WEBSITE",
+    /* UPPER_SNAKE too. Reddit's example uses PAGE_VISIT, so the standard
+       names are not the pixel's PascalCase ones. "Lead" was accepted by the
+       validator, which is the worrying part: it 200s either way, and only
+       the dashboard could tell you whether it landed as a Lead or as
+       something unrecognised. */
+    type: { tracking_type: "LEAD" },
   };
 
-  /* Everything below is optional, and is sent only when the page actually
-     supplied it. Reddit's documented example carries none of it, so an
-     application that arrives without a click id or an email still produces a
-     valid event rather than a rejected one. */
+  /* Everything below is optional and sent only when the page supplied it, so
+     an application arriving without any of it still produces a valid event
+     rather than a rejected one. */
   var clickId = String(payload.rdtCid || "").trim();
   if (clickId) event.click_id = clickId.slice(0, 500);
 
-  var conversionId = String(payload.conversionId || "").trim();
-  if (conversionId) event.event_metadata = { conversion_id: conversionId.slice(0, 100) };
+  var page = String(payload.page || "").trim();
+  if (page) event.event_source_url = page.slice(0, 1000);
 
+  /* metadata.conversion_id is the deduplication key, and finding it took
+     asking the API: conversion_id, event_id, dedup_id, deduplication_id,
+     idempotency_key, id, external_id, event_metadata and custom_data all
+     came back "unknown field". This is the same id the browser's pixel sends
+     as conversionId, which is the only reason the two reports collapse into
+     one conversion instead of counting an applicant twice. */
+  var conversionId = String(payload.conversionId || "").trim();
+  if (conversionId) event.metadata = { conversion_id: conversionId.slice(0, 100) };
+
+  var user = {};
+
+  /* THE ADDRESS, IN THE CLEAR, AND THAT IS THE DECISION RATHER THAN AN
+   * OVERSIGHT.
+   *
+   * Reddit's user parameters take "{{Email address}}" -- the same placeholder
+   * style as "{{IP address}}" and "{{Phone number}}", with no hashing named
+   * anywhere -- so there is no version of this where they receive a digest
+   * and still recognise anybody. Hashing it would have been a way of feeling
+   * careful while sending a value that matches nothing.
+   *
+   * It is here because matching is not the only thing it buys. A conversion
+   * Reddit can attach to a person is a conversion that tells them what kind
+   * of person responds to these ads, which is what their optimiser bids on;
+   * without it, every application is an anonymous tick and the campaign
+   * learns nothing about who to find next.
+   *
+   * The price is that an advertiser holds the address, and the privacy page
+   * says so plainly rather than describing it as scrambled -- which it is
+   * for OpenAI, where the hashing is ours to do, and is not here.
+   */
   var email = String(payload.email || "").trim().toLowerCase();
-  if (email) event.user = { email: sha256Hex_(email) };
+  if (email) user.email = email.slice(0, 254);
+
+  /* Reddit's own browser identifier, out of the _rdt_uuid cookie the pixel
+     writes, forwarded by the page. Their example shows the shape --
+     "1684189007728.7c73f2ae-..." -- which is why this is passed through
+     untouched rather than hashed like the address above: it is Reddit's own
+     value being handed back to them. */
+  var rdtUuid = String(payload.rdtUuid || "").trim();
+  if (rdtUuid) user.uuid = rdtUuid.slice(0, 200);
+
+  /* No ip_address and no user_agent, both of which Reddit accepts and both of
+     which would help. doPost is handed neither -- Apps Script exposes no
+     headers and no remote address -- and the page cannot tell us its own IP.
+     The click id and the uuid are what this has instead. */
+  if (Object.keys(user).length) event.user = user;
+
+  var body = { data: { events: [event] } };
+  /* A test run names itself, and Reddit keeps those out of the real numbers.
+     Absent for a real application, so nothing in the request path is ever
+     marked as a test. */
+  if (testId) body.data.test_id = testId;
 
   var res = UrlFetchApp.fetch(REDDIT_CAPI, {
     method: "post",
     contentType: "application/json",
-    headers: { Authorization: "Bearer " + token },
-    payload: JSON.stringify({ data: { events: [event] } }),
+    headers: { Authorization: "Bearer " + token, Accept: "application/json" },
+    payload: JSON.stringify(body),
     muteHttpExceptions: true,
   });
 
-  return { status: res.getResponseCode(), body: res.getContentText().slice(0, 500), sent: event };
+  return { status: res.getResponseCode(), body: res.getContentText().slice(0, 500), sent: body };
 }
 
 /**
@@ -609,20 +666,33 @@ function sha256Hex_(text) {
 }
 
 /**
- * RUN THIS FROM THE EDITOR to find out whether the token works.
+ * RUN THIS FROM THE EDITOR to check the whole conversion path without
+ * touching the real numbers.
  *
- * It sends one event with a conversion_id that no application will ever use,
- * so a duplicate of it can never collapse a real conversion, and prints
- * Reddit's exact answer. A 401 here means the token is wrong or revoked; a
- * 2xx means the wiring is sound and only Reddit's dashboard can tell you the
- * rest.
+ * `data.test_id` is Reddit's own facility for exactly this -- an event
+ * carrying one is processed and kept out of reporting -- and it is why this
+ * no longer has to be paid for in real conversions. Finding it took reading
+ * their Node example; probing had looked for `test_mode`, which does not
+ * exist, and concluded there was no test mode at all. A near miss on a field
+ * name is indistinguishable from an absent feature when all you have is a
+ * validator saying no.
+ *
+ * The values below are the shape a real application sends, so a 200 here
+ * means the wiring is sound end to end. What it cannot tell you is whether
+ * the email matched anybody, because a hash Reddit did not want still returns
+ * 200 -- see the note in redditConversion_.
  */
 function testRedditConversion() {
-  var out = redditConversion_({
-    conversionId: "selftest-" + Date.now(),
-    email: "selftest@example.com",
-    rdtCid: "selftest",
-  });
+  var out = redditConversion_(
+    {
+      conversionId: "selftest-" + Date.now(),
+      email: "selftest@example.com",
+      rdtCid: "selftest-click",
+      rdtUuid: Date.now() + "." + Utilities.getUuid(),
+      page: "https://avand.fm/headroom/apply/?rdt_cid=selftest-click",
+    },
+    "headroom-selftest"
+  );
   console.log(JSON.stringify(out, null, 2));
   return out;
 }
