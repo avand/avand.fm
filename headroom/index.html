@@ -21,7 +21,17 @@ description: "Advanced DJ training for aspiring performers. An eight-week, end-t
 
     <div class="hero-content">
       <div class="hero-label">{{ site.headroom.term }}</div>
-      <h1>HEADROOM</h1>
+      <!-- The wordmark, drawn rather than set. It is still an h1, and still
+           says HEADROOM to anything that cannot see it: the alt carries the
+           heading's text, so the document outline is unchanged and a screen
+           reader reads what it always did.
+
+           width and height are the largest it is ever drawn, and the CSS
+           takes it from there. They are here so the hero does not reflow
+           when the file lands. -->
+      <h1 class="hero-wordmark">
+        <img src="/headroom/logo/wordmark.svg" width="440" height="120" alt="Headroom" />
+      </h1>
       <p class="subtitle">
         Advanced DJ training for aspiring performers. An end-to-end
         up-leveling of your entire stack so you can step into any booth and

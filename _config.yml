@@ -22,6 +22,10 @@ markdown: kramdown
 # publishing a browsable folder of every image the campaign has ever run.
 exclude:
   - README.md
+  # The one in headroom/logo/. `README.md` above matches the root file only,
+  # so this one was being built into a page and served at /headroom/logo/ --
+  # a browsable directory listing with a document about export sizes in it.
+  - headroom/logo/README.md
   - bin
   - apps-script
   - headroom/fathom

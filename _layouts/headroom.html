@@ -24,7 +24,7 @@
     chrome: false   no nav, no footer. Both application pages set it. On the
                     wizard it keeps six ways out of a half-finished form off
                     the edges of every question; on the confirmation page it
-                    keeps a colophon from being the last word to somebody who
+                    keeps the footer from being the last word to somebody who
                     has just been told they will hear back.
     player: true    loads player.css. The landing page implies it; the
                     confirmation page has to ask, and cannot ask for index.css
@@ -175,11 +175,11 @@
        Bump ?v= in the same commit as any change to these files. They are
        cached the way the scripts are, and an un-bumped edit reaches nobody for
        ten minutes. -->
-  <link rel="stylesheet" href="/headroom/headroom.css?v=7" />
-  {% if page.landing %}<link rel="stylesheet" href="/headroom/index.css?v=15" />{% endif %}
+  <link rel="stylesheet" href="/headroom/headroom.css?v=12" />
+  {% if page.landing %}<link rel="stylesheet" href="/headroom/index.css?v=16" />{% endif %}
   {% if page.landing or page.player %}<link rel="stylesheet" href="/headroom/player.css?v=3" />{% endif %}
   {% if page.subsection %}<link rel="stylesheet" href="/headroom/concepts/concepts.css?v=7" />{% endif %}
-  {% if page.apply %}<link rel="stylesheet" href="/headroom/apply/apply.css?v=17" />{% endif %}
+  {% if page.apply %}<link rel="stylesheet" href="/headroom/apply/apply.css?v=19" />{% endif %}
 
   <!-- Analytics. The Fathom snippet used to sit here; both vendors are loaded
        by events.js now -- Fathom, and the OpenAI ads conversion pixel -- which
@@ -248,9 +248,25 @@
     reaches nobody for ten minutes and says nothing about it.
   {% endcomment %}{% else %}
   <nav class="site-nav">
+    <!-- The lockup, in place of the words it used to spell out. Still a link
+         home from everywhere except home, which is where the old markup put
+         its only unlinked element too: a logo that navigates to the page you
+         are already on is a control that does nothing.
+
+         width and height are both set, and they are the drawn size rather
+         than the viewBox's. An SVG with a viewBox and only one dimension in
+         CSS still gets its aspect ratio right, but the browser does not know
+         it until the file arrives -- so the bar reflows the moment it lands.
+         Two numbers make the space before it loads the same shape as the
+         thing that fills it. -->
     <div class="brand">
-      <a href="/"{% if page.landing %} data-track="headroom / nav / avand-fm"{% endif %}>avand.fm</a> <span class="brand-sep">/</span>
-      {% if page.landing %}<span class="brand-here">headroom</span>{% else %}<a class="brand-here" href="/headroom/">headroom</a>{% endif %}
+      {% if page.landing %}
+      <img class="brand-logo" src="/headroom/logo/lockup.svg" width="144" height="36" alt="Headroom" />
+      {% else %}
+      <a href="/headroom/">
+        <img class="brand-logo" src="/headroom/logo/lockup.svg" width="144" height="36" alt="Headroom" />
+      </a>
+      {% endif %}
     </div>
     <!-- Straight to the application, not an in-page jump to #cta.
          It jumped while the thing at #cta was a form: a form has to live
@@ -288,23 +304,28 @@
     <div class="footer-inner">
       {% if page.landing %}
       <p>Video by <a href="https://www.ericheiland.com/" target="_blank" rel="noopener" data-track="headroom / footer / eric-heiland">Eric Heiland</a>.</p>
-      <p>Special thanks to Ziad, Garrett, Quincy, Andy, Jamie, Olive, Adam, Nick, Levi.</p>
+      <p>Special thanks to Ziad, Garrett, Quincy, Andy, Jamie, Olive, Adam, Nick, &amp; Levi.</p>
       {% endif %}
-      <p class="footer-signoff">Built with passion and purpose.</p>
-      <div class="colophon">
-        <a href="/"{% if page.landing %} data-track="headroom / footer / avand-fm"{% endif %}>avand.fm</a> &middot;
-        {% if page.landing %}Headroom{% else %}<a href="/headroom/">Headroom</a>{% endif %}
-        {% if page.section %}&middot; {% if page.section_url %}<a href="{{ page.section_url }}">{{ page.section }}</a>{% else %}{{ page.section }}{% endif %}{% endif %}
-        {% if page.subsection %}&middot; {{ page.subsection }}{% endif %}
-        {% comment %}
-          Privacy is in the colophon on every page, landing and glossary alike,
-          because the thing it discloses -- the ads pixel -- initialises on all
-          of them. On the privacy page itself it is already sitting above as
-          the subsection, so it is not repeated as a link, the same way the
-          landing page renders "Headroom" as text rather than a link to itself.
-        {% endcomment %}{% unless page.url == "/headroom/privacy/" %}&middot; <a href="/headroom/privacy/">Privacy</a>{% endunless %}
-        &middot; 2026
-      </div>
+      <p class="footer-signoff">Created with passion and purpose by <a href="/">Avand</a>.</p>
+
+      {% comment %}
+        Privacy is on every page, landing and glossary alike, because the
+        thing it discloses -- the ad pixels -- initialises on all of them. A
+        reader who never submits anything still gets __obref set for a year,
+        so a page that collects nothing still needs a route to the notice.
+
+        Either name renders as plain text on its own page rather than as a
+        link to itself -- the same treatment the nav gives the wordmark on
+        the landing page.
+      {% endcomment %}
+      <p class="footer-links">{% unless page.url == "/headroom/concepts/" %}<a href="/headroom/concepts/">Concepts</a>{% else %}Concepts{% endunless %} &middot; {% unless page.url == "/headroom/privacy/" %}<a href="/headroom/privacy/">Privacy</a>{% else %}Privacy{% endunless %}</p>
+
+      {% comment %}
+        Decorative, so the alt is empty: everything the mark could say the
+        page has already said, and an alt would be one more thing read aloud
+        to no purpose.
+      {% endcomment %}
+      <img class="footer-mark" src="/headroom/logo/mark.svg" width="44" height="44" alt="" />
     </div>
   </footer>
   {% endif %}

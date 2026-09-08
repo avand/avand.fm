@@ -25,7 +25,12 @@ chrome: false
 
   <header class="apply-head">
     <a class="apply-mark" href="/headroom/">
-      <span class="apply-mark-name">HEADROOM</span>
+      <!-- Stacked, and two files rather than lockup.svg: the lockup sets them
+           side by side at a fixed ratio, which is the nav's shape, not this
+           one. The mark's alt is empty because the wordmark under it already
+           says Headroom -- one link, one name, announced once. -->
+      <img class="apply-mark-glyph" src="/headroom/logo/mark.svg" width="36" height="36" alt="" />
+      <img class="apply-mark-word" src="/headroom/logo/wordmark.svg" width="146" height="40" alt="Headroom" />
     </a>
     <p class="apply-kicker">Application &middot; {{ site.headroom.term }}</p>
   </header>

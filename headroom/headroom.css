@@ -311,39 +311,38 @@ body {
   }
 }
 
+/* The brand is a picture now, so the type rules that used to shape it --
+   weight, size, letter-spacing, uppercase -- have nothing left to act on.
+   What it needs instead is to stop being a line of text: an inline image
+   sits on the text baseline and leaves a few pixels of descender space
+   under it, which in a flex row centred on its items reads as the logo
+   hanging low. flex makes the image a block and the gap goes. */
 .site-nav .brand {
-  font-weight: 700;
-  font-size: 1.1em;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  display: flex;
+  align-items: center;
 }
 
-/* The site name is context, the page name is the point: knocking the
-   former back lets "headroom" carry the header. */
+.site-nav .brand-logo {
+  display: block;
+  height: 36px;
+  /* Auto, not the attribute's 144. The attribute is there to reserve the
+     right shape before the file loads; once it has, the height above is
+     what decides, and a fixed width would fight it on any future lockup
+     with a different ratio. */
+  width: auto;
+}
+
+/* Nothing moves and nothing changes colour, so the only thing a hover can
+   say is "this is a link" -- which on the one page where it is not a link
+   would be a lie. Applied to the anchor, which only exists off the landing
+   page, so the page that is already home simply has no hover. */
 .site-nav .brand a {
-  color: var(--text-muted);
-  text-decoration: none;
-  transition: color 200ms;
+  display: flex;
+  transition: opacity 200ms;
 }
 
 .site-nav .brand a:hover {
-  color: var(--text);
-}
-
-.site-nav .brand-sep {
-  color: var(--text-muted);
-  opacity: 0.55;
-}
-
-/* The current page, whether it is a link or not. On the landing page this is
-   a plain span -- there is nowhere for it to go. On a concept page it is an
-   anchor back to /headroom/, and without the extra class in this selector the
-   rule above would win on specificity (.site-nav .brand a is 0,2,1 against
-   .site-nav .brand-here at 0,2,0) and knock the whole brand back to muted.
-   Which is what happened: the header read as all-context and no page, in a nav
-   whose entire premise is that one half is louder than the other. */
-.site-nav .brand .brand-here {
-  color: var(--text);
+  opacity: 0.75;
 }
 
 /* The angle the gradient ring below is rotated to. Registered rather than
@@ -801,8 +800,8 @@ section.wide {
 }
 
 /* --- Footer ---
-   A plain block at the end of the page: a few credits, a sign-off, a
-   colophon.
+   A plain block at the end of the page: a few credits, a sign-off, and
+   the mark.
 
    It used to be a layer of dark purple underneath the page, uncovered as
    the sheet of near-black scrolled away, with its contents lagging behind
@@ -823,11 +822,42 @@ section.wide {
   font-size: 0.95em;
 }
 
+/* block rather than the inline image it would otherwise be: .footer-inner is
+   text-align: center already, so an inline image would land in the right
+   place horizontally, but it would also sit on a text baseline and carry the
+   descender gap with it -- a mark centred left to right and floating a few
+   pixels high. The auto margins are horizontal only; the space above it is
+   the grid's gap, the same as every other row. */
+.footer-mark {
+  display: block;
+  width: 44px;
+  height: auto;
+  margin: 0 auto;
+  /* It is the last thing on the page and it is decorative, so it should
+     read as quiet rather than as a final announcement. */
+  opacity: 0.85;
+}
+
+/* Every gap between footer items comes from here and nowhere else. The
+   children used to bring their own margins as well -- paragraph margins from
+   the UA, a smaller one on the sign-off, a larger one over the mark -- which
+   the grid's gap then added to, so the rendered spacing was a sum of two
+   sources and neither could be read off the file. The reset below is what
+   keeps that true: change the gap and every space in the footer moves
+   together. */
 .footer-inner {
   max-width: 680px;
   margin: 0 auto;
   display: grid;
   gap: 0.9em;
+}
+
+/* Block margins and padding only. The mark keeps its horizontal auto margins
+   -- it is a fixed-width item in a stretched grid cell, and they are what
+   centre it -- and those decide nothing about the spacing between rows. */
+.footer-inner > * {
+  margin-block: 0;
+  padding-block: 0;
 }
 
 .site-footer a {
@@ -843,35 +873,12 @@ section.wide {
   text-decoration-color: #fff;
 }
 
-/* The sign-off, set apart from the credits above it without a rule to do
-   the separating -- at this size a border would be the loudest thing in
-   the footer. */
+/* The sign-off is the one line in the footer set in full-strength text
+   rather than the muted grey; it is not set apart by spacing, which the
+   grid's single gap now owns for everything in here. */
 .footer-signoff {
-  margin-top: 0.6em;
   color: var(--text);
 }
-
-/* ...but only when there is something above it to be set apart from. A
-   concept page's footer has no credits -- no video, no thank-yous -- so the
-   sign-off is the first thing in the block, and that margin was spacing it
-   away from the container's own padding. The footer sat visibly low in its
-   own box as a result.
-
-   Structural rather than conditional: the rule is "nothing gets a top margin
-   against the edge", which stays true whatever the layout decides to put in
-   here. Writing it as {% if page.landing %} in the template would have made
-   the stylesheet depend on knowing which pages have credits, and would need
-   revisiting the first time one of them changes its mind. */
-.footer-inner > :first-child {
-  margin-top: 0;
-}
-
-.colophon {
-  margin-top: 1.6em;
-  color: #6f6f80;
-  font-size: 0.92em;
-}
-
 
 /* --- Responsive --- */
 
@@ -923,10 +930,11 @@ section.wide {
      nav's height, which timeline.js measures as --nav-h, which sets the
      sticky bar's offset and --tl-space, which sets every module slide's
      padding. One wrapped crumb shifts the whole curriculum down. */
-  .site-nav .brand {
-    min-width: 0;
-    white-space: nowrap;
-    font-size: clamp(13px, 3.6vw, 17px);
+  /* The text version had to be kept from wrapping and shrunk to fit; an
+     image does neither, so all that is left is the height it should be on a
+     narrow screen. */
+  .site-nav .brand-logo {
+    height: 30px;
   }
 }
 
