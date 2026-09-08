@@ -90,15 +90,16 @@
      runs one, and it identifies where a conversion goes, not who may send it. */
   var PIXEL = "3Qm9ZKQgcepVC4tBmdJnx3";
 
-  /* The Reddit advertiser id, from Ads Manager > Events Manager. Public in the
-     same way PIXEL is: it names where a conversion goes, not who may send one.
+  /* The Reddit pixel id, from Ads Manager. Public in the same way PIXEL is: it
+     names where a conversion goes, not who may send one.
 
-     EMPTY UNTIL SOMEBODY PASTES IT IN, and the loader below checks for that
-     before doing anything -- so the file is safe to ship ahead of the account
-     being set up, and nothing loads, nothing is set, and nothing is reported
-     until this holds a value. Same shape as SIGNUP_ENDPOINT was before the
-     Apps Script deployment existed. */
-  var REDDIT = "";
+     It appears twice below on purpose -- once in the script URL and once in
+     init -- because that is what Reddit's own snippet does, and the loader is
+     kept a transcription of that snippet rather than an improvement on it.
+     An earlier draft of this file passed optOut and useDecimalCurrencyValues
+     to init, which came from a third-party write-up and are not in the code
+     Reddit hands you. */
+  var REDDIT = "a2_jkuzsl3m9hke";
 
   /* Fathom's snippet has no stub queue: window.fathom does not exist until the
      script has loaded, and anything fired before then is simply lost. Since
@@ -427,17 +428,16 @@
       });
       p.callQueue = [];
       var t = d.createElement("script");
-      t.src = "https://www.redditstatic.com/ads/pixel.js";
+      /* The id is in the query string as well as in init. That is how Reddit
+         ship it, and the two are not interchangeable -- the script URL is what
+         their CDN keys on. */
+      t.src = "https://www.redditstatic.com/ads/pixel.js?pixel_id=" + REDDIT;
       t.async = true;
       var f = d.getElementsByTagName("script")[0];
       f.parentNode.insertBefore(t, f);
     })(window, document);
 
-    /* optOut false and decimal currency true are the values in Reddit's own
-       snippet. There is no money in any event this site sends, so the second
-       is inert here and kept only so this reads as the documented base code
-       rather than as a variation on it. */
-    window.rdt("init", REDDIT, { optOut: false, useDecimalCurrencyValues: true });
+    window.rdt("init", REDDIT);
     window.rdt("track", "PageVisit");
   }
 
@@ -604,16 +604,31 @@
    * same id. That is why eventId() is generated once in lead() and passed in
    * rather than made here.
    *
-   * No email in the payload yet. Reddit accepts one for matching and it would
-   * raise the match rate, but whether their pixel wants it raw or already
-   * hashed is exactly the kind of question their published documentation
-   * answers differently in different places -- and the note at the top of this
-   * file about verifying against the SDK rather than the docs was written
-   * about the last vendor to do that. Left out until it is checked against
-   * the real thing.
+   * THE SECOND init IS NOT A MISTAKE. Reddit's advanced matching goes in the
+   * init call, and at page load there is nobody to match -- the email only
+   * exists once somebody has applied. So the pixel is initialised bare on the
+   * way in and again here, with the identifier, immediately before the
+   * conversion it belongs to. Calls queue in order, so the matching is in
+   * place before the Lead is sent.
+   *
+   * Raw, not hashed. Reddit's own example passes a plain address and their
+   * pixel does the hashing client-side -- which is the opposite of OpenAI's
+   * half of this function, where the hashing is ours to do. Two vendors, two
+   * contracts; the thing to not do is assume the second works like the first.
+   *
+   * EMAIL ONLY, AND NOT THE PHONE NUMBER, though Reddit accepts one and it
+   * would raise the match rate. The fine print above the submit button says
+   * the phone number is used to talk to somebody about Headroom and nothing
+   * else, and shipping it to an advertiser would make that sentence false.
+   * The email is different only because the privacy page has always disclosed
+   * that an ad network receives it scrambled. Sending the phone is a decision
+   * about what this site promises, not a tuning knob, and it belongs to
+   * whoever writes the promise.
    */
   function redditLead(id, email) {
     if (!REDDIT || !window.rdt) return;
+    var addr = String(email || "").trim().toLowerCase();
+    if (addr) window.rdt("init", REDDIT, { email: addr });
     window.rdt("track", "Lead", { conversionId: id });
   }
 
