@@ -822,26 +822,42 @@ section.wide {
   font-size: 0.95em;
 }
 
-/* The mark, under the sign-off and centred on it. block plus auto margins
-   rather than a flex parent: .footer-inner is text-align: center already and
-   an inline image would inherit that, but it would also sit on a text
-   baseline and carry the descender gap with it -- which shows up as a mark
-   that is centred horizontally and floating a few pixels high. */
+/* block rather than the inline image it would otherwise be: .footer-inner is
+   text-align: center already, so an inline image would land in the right
+   place horizontally, but it would also sit on a text baseline and carry the
+   descender gap with it -- a mark centred left to right and floating a few
+   pixels high. The auto margins are horizontal only; the space above it is
+   the grid's gap, the same as every other row. */
 .footer-mark {
   display: block;
   width: 44px;
   height: auto;
-  margin: 1.6em auto 0;
+  margin: 0 auto;
   /* It is the last thing on the page and it is decorative, so it should
      read as quiet rather than as a final announcement. */
   opacity: 0.85;
 }
 
+/* Every gap between footer items comes from here and nowhere else. The
+   children used to bring their own margins as well -- paragraph margins from
+   the UA, a smaller one on the sign-off, a larger one over the mark -- which
+   the grid's gap then added to, so the rendered spacing was a sum of two
+   sources and neither could be read off the file. The reset below is what
+   keeps that true: change the gap and every space in the footer moves
+   together. */
 .footer-inner {
   max-width: 680px;
   margin: 0 auto;
   display: grid;
   gap: 0.9em;
+}
+
+/* Block margins and padding only. The mark keeps its horizontal auto margins
+   -- it is a fixed-width item in a stretched grid cell, and they are what
+   centre it -- and those decide nothing about the spacing between rows. */
+.footer-inner > * {
+  margin-block: 0;
+  padding-block: 0;
 }
 
 .site-footer a {
@@ -857,29 +873,12 @@ section.wide {
   text-decoration-color: #fff;
 }
 
-/* The sign-off, set apart from the credits above it without a rule to do
-   the separating -- at this size a border would be the loudest thing in
-   the footer. */
+/* The sign-off is the one line in the footer set in full-strength text
+   rather than the muted grey; it is not set apart by spacing, which the
+   grid's single gap now owns for everything in here. */
 .footer-signoff {
-  margin-top: 0.6em;
   color: var(--text);
 }
-
-/* ...but only when there is something above it to be set apart from. A
-   concept page's footer has no credits -- no video, no thank-yous -- so the
-   sign-off is the first thing in the block, and that margin was spacing it
-   away from the container's own padding. The footer sat visibly low in its
-   own box as a result.
-
-   Structural rather than conditional: the rule is "nothing gets a top margin
-   against the edge", which stays true whatever the layout decides to put in
-   here. Writing it as {% if page.landing %} in the template would have made
-   the stylesheet depend on knowing which pages have credits, and would need
-   revisiting the first time one of them changes its mind. */
-.footer-inner > :first-child {
-  margin-top: 0;
-}
-
 
 /* --- Responsive --- */
 

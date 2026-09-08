@@ -175,7 +175,7 @@
        Bump ?v= in the same commit as any change to these files. They are
        cached the way the scripts are, and an un-bumped edit reaches nobody for
        ten minutes. -->
-  <link rel="stylesheet" href="/headroom/headroom.css?v=10" />
+  <link rel="stylesheet" href="/headroom/headroom.css?v=12" />
   {% if page.landing %}<link rel="stylesheet" href="/headroom/index.css?v=16" />{% endif %}
   {% if page.landing or page.player %}<link rel="stylesheet" href="/headroom/player.css?v=3" />{% endif %}
   {% if page.subsection %}<link rel="stylesheet" href="/headroom/concepts/concepts.css?v=7" />{% endif %}
@@ -304,27 +304,26 @@
     <div class="footer-inner">
       {% if page.landing %}
       <p>Video by <a href="https://www.ericheiland.com/" target="_blank" rel="noopener" data-track="headroom / footer / eric-heiland">Eric Heiland</a>.</p>
-      <p>Special thanks to Ziad, Garrett, Quincy, Andy, Jamie, Olive, Adam, Nick, Levi.</p>
+      <p>Special thanks to Ziad, Garrett, Quincy, Andy, Jamie, Olive, Adam, Nick, &amp; Levi.</p>
       {% endif %}
-      <p class="footer-signoff">Built with passion and purpose.</p>
+      <p class="footer-signoff">Created with passion and purpose by <a href="/">Avand</a>.</p>
+
+      {% comment %}
+        Privacy is on every page, landing and glossary alike, because the
+        thing it discloses -- the ad pixels -- initialises on all of them. A
+        reader who never submits anything still gets __obref set for a year,
+        so a page that collects nothing still needs a route to the notice.
+
+        Either name renders as plain text on its own page rather than as a
+        link to itself -- the same treatment the nav gives the wordmark on
+        the landing page.
+      {% endcomment %}
+      <p class="footer-links">{% unless page.url == "/headroom/concepts/" %}<a href="/headroom/concepts/">Concepts</a>{% else %}Concepts{% endunless %} &middot; {% unless page.url == "/headroom/privacy/" %}<a href="/headroom/privacy/">Privacy</a>{% else %}Privacy{% endunless %}</p>
 
       {% comment %}
         Decorative, so the alt is empty: everything the mark could say the
         page has already said, and an alt would be one more thing read aloud
         to no purpose.
-
-        The sign-off is the last text on the page now -- the colophon that
-        used to sit between it and this mark is gone. It carried a Privacy
-        link and the year, and a section breadcrumb on entries that have
-        one; the breadcrumb is already at the top of those pages, so the
-        only thing that left the site is the privacy link.
-
-        That link was on every page deliberately, because the ad pixels
-        initialise on every page -- a glossary reader who submits nothing
-        still gets __obref set for a year, and now has no route from that
-        page to the disclosure. The application still links to it at the
-        point it asks for anything. If that turns out to be too thin, the
-        link belongs back in this footer rather than in a new colophon.
       {% endcomment %}
       <img class="footer-mark" src="/headroom/logo/mark.svg" width="44" height="44" alt="" />
     </div>
