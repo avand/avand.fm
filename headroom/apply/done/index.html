@@ -150,6 +150,14 @@ chrome: false
 
     /* The guard is the same all-or-nothing one every other call site uses:
        events.js is same-origin, but ad blockers match on filenames. */
-    if (window.Track) window.Track.lead(applicant.firstName, applicant.email);
+    /* The conversion id travels with the applicant rather than being made
+       here. It was minted when the application was submitted and sent to the
+       endpoint in the same breath, so the browser's report and any later
+       server-side one already carry the same string -- which is the only
+       thing that lets an ad network collapse the two into one conversion
+       instead of counting a person twice. */
+    if (window.Track) {
+      window.Track.lead(applicant.firstName, applicant.email, applicant.conversionId);
+    }
   });
 </script>

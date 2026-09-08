@@ -466,8 +466,31 @@
     sending = true;
     busy(submitBtn, "Submitting…");
 
+    /* The conversion id, minted here rather than at the moment the pixels fire.
+     *
+     * It is what deduplicates a conversion reported twice -- once from the
+     * browser and once, if the Conversions API is ever wired up, from Apps
+     * Script -- and the two halves can only collapse into one if they carry
+     * the same string. Generated on the confirmation page, as it was, it
+     * existed only in a browser that never told the server about it, so the
+     * deduplication was a promise the code could not keep.
+     *
+     * Minted at submit, it goes to the endpoint in this payload and to the
+     * confirmation page in the handover below, so both ends of the eventual
+     * pair already agree. It also stops being a fact about a page view and
+     * becomes a fact about an application, which is what it is meant to name.
+     *
+     * randomUUID needs a secure context, which production is and plain http
+     * is not, hence the fallback -- the id only has to be unique, not
+     * unguessable. */
+    var conversionId =
+      window.crypto && crypto.randomUUID
+        ? crypto.randomUUID()
+        : "apply-" + Date.now() + "-" + Math.random().toString(36).slice(2, 10);
+
     var payload = {
       kind: "application",
+      conversionId: conversionId,
       name: name,
       email: email,
       phone: phone,
@@ -502,7 +525,7 @@
         // body. Treating the status line as the answer would send somebody to
         // a confirmation page for an application that was rejected.
         if (!data || !data.ok) throw new Error(data && data.error);
-        finish();
+        finish(true, conversionId);
       })
       .catch(function () {
         sending = false;
@@ -537,7 +560,7 @@
    * The query string goes with the navigation for the same reason it came in:
    * fromAd() has to be able to see the reference at the moment of conversion.
    */
-  function finish(converted) {
+  function finish(converted, conversionId) {
     clearDraft();
     if (converted === false) {
       window.location.href = DONE_URL + search;
@@ -555,6 +578,7 @@
         JSON.stringify({
           firstName: form.elements.name.value.trim().split(/\s+/)[0],
           email: form.elements.email.value.trim(),
+          conversionId: conversionId,
         })
       );
     } catch (err) {

@@ -547,8 +547,12 @@
    * question about whether two dashboards are describing the same application
    * has an answer.
    */
-  function lead(name, email) {
-    var id = eventId();
+  function lead(name, email, conversionId) {
+    /* Given by the caller wherever there is an application to name. eventId()
+       is the fallback for a call site that has none -- it keeps the vendors
+       fed, but an id invented here is known only to this browser, so nothing
+       server-side can ever be matched against it. */
+    var id = conversionId || eventId();
 
     if (!LIVE || debug()) {
       if (window.console) {
