@@ -690,38 +690,43 @@ function sha256Hex_(text) {
 }
 
 /**
- * RUN THIS FROM THE EDITOR to check the whole conversion path without
- * touching the real numbers.
+ * RUN THIS FROM THE EDITOR, with the Conversions API setup screen open.
  *
- * `data.test_id` is Reddit's own facility for exactly this -- an event
- * carrying one is processed, kept out of reporting, and displayed on the
- * Conversions API setup screen -- which is why this no longer has to be paid
- * for in real conversions. Watch that screen while this runs.
+ * A 200 FROM THE API IS NOT A WORKING CONVERSION, and that distinction cost
+ * a round of this. The first self-test returned "Successfully processed 1
+ * conversion events" and the setup screen recorded it as Error: 200 means the
+ * request was well formed and accepted, and says nothing about whether the
+ * identifiers inside it were any good. The screen is the only place that
+ * says. This is the same shape as every other silent failure in this
+ * integration -- "website", "Lead", test_mode -- one layer further in.
  *
- * Finding it took reading their Node example; probing had looked for
- * `test_mode`, which does not exist, and concluded there was no test mode at
- * all. A near miss on a field name is indistinguishable from an absent
- * feature when all you have is a validator saying no. The id itself had to be
- * read off their setup screen too: an invented one is accepted and appears
- * nowhere, which is a test that proves nothing while looking like it passed.
+ * The cause was a manufactured click id. "selftest-click" is not a Reddit
+ * click id; theirs look like 3184742045291813272, and an applicant's arrives
+ * from Reddit rather than from us. Sending an invented one produced an event
+ * Reddit accepted and could not use. So this sends none: what it carries is
+ * only what a test can honestly have, and it comes back Healthy.
  *
- * The values below are the shape a real application sends, so a 200 here
- * means the wiring is sound end to end. What it cannot tell you is whether
- * the email matched anybody, because a hash Reddit did not want still returns
- * 200 -- see the note in redditConversion_.
+ * test_id keeps it out of the real numbers.
  */
 function testRedditConversion() {
   var out = redditConversion_(
     {
       conversionId: "selftest-" + Date.now(),
       email: "selftest@example.com",
-      rdtCid: "selftest-click",
-      rdtUuid: Date.now() + "." + Utilities.getUuid(),
-      page: "https://avand.fm/headroom/apply/?rdt_cid=selftest-click",
+      /* 555-0199 is reserved for fiction, which is right for a test and may
+         be why the phone has never yet appeared under Match keys -- see the
+         note below. */
+      phoneE164: "+15555550199",
+      page: "https://avand.fm/headroom/apply/",
     },
     REDDIT_TEST_ID
   );
   console.log(JSON.stringify(out, null, 2));
+  console.log("");
+  console.log("The setup screen should show one Lead, Healthy.");
+  console.log("Match keys has so far read 'email' and not the phone number,");
+  console.log("which a fictional 555 number would explain and a real one would");
+  console.log("settle. The first genuine application answers it either way.");
   return out;
 }
 
