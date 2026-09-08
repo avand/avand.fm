@@ -90,6 +90,17 @@
      runs one, and it identifies where a conversion goes, not who may send it. */
   var PIXEL = "3Qm9ZKQgcepVC4tBmdJnx3";
 
+  /* The Reddit pixel id, from Ads Manager. Public in the same way PIXEL is: it
+     names where a conversion goes, not who may send one.
+
+     It appears twice below on purpose -- once in the script URL and once in
+     init -- because that is what Reddit's own snippet does, and the loader is
+     kept a transcription of that snippet rather than an improvement on it.
+     An earlier draft of this file passed optOut and useDecimalCurrencyValues
+     to init, which came from a third-party write-up and are not in the code
+     Reddit hands you. */
+  var REDDIT = "a2_jkuzsl3m9hke";
+
   /* Fathom's snippet has no stub queue: window.fathom does not exist until the
      script has loaded, and anything fired before then is simply lost. Since
      this file loads it, that window is real. Events wait here instead.
@@ -368,6 +379,68 @@
     );
   }
 
+  /*
+   * Whether this visitor has anything to do with a Reddit ad.
+   *
+   * `rdt_cid` is the click id Reddit appends to the landing page URL, and it
+   * is the same shape of question fromAd() asks about `oppref`: a page that
+   * loads an ad vendor's script for somebody who never saw an ad is a page
+   * handing an advertising company a new visitor for nothing.
+   *
+   * NO COOKIE OF OUR OWN, unlike the OpenAI check, and that is a real
+   * difference worth knowing rather than an oversight. `__oppref` is a CLICK
+   * reference -- written only when oppref was in the query -- so testing it
+   * asks "did this browser once arrive from an ad", which is a fair question
+   * to answer yes to thirty days later. Reddit's own cookie, `_rdt_uuid`, is
+   * a per-browser identifier written for everybody the pixel runs for, so
+   * testing it would be asking whether the pixel had already run, which is
+   * circular: it would answer yes for anyone who ever loaded it once.
+   *
+   * The cost is that this only recognises a visit that still carries the
+   * parameter. Inside the funnel that is every page, because every link into
+   * /headroom/apply/ carries location.search forward -- see the note on the
+   * apply link in index.html. What it does not cover is somebody coming back
+   * days later by typing the URL, and the honest options there are a cookie
+   * of our own or nothing. Nothing, for now.
+   */
+  function fromReddit() {
+    return /[?&]rdt_cid=/.test(location.search);
+  }
+
+  /*
+   * Reddit's pixel, loaded on the same terms as OpenAI's: only on the live
+   * site, only for somebody who arrived from one of their ads.
+   *
+   * The stub queue is Reddit's own, out of their published snippet -- rdt
+   * exists and buffers from the moment this runs, so nothing fired before the
+   * script lands is lost, and a blocked script costs the events rather than
+   * throwing.
+   *
+   * PageVisit is fired here rather than left to the loader, because Reddit's
+   * snippet fires it and ours has to do the same job: it is the pageview half
+   * of the pair that a Lead is measured against.
+   */
+  function loadReddit() {
+    (function (w, d) {
+      if (w.rdt) return;
+      var p = (w.rdt = function () {
+        p.sendEvent ? p.sendEvent.apply(p, arguments) : p.callQueue.push(arguments);
+      });
+      p.callQueue = [];
+      var t = d.createElement("script");
+      /* The id is in the query string as well as in init. That is how Reddit
+         ship it, and the two are not interchangeable -- the script URL is what
+         their CDN keys on. */
+      t.src = "https://www.redditstatic.com/ads/pixel.js?pixel_id=" + REDDIT;
+      t.async = true;
+      var f = d.getElementsByTagName("script")[0];
+      f.parentNode.insertBefore(t, f);
+    })(window, document);
+
+    window.rdt("init", REDDIT);
+    window.rdt("track", "PageVisit");
+  }
+
   function loadPixel() {
     (function (w, d, s, u) {
       if (w.oaiq) return;
@@ -461,13 +534,41 @@
    * Properties, never in this repo. Until then the id is browser-side only,
    * where it is harmless and does nothing.
    */
-  function lead(name, email) {
-    var id = eventId();
+  /*
+   * A lead, reported to every ad vendor that is listening.
+   *
+   * One call site on the site -- the confirmation page -- and it fans out
+   * here, so a page that accepts an application does not have to know how
+   * many advertising companies are being told about it. Adding a third is a
+   * branch in this function and nothing else.
+   *
+   * `id` is shared between them on purpose. It is this browser's identifier
+   * for this conversion, and handing the same one to both means a later
+   * question about whether two dashboards are describing the same application
+   * has an answer.
+   */
+  function lead(name, email, conversionId) {
+    /* Given by the caller wherever there is an application to name. eventId()
+       is the fallback for a call site that has none -- it keeps the vendors
+       fed, but an id invented here is known only to this browser, so nothing
+       server-side can ever be matched against it. */
+    var id = conversionId || eventId();
 
     if (!LIVE || debug()) {
-      if (window.console) console.info("[track] openai lead_created " + id);
+      if (window.console) {
+        console.info("[track] openai lead_created " + id);
+        console.info("[track] reddit Lead " + id);
+      }
       if (!LIVE) return;
     }
+
+    /* Reddit first, and on its own line, because the OpenAI half below returns
+       early in two places. Sharing a function does not mean sharing a fate: a
+       visitor with a blocked oaiq must still report to Reddit, and the version
+       of this that called redditLead() after `if (!window.oaiq) return` would
+       have tied one vendor's delivery to the other's script loading. */
+    redditLead(id, email);
+
     if (!window.oaiq) return;
 
     var addr = String(email || "").trim().toLowerCase();
@@ -493,6 +594,48 @@
       });
   }
 
+  /*
+   * The Reddit half of a lead.
+   *
+   * `Lead` is one of Reddit's standard event names, so it is passed as-is
+   * rather than as a Custom event -- a standard name is what their optimiser
+   * can bid toward.
+   *
+   * conversionId is the deduplication key. It matters more here than it looks
+   * like it does: if the Conversions API is ever wired up server-side, the
+   * same application will be reported twice, once from this browser and once
+   * from Apps Script, and Reddit collapses the pair only when both carry the
+   * same id. That is why eventId() is generated once in lead() and passed in
+   * rather than made here.
+   *
+   * THE SECOND init IS NOT A MISTAKE. Reddit's advanced matching goes in the
+   * init call, and at page load there is nobody to match -- the email only
+   * exists once somebody has applied. So the pixel is initialised bare on the
+   * way in and again here, with the identifier, immediately before the
+   * conversion it belongs to. Calls queue in order, so the matching is in
+   * place before the Lead is sent.
+   *
+   * Raw, not hashed. Reddit's own example passes a plain address and their
+   * pixel does the hashing client-side -- which is the opposite of OpenAI's
+   * half of this function, where the hashing is ours to do. Two vendors, two
+   * contracts; the thing to not do is assume the second works like the first.
+   *
+   * EMAIL ONLY, AND NOT THE PHONE NUMBER, though Reddit accepts one and it
+   * would raise the match rate. The fine print above the submit button says
+   * the phone number is used to talk to somebody about Headroom and nothing
+   * else, and shipping it to an advertiser would make that sentence false.
+   * The email is different only because the privacy page has always disclosed
+   * that an ad network receives it scrambled. Sending the phone is a decision
+   * about what this site promises, not a tuning knob, and it belongs to
+   * whoever writes the promise.
+   */
+  function redditLead(id, email) {
+    if (!REDDIT || !window.rdt) return;
+    var addr = String(email || "").trim().toLowerCase();
+    if (addr) window.rdt("init", REDDIT, { email: addr });
+    window.rdt("track", "Lead", { conversionId: id });
+  }
+
   /* The vendors themselves, last: everything above is ready for them before
      they exist. Both are live-site-only -- see LIVE at the top.
 
@@ -508,5 +651,6 @@
     document.head.appendChild(s);
 
     if (PIXEL && fromAd()) loadPixel();
+    if (REDDIT && fromReddit()) loadReddit();
   }
 })();

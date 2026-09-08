@@ -87,9 +87,11 @@ subsection: Privacy
   <h2>If you arrived from an ad</h2>
 
   <p>
-    Headroom advertises inside ChatGPT, and OpenAI's measurement pixel runs on
-    these pages so that a signup can be traced back to the ad that paid for it.
-    In practice:
+    Headroom advertises inside ChatGPT and on Reddit, and each of those
+    companies has a measurement pixel that runs on these pages so an
+    application can be traced back to the ad that paid for it. They work the
+    same way as each other, and only the one belonging to the ad you clicked
+    ever runs. Taking OpenAI's as the example:
   </p>
 
   <ul>
@@ -120,19 +122,32 @@ subsection: Privacy
   </ul>
 
   <p>
-    This is the only part of the site that involves an advertising company, and
-    those two cookies are the only ones it sets. The only other thing this site
-    stores on your machine is the half-finished application described above
-    &mdash; its answers and that tracking code &mdash; which never leaves it.
-    The legal basis is consent where the law requires it.
+    Reddit's pixel does the same job on the same terms. It runs only if you
+    arrived from a Reddit ad, which is what puts a <code>rdt_cid</code>
+    reference code in the web address; it stores <code>_rdt_uuid</code>, a
+    random number identifying your browser to Reddit; and if you apply, it
+    tells Reddit that an application happened and scrambles your email address
+    the same way, for the same matching. As with OpenAI, what comes back is a
+    count and not a name. <strong>Neither of them is ever sent your phone
+    number.</strong>
+  </p>
+
+  <p>
+    Those two companies are the only advertisers involved, and those cookies
+    are the only ones they set. The only other thing this site stores on your
+    machine is the half-finished application described above &mdash; its
+    answers and that tracking code &mdash; which never leaves it. The legal
+    basis is consent where the law requires it.
   </p>
 
   <div class="callout">
     <p>
       <strong>To switch it off:</strong> not arriving from an ad is enough, and
       is the usual case. Otherwise, block advertising scripts in your browser
-      or use any ad blocker — the pixel is loaded from
-      <code>bzrcdn.openai.com</code>, and blocking it stops all of the above.
+      or use any ad blocker — the pixels are loaded from
+      <code>bzrcdn.openai.com</code> and
+      <code>www.redditstatic.com</code>, and blocking those stops all of the
+      above.
       Nothing else on this site changes if you do; the application works
       exactly the same. You can also delete both cookies from your browser
       settings at any time.
@@ -143,7 +158,7 @@ subsection: Privacy
 
   <p>
     The companies above — Google, which holds the signup spreadsheet; OpenAI;
-    Fathom; GitHub; Cloudflare — are all based in the United States, so applying
+    Reddit; Fathom; GitHub; Cloudflare — are all based in the United States, so applying
     means your name, email and phone number are stored there. If you are in the UK, the
     EEA, or Switzerland, that is an international transfer, and it is covered by
     the standard contractual clauses those providers publish.
@@ -227,7 +242,7 @@ subsection: Privacy
     is not going to be one.
   </p>
 
-  <p><em>Last updated 5 September 2026.</em></p>
+  <p><em>Last updated 6 September 2026.</em></p>
 
 </div>
 

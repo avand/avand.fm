@@ -306,7 +306,7 @@ var APPLICATION_HEADERS = ["Timestamp", "Name", "Email", "Phone"]
       return q.label;
     })
   )
-  .concat(["In their words", "Source", "Page"]);
+  .concat(["In their words", "Source", "Page", "Conversion ID"]);
 
 function doPost(e) {
   try {
@@ -577,6 +577,14 @@ function application(payload) {
           cell(String(payload.words || "").slice(0, 2000)),
           cell(String(payload.source || "").slice(0, 200)),
           cell(String(payload.page || "").slice(0, 500)),
+          /* The id the page minted for this application, and gave to the ad
+             pixels in the same breath. Stored so a row here and a conversion
+             in an ad dashboard can be matched to each other -- a better join
+             than utm_content, which identifies an ad rather than a person --
+             and so the Conversions API has something to send when it is
+             wired up, including on a retry. Last, with Source and Page,
+             because it is machinery rather than anything to read. */
+          cell(String(payload.conversionId || "").slice(0, 100)),
         ])
     );
   } finally {
