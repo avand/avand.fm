@@ -54,20 +54,36 @@
   gap: 0.35em;
 }
 
-/* The wordmark, not a picture of one. It is the same string the hero sets in
-   the same face, so the two are one mark rendered twice rather than a logo
-   and a heading that resemble each other. It is also a link home, which is
-   the exit somebody reaches for before they find the one at the bottom. */
+/* The mark over the wordmark. This used to be the word set as text in the
+   same face as the hero, on the reasoning that the two were one mark
+   rendered twice rather than a logo and a heading resembling each other.
+   The hero is the drawn wordmark now, so the same reasoning points the
+   other way and this is the drawn one too.
+
+   Still a link home, which is the exit somebody reaches for before they
+   find the one at the bottom. */
 .apply-mark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55em;
   text-decoration: none;
-  color: var(--text);
 }
 
-.apply-mark-name {
+/* Heights, with width auto: the attributes reserve the right shape before
+   the files load, and after that these decide. The mark is square and the
+   wordmark is roughly 3.7:1, so they are sized to look balanced stacked
+   rather than to any shared number. */
+.apply-mark-glyph {
   display: block;
-  font-size: 1.5em;
-  font-weight: 900;
-  letter-spacing: 0.06em;
+  width: auto;
+  height: 48px;
+}
+
+.apply-mark-word {
+  display: block;
+  width: auto;
+  height: 32px;
 }
 
 .apply-kicker {
