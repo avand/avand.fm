@@ -488,9 +488,17 @@
         ? crypto.randomUUID()
         : "apply-" + Date.now() + "-" + Math.random().toString(36).slice(2, 10);
 
+    /* Reddit's click id, pulled off the query string that every link into this
+       flow forwards. The browser's pixel reads it for itself; this copy is for
+       the server-side report, which has no other way to know which ad brought
+       somebody here -- Apps Script is handed no headers and no IP address, so
+       without this the conversion it sends is close to anonymous. */
+    var rdtCid = (search.match(/[?&]rdt_cid=([^&]*)/) || [])[1] || "";
+
     var payload = {
       kind: "application",
       conversionId: conversionId,
+      rdtCid: decodeURIComponent(rdtCid),
       name: name,
       email: email,
       phone: phone,

@@ -494,6 +494,126 @@ function unsubscribeRequest(payload) {
   return json({ ok: true });
 }
 
+/* ===========================================================================
+ * REDDIT'S CONVERSIONS API
+ * ===========================================================================
+ * The server-side half of the Reddit pixel. The browser reports a Lead from
+ * /headroom/apply/done/; this reports the same one from here, and the two
+ * collapse into a single conversion because both carry the same
+ * conversion_id -- which is why the page mints that id at submit and sends it
+ * along with the application rather than inventing one at the last moment.
+ *
+ * WHY BOTH, WHEN THE PIXEL ALREADY WORKS
+ *
+ * The pixel is a script loaded from an ad-tech hostname, which is the single
+ * most blocked category of request on the web. This call leaves Google's
+ * servers and cannot be blocked by anything on the applicant's machine. The
+ * pixel is better at matching, this is better at arriving, and the
+ * conversion_id is what makes running both cost nothing.
+ *
+ * THE TOKEN IS NOT IN THIS FILE AND MUST NOT BE
+ *
+ * This repo is public. The token lives in Script Properties, under
+ * REDDIT_CAPI_TOKEN -- Project Settings > Script Properties in the editor.
+ * Absent, redditConversion_ returns without sending, so the endpoint works
+ * exactly as before and applications are unaffected.
+ *
+ * It is also worth knowing that Reddit's conversion token does not expire in
+ * any useful sense: the one issued in September 2026 carries an exp of 2126.
+ * There is no rotation to schedule, and equally nothing that will ever tell
+ * you it has leaked.
+ *
+ * WHAT THIS CANNOT SEND, AND WHY
+ *
+ * The applicant's IP address. doPost is handed no headers and no remote
+ * address -- Apps Script simply does not expose them -- so the ip/user-agent
+ * pair that Reddit leans on when there is no click id is not available here.
+ * What this has instead is the click id itself, forwarded by the page from
+ * rdt_cid, and a hashed email. Where those exist the match is good; where
+ * they do not, this event is close to anonymous and Reddit will say so by
+ * matching very little of it.
+ */
+var REDDIT_PIXEL = "a2_jkuzsl3m9hke";
+var REDDIT_CAPI = "https://ads-api.reddit.com/api/v3/pixels/" + REDDIT_PIXEL + "/conversion_events";
+
+/**
+ * Reports one conversion. Never throws: an application that was written to
+ * the Sheet must not be reported as failed because an advertiser's API was
+ * having a bad afternoon, which is the same rule sendOneInvite_ follows.
+ *
+ * Returns the HTTP status and body so that testRedditConversion below can
+ * show what happened, and so a future caller could log it. Nothing acts on
+ * the return value in the request path.
+ */
+function redditConversion_(payload) {
+  var token = PropertiesService.getScriptProperties().getProperty("REDDIT_CAPI_TOKEN");
+  if (!token) return { skipped: "no REDDIT_CAPI_TOKEN in Script Properties" };
+
+  var event = {
+    /* Milliseconds, not seconds. Reddit's own example says so and it is the
+       kind of thing that silently lands every conversion in 1970. */
+    event_at: Date.now(),
+    action_source: "website",
+    type: { tracking_type: "Lead" },
+  };
+
+  /* Everything below is optional, and is sent only when the page actually
+     supplied it. Reddit's documented example carries none of it, so an
+     application that arrives without a click id or an email still produces a
+     valid event rather than a rejected one. */
+  var clickId = String(payload.rdtCid || "").trim();
+  if (clickId) event.click_id = clickId.slice(0, 500);
+
+  var conversionId = String(payload.conversionId || "").trim();
+  if (conversionId) event.event_metadata = { conversion_id: conversionId.slice(0, 100) };
+
+  var email = String(payload.email || "").trim().toLowerCase();
+  if (email) event.user = { email: sha256Hex_(email) };
+
+  var res = UrlFetchApp.fetch(REDDIT_CAPI, {
+    method: "post",
+    contentType: "application/json",
+    headers: { Authorization: "Bearer " + token },
+    payload: JSON.stringify({ data: { events: [event] } }),
+    muteHttpExceptions: true,
+  });
+
+  return { status: res.getResponseCode(), body: res.getContentText().slice(0, 500), sent: event };
+}
+
+/**
+ * Lowercase hex SHA-256, which is the form every ad network wants a hashed
+ * identifier in. Utilities.computeDigest returns signed bytes, hence the & 255.
+ */
+function sha256Hex_(text) {
+  var bytes = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, text, Utilities.Charset.UTF_8);
+  var out = "";
+  for (var i = 0; i < bytes.length; i++) {
+    var b = (bytes[i] + 256) % 256;
+    out += (b < 16 ? "0" : "") + b.toString(16);
+  }
+  return out;
+}
+
+/**
+ * RUN THIS FROM THE EDITOR to find out whether the token works.
+ *
+ * It sends one event with a conversion_id that no application will ever use,
+ * so a duplicate of it can never collapse a real conversion, and prints
+ * Reddit's exact answer. A 401 here means the token is wrong or revoked; a
+ * 2xx means the wiring is sound and only Reddit's dashboard can tell you the
+ * rest.
+ */
+function testRedditConversion() {
+  var out = redditConversion_({
+    conversionId: "selftest-" + Date.now(),
+    email: "selftest@example.com",
+    rdtCid: "selftest",
+  });
+  console.log(JSON.stringify(out, null, 2));
+  return out;
+}
+
 /**
  * An application, from the wizard on /headroom/apply.
  *
@@ -589,6 +709,23 @@ function application(payload) {
     );
   } finally {
     lock.releaseLock();
+  }
+
+  /* The conversion goes out with the lock released and after the row is
+     written, and it cannot change the answer.
+     
+     Both halves of that matter. It is a network call to an advertiser, so
+     holding a script-wide lock across it would make the next applicant wait
+     behind Reddit; and an application that is safely in the Sheet must not be
+     reported to the browser as failed because an ad API timed out. Same rule
+     the sample class invite follows a few lines up, for the same reason.
+     
+     What a failure costs is one conversion, on a report the pixel has almost
+     certainly already sent from the browser. */
+  try {
+    redditConversion_(payload);
+  } catch (redditErr) {
+    console.error(redditErr);
   }
 
   // No mail from here, unlike a signup. The confirmation an applicant gets is
