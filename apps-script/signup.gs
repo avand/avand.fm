@@ -550,6 +550,23 @@ var REDDIT_PIXEL = "a2_jkuzsl3m9hke";
 var REDDIT_CAPI = "https://ads-api.reddit.com/api/v3/pixels/" + REDDIT_PIXEL + "/conversion_events";
 
 /**
+ * Reddit's own test id, from the "Send test events" step of the Conversions
+ * API setup screen. Not a label of our choosing: it is the value their setup
+ * panel watches for, so an event carrying it appears there and is kept out of
+ * reporting. Any other string is accepted and shows up nowhere, which is a
+ * test that silently proves nothing.
+ *
+ * Not a credential -- it identifies where a test event should be displayed,
+ * the same way the pixel id identifies where a conversion goes. The token is
+ * the secret, and that is in Script Properties.
+ *
+ * Sent ONLY by testRedditConversion. Reddit's setup screen says to remove it
+ * before production, which here means never adding it: redditConversion_
+ * takes the test id as an argument and the request path passes none.
+ */
+var REDDIT_TEST_ID = "t2_2lhb86uutj";
+
+/**
  * Reports one conversion. Never throws: an application that was written to
  * the Sheet must not be reported as failed because an advertiser's API was
  * having a bad afternoon, which is the same rule sendOneInvite_ follows.
@@ -670,12 +687,16 @@ function sha256Hex_(text) {
  * touching the real numbers.
  *
  * `data.test_id` is Reddit's own facility for exactly this -- an event
- * carrying one is processed and kept out of reporting -- and it is why this
- * no longer has to be paid for in real conversions. Finding it took reading
- * their Node example; probing had looked for `test_mode`, which does not
- * exist, and concluded there was no test mode at all. A near miss on a field
- * name is indistinguishable from an absent feature when all you have is a
- * validator saying no.
+ * carrying one is processed, kept out of reporting, and displayed on the
+ * Conversions API setup screen -- which is why this no longer has to be paid
+ * for in real conversions. Watch that screen while this runs.
+ *
+ * Finding it took reading their Node example; probing had looked for
+ * `test_mode`, which does not exist, and concluded there was no test mode at
+ * all. A near miss on a field name is indistinguishable from an absent
+ * feature when all you have is a validator saying no. The id itself had to be
+ * read off their setup screen too: an invented one is accepted and appears
+ * nowhere, which is a test that proves nothing while looking like it passed.
  *
  * The values below are the shape a real application sends, so a 200 here
  * means the wiring is sound end to end. What it cannot tell you is whether
@@ -691,7 +712,7 @@ function testRedditConversion() {
       rdtUuid: Date.now() + "." + Utilities.getUuid(),
       page: "https://avand.fm/headroom/apply/?rdt_cid=selftest-click",
     },
-    "headroom-selftest"
+    REDDIT_TEST_ID
   );
   console.log(JSON.stringify(out, null, 2));
   return out;
