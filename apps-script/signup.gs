@@ -642,6 +642,13 @@ function redditConversion_(payload, testId) {
      "1684189007728.7c73f2ae-..." -- which is why this is passed through
      untouched rather than hashed like the address above: it is Reddit's own
      value being handed back to them. */
+  /* Normalised by the page, not here, so there is one implementation of E.164
+     rather than two that have to agree. Checked rather than trusted, because
+     anything can post to this URL: a value that is not +digits is dropped
+     instead of forwarded. */
+  var phone = String(payload.phoneE164 || "").trim();
+  if (/^\+[0-9]{8,15}$/.test(phone)) user.phone_number = phone;
+
   var rdtUuid = String(payload.rdtUuid || "").trim();
   if (rdtUuid) user.uuid = rdtUuid.slice(0, 200);
 

@@ -547,7 +547,7 @@
    * question about whether two dashboards are describing the same application
    * has an answer.
    */
-  function lead(name, email, conversionId) {
+  function lead(name, email, conversionId, phone) {
     /* Given by the caller wherever there is an application to name. eventId()
        is the fallback for a call site that has none -- it keeps the vendors
        fed, but an id invented here is known only to this browser, so nothing
@@ -567,7 +567,7 @@
        visitor with a blocked oaiq must still report to Reddit, and the version
        of this that called redditLead() after `if (!window.oaiq) return` would
        have tied one vendor's delivery to the other's script loading. */
-    redditLead(id, email);
+    redditLead(id, email, phone);
 
     if (!window.oaiq) return;
 
@@ -632,10 +632,17 @@
    * the shared conversionId. Both halves report it because either one can be
    * the one that arrives: this can be blocked, and that cannot see an IP.
    */
-  function redditLead(id, email) {
+  function redditLead(id, email, phone) {
     if (!REDDIT || !window.rdt) return;
+    var match = {};
     var addr = String(email || "").trim().toLowerCase();
-    if (addr) window.rdt("init", REDDIT, { email: addr });
+    if (addr) match.email = addr;
+    /* Already E.164 by the time it gets here -- the application normalises it
+       once, at submit, and hands the same string to this and to the endpoint.
+       Empty when it could not be normalised with certainty, and an absent
+       identifier beats a confidently wrong one. */
+    if (phone) match.phoneNumber = phone;
+    if (match.email || match.phoneNumber) window.rdt("init", REDDIT, match);
     window.rdt("track", "Lead", { conversionId: id });
   }
 

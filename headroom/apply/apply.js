@@ -505,8 +505,37 @@
        id. Two match keys for the same visitor rather than one. */
     var rdtUuid = (document.cookie.match(/(?:^|;\s*)_rdt_uuid=([^;]*)/) || [])[1] || "";
 
+    /* E.164 for Reddit -- +15554441234, the shape their field reference shows.
+     *
+     * Done here, once, rather than in the endpoint as well: the pixel needs
+     * the same value in the browser, so a second implementation in Apps
+     * Script would be two functions that have to agree forever. The Sheet
+     * still stores the number exactly as it was typed; this is only for the
+     * advertisers.
+     *
+     * RETURNS NOTHING WHEN IT CANNOT BE SURE, which is the whole of the care
+     * here. Ten digits is a US number and eleven beginning 1 is the same
+     * number written out, and both are safe. Anything else -- eight digits, a
+     * local format from a country nobody named -- is a number this cannot
+     * complete without inventing a country code, and an invented one does not
+     * fail to match: it matches somebody else. */
+    var phoneE164 = (function (raw) {
+      var v = String(raw || "").trim();
+      var d;
+      if (v.charAt(0) === "+") {
+        d = v.slice(1).replace(/\D/g, "");
+      } else {
+        d = v.replace(/\D/g, "");
+        // 1 555 444 1234 is the same number as 555 444 1234, already carrying
+        // the code it is about to be given.
+        if (!(d.length === 11 && d.charAt(0) === "1")) d = "1" + d;
+      }
+      return d.length >= 8 && d.length <= 15 ? "+" + d : "";
+    })(form.elements.phone.value);
+
     var payload = {
       kind: "application",
+      phoneE164: phoneE164,
       conversionId: conversionId,
       rdtCid: decodeURIComponent(rdtCid),
       rdtUuid: decodeURIComponent(rdtUuid),
@@ -544,7 +573,7 @@
         // body. Treating the status line as the answer would send somebody to
         // a confirmation page for an application that was rejected.
         if (!data || !data.ok) throw new Error(data && data.error);
-        finish(true, conversionId);
+        finish(true, conversionId, phoneE164);
       })
       .catch(function () {
         sending = false;
@@ -579,7 +608,7 @@
    * The query string goes with the navigation for the same reason it came in:
    * fromAd() has to be able to see the reference at the moment of conversion.
    */
-  function finish(converted, conversionId) {
+  function finish(converted, conversionId, phoneE164) {
     clearDraft();
     if (converted === false) {
       window.location.href = DONE_URL + search;
@@ -598,6 +627,7 @@
           firstName: form.elements.name.value.trim().split(/\s+/)[0],
           email: form.elements.email.value.trim(),
           conversionId: conversionId,
+          phoneE164: phoneE164,
         })
       );
     } catch (err) {
