@@ -505,6 +505,26 @@
        id. Two match keys for the same visitor rather than one. */
     var rdtUuid = (document.cookie.match(/(?:^|;\s*)_rdt_uuid=([^;]*)/) || [])[1] || "";
 
+    /* Meta's two, and the same idea as the pair above: the browser's pixel
+       reads them for itself, and these copies are for the server-side report,
+       which has no headers and no IP and would otherwise be matching on a
+       hashed address alone.
+
+       BOTH COME FROM COOKIES, including the click one, which is the difference
+       from Reddit. Meta does not want the raw fbclid -- it wants `_fbc`, the
+       cookie their pixel writes when it sees one, in their own
+       "fb.1.<timestamp>.<fbclid>" format. Reading the cookie means the value
+       is theirs rather than one assembled here from a query parameter and a
+       guess at what the timestamp should have been.
+
+       The consequence is worth stating: no pixel, no cookies, nothing to
+       forward. Somebody who blocks scripts is exactly the applicant this
+       server-side report exists to catch, and for them this half arrives with
+       a hashed email and phone number and nothing else. That is still better
+       than the pixel's nothing at all. */
+    var fbc = (document.cookie.match(/(?:^|;\s*)_fbc=([^;]*)/) || [])[1] || "";
+    var fbp = (document.cookie.match(/(?:^|;\s*)_fbp=([^;]*)/) || [])[1] || "";
+
     /* E.164 for Reddit -- +15554441234, the shape their field reference shows.
      *
      * Done here, once, rather than in the endpoint as well: the pixel needs
@@ -539,6 +559,8 @@
       conversionId: conversionId,
       rdtCid: decodeURIComponent(rdtCid),
       rdtUuid: decodeURIComponent(rdtUuid),
+      fbc: decodeURIComponent(fbc),
+      fbp: decodeURIComponent(fbp),
       name: name,
       email: email,
       phone: phone,
