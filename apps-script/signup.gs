@@ -877,10 +877,24 @@ function metaConversion_(payload, testCode) {
 /**
  * RUN THIS FROM THE EDITOR, with Events Manager > Test Events open.
  *
- * Pass the test code Meta shows on that screen -- it changes per session, so
- * it is an argument rather than a constant, which is the difference from
- * REDDIT_TEST_ID. Without one this sends nothing, deliberately: a test that
- * lands in production reporting is worse than no test.
+ * TAKES NO ARGUMENT, AND THAT IS THE POINT. The editor's Run button calls the
+ * selected function with nothing -- there is no field for parameters anywhere
+ * in that UI -- so a test that needs a value has to read it from somewhere a
+ * person can set without editing code. An earlier version of this took the
+ * code as a parameter and simply could not be run from the dropdown, which is
+ * the only place anybody would run it from.
+ *
+ * So the code goes in Script Properties beside the token, under
+ * META_TEST_EVENT_CODE. Meta rotates it per session, and changing a property
+ * is a text field rather than a push and a deploy.
+ *
+ * Not a credential -- it names where a test event should be displayed, the
+ * same way REDDIT_TEST_ID does. It is in Script Properties for convenience,
+ * not secrecy.
+ *
+ * The argument still exists for a caller that has one -- another function, or
+ * clasp run. Absent both, this sends nothing, deliberately: a test that lands
+ * in production reporting is worse than no test.
  *
  * THE SAME WARNING AS THE REDDIT SELF-TEST APPLIES. A 200 from Meta means the
  * request was well formed, not that the identifiers inside it matched
@@ -893,11 +907,24 @@ function metaConversion_(payload, testCode) {
  * What this carries is only what a test can honestly have.
  */
 function testMetaConversion(testEventCode) {
-  if (!testEventCode) {
-    console.log("Pass the test code from Events Manager > Test Events, e.g.");
-    console.log('  testMetaConversion("TEST12345")');
-    return { skipped: "no test_event_code" };
+  var code =
+    testEventCode ||
+    PropertiesService.getScriptProperties().getProperty("META_TEST_EVENT_CODE");
+
+  if (!code) {
+    console.log("No test code, so nothing was sent.");
+    console.log("");
+    console.log("Open Events Manager > your dataset > Test Events and copy the");
+    console.log('code it shows (looks like "TEST12345"), then put it in');
+    console.log("Project Settings > Script Properties as:");
+    console.log("");
+    console.log("  META_TEST_EVENT_CODE = TEST12345");
+    console.log("");
+    console.log("Then run this again. The code changes per session, so expect");
+    console.log("to update that property rather than set it once.");
+    return { skipped: "no META_TEST_EVENT_CODE in Script Properties" };
   }
+
   var out = metaConversion_(
     {
       conversionId: "selftest-" + Date.now(),
@@ -906,7 +933,7 @@ function testMetaConversion(testEventCode) {
       phoneE164: "+15555550199",
       page: "https://avand.fm/headroom/apply/",
     },
-    testEventCode
+    code
   );
   console.log(JSON.stringify(out, null, 2));
   console.log("");
