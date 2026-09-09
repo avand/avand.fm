@@ -875,6 +875,110 @@ function metaConversion_(payload, testCode) {
 }
 
 /**
+ * RUN THIS FIRST, from the editor's Run dropdown. Takes no argument, needs
+ * nothing open in a browser, and RECORDS NOTHING IN META.
+ *
+ * It answers the two questions that fail silently:
+ *
+ *   1. Is the token where metaConversion_ looks for it? A property named
+ *      META_API_TOKEN instead of META_CAPI_TOKEN means every conversion is
+ *      skipped forever and nothing anywhere says so -- not the execution log,
+ *      not Events Manager, not the applicant's page. A quiet integration and
+ *      a broken one look identical from outside.
+ *
+ *   2. Does that token actually authenticate against the dataset? A token can
+ *      be present and expired, revoked, or for the wrong asset.
+ *
+ * HOW IT ASKS WITHOUT LEAVING A CONVERSION BEHIND: it sends an event whose
+ * action_source is deliberately invalid. Meta validates that before storing
+ * anything, so the event cannot be recorded no matter what -- but the request
+ * still has to authenticate to get as far as being validated. So the shape of
+ * the error is the answer:
+ *
+ *   subcode 2804039, "Invalid Action Source Parameter"  -> auth is fine
+ *   an OAuthException about the token                   -> auth is not
+ *
+ * Do not "fix" this by sending a valid action_source. A valid one would be
+ * stored, and this would stop being a check you can run whenever you like and
+ * start being a fake application in the ad account's numbers.
+ */
+function checkMetaSetup() {
+  var props = PropertiesService.getScriptProperties();
+  var token = props.getProperty("META_CAPI_TOKEN");
+  var testCode = props.getProperty("META_TEST_EVENT_CODE");
+
+  console.log("Dataset:  " + META_DATASET);
+  console.log("Endpoint: " + META_CAPI);
+  console.log("");
+
+  if (!token) {
+    console.log("META_CAPI_TOKEN: NOT FOUND in Script Properties.");
+    console.log("");
+    console.log("Every conversion is being skipped, silently. Check the exact");
+    console.log("spelling in Project Settings > Script Properties -- these are");
+    console.log("the keys that are actually there:");
+    console.log("  " + (Object.keys(props.getProperties()).join(", ") || "(none)"));
+    return { ok: false, reason: "no META_CAPI_TOKEN" };
+  }
+
+  /* Length and ends only. Enough to spot a truncated paste or a stray quote,
+     and never the token itself -- execution logs are not a place to put one. */
+  console.log(
+    "META_CAPI_TOKEN: found, " +
+      token.length +
+      " chars, " +
+      token.slice(0, 6) +
+      "..." +
+      token.slice(-4)
+  );
+  console.log(
+    "META_TEST_EVENT_CODE: " + (testCode ? "found, " + testCode : "not set (only needed by testMetaConversion)")
+  );
+  console.log("");
+
+  var res = UrlFetchApp.fetch(META_CAPI + "?access_token=" + encodeURIComponent(token), {
+    method: "post",
+    contentType: "application/json",
+    payload: JSON.stringify({
+      data: [
+        {
+          event_name: "Lead",
+          event_time: Math.floor(Date.now() / 1000),
+          /* The whole trick. Rejected before storage, every time. */
+          action_source: "invalid_on_purpose_this_is_a_setup_check",
+          user_data: { em: [sha256Hex_("setupcheck@example.com")] },
+        },
+      ],
+    }),
+    muteHttpExceptions: true,
+  });
+
+  var status = res.getResponseCode();
+  var body = res.getContentText();
+  var authOk = body.indexOf("2804039") !== -1 || body.indexOf("Action Source") !== -1;
+
+  console.log("HTTP " + status);
+  console.log(body.slice(0, 400));
+  console.log("");
+
+  if (authOk) {
+    console.log("AUTH OK. The token reaches the dataset and can post events.");
+    console.log("Nothing was recorded -- the action_source above is invalid on");
+    console.log("purpose, so Meta threw the event away before storing it.");
+    console.log("");
+    console.log("What this does NOT tell you is whether a real conversion");
+    console.log("matches anybody. Only Test Events and match quality say that.");
+  } else {
+    console.log("AUTH FAILED. The error above is not the action_source one, so");
+    console.log("the request did not get as far as validation. An expired or");
+    console.log("revoked token is the usual cause -- Meta tokens do expire,");
+    console.log("unlike Reddit's. Generate a new one and update the property.");
+  }
+
+  return { ok: authOk, status: status, body: body.slice(0, 400) };
+}
+
+/**
  * RUN THIS FROM THE EDITOR, with Events Manager > Test Events open.
  *
  * TAKES NO ARGUMENT, AND THAT IS THE POINT. The editor's Run button calls the
