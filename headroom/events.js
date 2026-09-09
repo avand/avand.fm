@@ -636,13 +636,11 @@
        server-side can ever be matched against it. */
     var id = conversionId || eventId();
 
-    if (!LIVE || debug()) {
+    if (!LIVE) {
       if (window.console) {
-        console.info("[track] openai lead_created " + id);
-        console.info("[track] reddit Lead " + id);
-        console.info("[track] meta Lead " + id);
+        console.info("[track] lead " + id + " -- not sent, this is not avand.fm");
       }
-      if (!LIVE) return;
+      return;
     }
 
     /* Reddit first, and on its own line, because the OpenAI half below returns
@@ -650,8 +648,34 @@
        visitor with a blocked oaiq must still report to Reddit, and the version
        of this that called redditLead() after `if (!window.oaiq) return` would
        have tied one vendor's delivery to the other's script loading. */
-    redditLead(id, email, phone);
-    metaLead(id, email, phone, name);
+    var sentReddit = redditLead(id, email, phone);
+    var sentMeta = metaLead(id, email, phone, name);
+    var sentOpenai = !!window.oaiq;
+
+    /* WHAT THIS LOG IS FOR, AND THE BUG THAT PUT IT HERE.
+     *
+     * It used to print three lines before any vendor was called, naming all
+     * three whatever happened next. Each half then returns early when its SDK
+     * is absent -- and the SDK is absent for anyone who did not arrive from
+     * that vendor's ad, which is most people and every manual test. So the
+     * console said "meta Lead" while metaLead was returning on its first line,
+     * and the only way to find out was to go looking in an ad dashboard for a
+     * conversion that had never been sent.
+     *
+     * A log that reports what a function was about to attempt is worse than no
+     * log: it is a silent failure wearing a receipt. So each half now says
+     * whether its SDK was actually there, and "skipped" names the reason.
+     *
+     * Skipped is not an error. On a page nobody reached from an ad it is the
+     * correct outcome and the gates are doing their job. It is only a fault
+     * when you expected the pixel to be loaded, which is exactly the case a
+     * test is checking. */
+    if (debug() && window.console) {
+      console.info("[track] lead " + id);
+      console.info("  openai lead_created  " + (sentOpenai ? "sent" : "skipped -- oaiq not loaded"));
+      console.info("  reddit Lead          " + (sentReddit ? "sent" : "skipped -- rdt not loaded"));
+      console.info("  meta Lead            " + (sentMeta ? "sent" : "skipped -- fbq not loaded"));
+    }
 
     if (!window.oaiq) return;
 
@@ -709,8 +733,11 @@
    * the shared conversionId. Both halves report it because either one can be
    * the one that arrives: this can be blocked, and that cannot see an IP.
    */
+  /* Returns whether it actually sent, so lead() can say so rather than assume
+     it. False means the SDK was not on the page, which for a visitor who did
+     not arrive from a Reddit ad is correct and expected. */
   function redditLead(id, email, phone) {
-    if (!REDDIT || !window.rdt) return;
+    if (!REDDIT || !window.rdt) return false;
     var match = {};
     var addr = String(email || "").trim().toLowerCase();
     if (addr) match.email = addr;
@@ -721,6 +748,7 @@
     if (phone) match.phoneNumber = phone;
     if (match.email || match.phoneNumber) window.rdt("init", REDDIT, match);
     window.rdt("track", "Lead", { conversionId: id });
+    return true;
   }
 
   /*
@@ -756,8 +784,9 @@
    * application server-side, Meta collapses the pair only when both carry
    * this id.
    */
+  /* Returns whether it actually sent -- see the note in redditLead. */
   function metaLead(id, email, phone, name) {
-    if (!META || !window.fbq) return;
+    if (!META || !window.fbq) return false;
     var match = {};
     var addr = String(email || "").trim().toLowerCase();
     if (addr) match.em = addr;
@@ -770,6 +799,7 @@
     if (first) match.fn = first.toLowerCase();
     if (match.em || match.ph || match.fn) window.fbq("init", META, match);
     window.fbq("track", "Lead", {}, { eventID: id });
+    return true;
   }
 
   /* The vendors themselves, last: everything above is ready for them before
