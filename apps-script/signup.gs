@@ -731,6 +731,324 @@ function testRedditConversion() {
 }
 
 /**
+ * Meta's dataset id -- the same number as the browser pixel's, which is not a
+ * coincidence: Meta renamed "pixel" to "dataset" and one id now names both the
+ * browser events and the server ones. That is what lets event_id collapse the
+ * two reports of one application into one conversion.
+ *
+ * THE TOKEN IS NOT IN THIS FILE AND MUST NOT BE. Same rule as Reddit's: this
+ * repo is public. It lives in Script Properties under META_CAPI_TOKEN, and
+ * without it metaConversion_ returns without sending, so applications are
+ * unaffected and the endpoint behaves exactly as it did before.
+ *
+ * Unlike Reddit's, a Meta system-user token CAN expire, and a long-lived one
+ * is a thing you generate deliberately rather than get by default. If Meta
+ * conversions quietly stop arriving while Reddit's keep coming, an expired
+ * token is the first thing to check -- the request comes back 190 and this
+ * function swallows it like any other failure.
+ */
+var META_DATASET = "1105029631861200";
+var META_CAPI = "https://graph.facebook.com/v26.0/" + META_DATASET + "/events";
+
+/**
+ * Reports one application to Meta, server-side.
+ *
+ * WHY THIS EXISTS WHEN THE PIXEL ALREADY FIRES ONE
+ *
+ * Same argument as the Reddit half above: the pixel is a script from an
+ * ad-tech hostname, the most blocked category of request on the web, and this
+ * call leaves Google's servers where nothing on the applicant's machine can
+ * stop it. The pixel matches better, this arrives more reliably, and event_id
+ * is what makes running both cost nothing rather than double-count.
+ *
+ * THIS IS THE WEBSITE EVENT, NOT THE CRM ONE
+ *
+ * Meta's Qualified Leads guide describes a different payload for the same
+ * endpoint -- action_source "system_generated", custom_data.event_source
+ * "crm", and a lead_id. That integration reports a lead moving between stages
+ * of a funnel, and it is built around the lead_id Meta mints for its own
+ * Instant Forms. This application is a form on our own site, so there is no
+ * lead_id to send, and the only stage that happens automatically is this one,
+ * which the pixel already reports. Sending it as a CRM event would describe
+ * the same moment twice in two vocabularies and tell Meta nothing new.
+ *
+ * If Instant Forms ever run, that integration becomes worth having, and it is
+ * a second function beside this one rather than a change to it.
+ *
+ * HASHED, WHICH IS THE OPPOSITE OF THE REDDIT HALF
+ *
+ * Meta requires SHA-256 on every contact field and documents the digest as
+ * the wire format. Reddit's field reference names no digest anywhere, so the
+ * two halves of one application genuinely go out differently: hashed here,
+ * in the clear there. The privacy page says the address is handed to Meta as
+ * it is, which is about the BROWSER pixel -- their script takes it plain and
+ * hashes it itself. This half never sees an unhashed value leave.
+ *
+ * Never throws, for the same reason redditConversion_ does not: an
+ * application safely in the Sheet must not be reported as failed because an
+ * advertiser's API was having a bad afternoon.
+ */
+function metaConversion_(payload, testCode) {
+  var token = PropertiesService.getScriptProperties().getProperty("META_CAPI_TOKEN");
+  if (!token) return { skipped: "no META_CAPI_TOKEN in Script Properties" };
+
+  var event = {
+    event_name: "Lead",
+    /* SECONDS, not milliseconds, and this is the opposite of Reddit's
+       event_at. Meta's example carries 1673035686 -- ten digits. Sending
+       milliseconds puts the event fifty thousand years out and Meta rejects
+       it for being outside the seven-day window, which reads as a range
+       error rather than a units one. */
+    event_time: Math.floor(Date.now() / 1000),
+    /* "website", lowercase, because this describes where the conversion
+       happened and not what sent it. The CRM integration's
+       "system_generated" would be the wrong claim: a person filled in a form
+       on a web page. */
+    action_source: "website",
+  };
+
+  /* The deduplication key, and the whole reason both halves can run. The
+     browser pixel sends this same value as eventID; Meta keeps one of the
+     pair. Meta matches on event_name AND event_id together, so the names have
+     to agree too -- both are "Lead". */
+  var conversionId = String(payload.conversionId || "").trim();
+  if (conversionId) event.event_id = conversionId.slice(0, 100);
+
+  var page = String(payload.page || "").trim();
+  if (page) event.event_source_url = page.slice(0, 1000);
+
+  var user = {};
+
+  /* Meta's normalisation, which is theirs and not ours to improve on: trim,
+     lowercase, then hash. Their arrays hold one element -- the field takes a
+     list because one event can carry several addresses, and we have one. */
+  var email = String(payload.email || "").trim().toLowerCase();
+  if (email) user.em = [sha256Hex_(email)];
+
+  /* DIGITS ONLY, WITH THE COUNTRY CODE AND WITHOUT THE PLUS. The page
+     normalises to E.164 -- +15554441234 -- because that is the shape Reddit's
+     field reference shows, and Meta's rule is the same number with every
+     symbol removed. Hashing the string with its "+" still in produces a
+     digest of a different value, which matches nobody and looks fine.
+     Checked rather than trusted: anything can post to this URL. */
+  var phone = String(payload.phoneE164 || "").trim();
+  if (/^\+[0-9]{8,15}$/.test(phone)) user.ph = [sha256Hex_(phone.replace(/^\+/, ""))];
+
+  /* First name only, lowercased then hashed -- Meta's `fn` means the given
+     name, the same reason the browser half sends a first name and the OpenAI
+     half hashes one. A full name here hashes "firstnamelastname" and matches
+     nobody. */
+  var first = String(payload.name || "").trim().split(/\s+/)[0] || "";
+  if (first) user.fn = [sha256Hex_(first.toLowerCase())];
+
+  /* Meta's own cookies, forwarded by the page and passed through UNHASHED --
+     these are identifiers Meta wrote and is having handed back, not contact
+     information, and hashing them would destroy the only thing they are for.
+     fbc is the click reference and is the highest-value match key here; fbp
+     names the browser. Both absent for anyone whose pixel never ran, which is
+     exactly the applicant this server-side report exists to catch. */
+  var fbc = String(payload.fbc || "").trim();
+  if (fbc) user.fbc = fbc.slice(0, 255);
+
+  var fbp = String(payload.fbp || "").trim();
+  if (fbp) user.fbp = fbp.slice(0, 255);
+
+  /* No client_ip_address and no client_user_agent, both of which Meta ranks
+     highly and neither of which exists here: doPost is handed no headers and
+     no remote address. Same gap as the Reddit half, same reason. */
+  if (Object.keys(user).length) event.user_data = user;
+
+  var body = { data: [event] };
+  /* A test run names itself and Meta keeps it out of reporting, showing it
+     under Test Events instead. Absent in the request path, so nothing a real
+     applicant does is ever marked as a test. */
+  if (testCode) body.test_event_code = testCode;
+
+  var res = UrlFetchApp.fetch(META_CAPI + "?access_token=" + encodeURIComponent(token), {
+    method: "post",
+    contentType: "application/json",
+    payload: JSON.stringify(body),
+    muteHttpExceptions: true,
+  });
+
+  return { status: res.getResponseCode(), body: res.getContentText().slice(0, 500), sent: body };
+}
+
+/**
+ * RUN THIS FIRST, from the editor's Run dropdown. Takes no argument, needs
+ * nothing open in a browser, and RECORDS NOTHING IN META.
+ *
+ * It answers the two questions that fail silently:
+ *
+ *   1. Is the token where metaConversion_ looks for it? A property named
+ *      META_API_TOKEN instead of META_CAPI_TOKEN means every conversion is
+ *      skipped forever and nothing anywhere says so -- not the execution log,
+ *      not Events Manager, not the applicant's page. A quiet integration and
+ *      a broken one look identical from outside.
+ *
+ *   2. Does that token actually authenticate against the dataset? A token can
+ *      be present and expired, revoked, or for the wrong asset.
+ *
+ * HOW IT ASKS WITHOUT LEAVING A CONVERSION BEHIND: it sends an event whose
+ * action_source is deliberately invalid. Meta validates that before storing
+ * anything, so the event cannot be recorded no matter what -- but the request
+ * still has to authenticate to get as far as being validated. So the shape of
+ * the error is the answer:
+ *
+ *   subcode 2804039, "Invalid Action Source Parameter"  -> auth is fine
+ *   an OAuthException about the token                   -> auth is not
+ *
+ * Do not "fix" this by sending a valid action_source. A valid one would be
+ * stored, and this would stop being a check you can run whenever you like and
+ * start being a fake application in the ad account's numbers.
+ */
+function checkMetaSetup() {
+  var props = PropertiesService.getScriptProperties();
+  var token = props.getProperty("META_CAPI_TOKEN");
+  var testCode = props.getProperty("META_TEST_EVENT_CODE");
+
+  console.log("Dataset:  " + META_DATASET);
+  console.log("Endpoint: " + META_CAPI);
+  console.log("");
+
+  if (!token) {
+    console.log("META_CAPI_TOKEN: NOT FOUND in Script Properties.");
+    console.log("");
+    console.log("Every conversion is being skipped, silently. Check the exact");
+    console.log("spelling in Project Settings > Script Properties -- these are");
+    console.log("the keys that are actually there:");
+    console.log("  " + (Object.keys(props.getProperties()).join(", ") || "(none)"));
+    return { ok: false, reason: "no META_CAPI_TOKEN" };
+  }
+
+  /* Length and ends only. Enough to spot a truncated paste or a stray quote,
+     and never the token itself -- execution logs are not a place to put one. */
+  console.log(
+    "META_CAPI_TOKEN: found, " +
+      token.length +
+      " chars, " +
+      token.slice(0, 6) +
+      "..." +
+      token.slice(-4)
+  );
+  console.log(
+    "META_TEST_EVENT_CODE: " + (testCode ? "found, " + testCode : "not set (only needed by testMetaConversion)")
+  );
+  console.log("");
+
+  var res = UrlFetchApp.fetch(META_CAPI + "?access_token=" + encodeURIComponent(token), {
+    method: "post",
+    contentType: "application/json",
+    payload: JSON.stringify({
+      data: [
+        {
+          event_name: "Lead",
+          event_time: Math.floor(Date.now() / 1000),
+          /* The whole trick. Rejected before storage, every time. */
+          action_source: "invalid_on_purpose_this_is_a_setup_check",
+          user_data: { em: [sha256Hex_("setupcheck@example.com")] },
+        },
+      ],
+    }),
+    muteHttpExceptions: true,
+  });
+
+  var status = res.getResponseCode();
+  var body = res.getContentText();
+  var authOk = body.indexOf("2804039") !== -1 || body.indexOf("Action Source") !== -1;
+
+  console.log("HTTP " + status);
+  console.log(body.slice(0, 400));
+  console.log("");
+
+  if (authOk) {
+    console.log("AUTH OK. The token reaches the dataset and can post events.");
+    console.log("Nothing was recorded -- the action_source above is invalid on");
+    console.log("purpose, so Meta threw the event away before storing it.");
+    console.log("");
+    console.log("What this does NOT tell you is whether a real conversion");
+    console.log("matches anybody. Only Test Events and match quality say that.");
+  } else {
+    console.log("AUTH FAILED. The error above is not the action_source one, so");
+    console.log("the request did not get as far as validation. An expired or");
+    console.log("revoked token is the usual cause -- Meta tokens do expire,");
+    console.log("unlike Reddit's. Generate a new one and update the property.");
+  }
+
+  return { ok: authOk, status: status, body: body.slice(0, 400) };
+}
+
+/**
+ * RUN THIS FROM THE EDITOR, with Events Manager > Test Events open.
+ *
+ * TAKES NO ARGUMENT, AND THAT IS THE POINT. The editor's Run button calls the
+ * selected function with nothing -- there is no field for parameters anywhere
+ * in that UI -- so a test that needs a value has to read it from somewhere a
+ * person can set without editing code. An earlier version of this took the
+ * code as a parameter and simply could not be run from the dropdown, which is
+ * the only place anybody would run it from.
+ *
+ * So the code goes in Script Properties beside the token, under
+ * META_TEST_EVENT_CODE. Meta rotates it per session, and changing a property
+ * is a text field rather than a push and a deploy.
+ *
+ * Not a credential -- it names where a test event should be displayed, the
+ * same way REDDIT_TEST_ID does. It is in Script Properties for convenience,
+ * not secrecy.
+ *
+ * The argument still exists for a caller that has one -- another function, or
+ * clasp run. Absent both, this sends nothing, deliberately: a test that lands
+ * in production reporting is worse than no test.
+ *
+ * THE SAME WARNING AS THE REDDIT SELF-TEST APPLIES. A 200 from Meta means the
+ * request was well formed, not that the identifiers inside it matched
+ * anybody. Meta returns events_received: 1 for a payload full of nonsense.
+ * Test Events is where you see what it actually made of the match keys, and
+ * Events Manager's match quality is where you see whether it was any good.
+ *
+ * No invented fbc or fbp, for the reason the Reddit self-test sends no click
+ * id: a manufactured one produced an event Reddit accepted and could not use.
+ * What this carries is only what a test can honestly have.
+ */
+function testMetaConversion(testEventCode) {
+  var code =
+    testEventCode ||
+    PropertiesService.getScriptProperties().getProperty("META_TEST_EVENT_CODE");
+
+  if (!code) {
+    console.log("No test code, so nothing was sent.");
+    console.log("");
+    console.log("Open Events Manager > your dataset > Test Events and copy the");
+    console.log('code it shows (looks like "TEST12345"), then put it in');
+    console.log("Project Settings > Script Properties as:");
+    console.log("");
+    console.log("  META_TEST_EVENT_CODE = TEST12345");
+    console.log("");
+    console.log("Then run this again. The code changes per session, so expect");
+    console.log("to update that property rather than set it once.");
+    return { skipped: "no META_TEST_EVENT_CODE in Script Properties" };
+  }
+
+  var out = metaConversion_(
+    {
+      conversionId: "selftest-" + Date.now(),
+      name: "Selftest",
+      email: "selftest@example.com",
+      phoneE164: "+15555550199",
+      page: "https://avand.fm/headroom/apply/",
+    },
+    code
+  );
+  console.log(JSON.stringify(out, null, 2));
+  console.log("");
+  console.log("Test Events should show one Lead within a few seconds.");
+  console.log("events_received: 1 only means it was accepted. Check which");
+  console.log("match keys it lists -- em, ph and fn are all this can carry");
+  console.log("without a real browser behind it.");
+  return out;
+}
+
+/**
  * An application, from the wizard on /headroom/apply.
  *
  * WHY THIS VALIDATES THREE FIELDS AND NOTHING ELSE
@@ -842,6 +1160,16 @@ function application(payload) {
     redditConversion_(payload);
   } catch (redditErr) {
     console.error(redditErr);
+  }
+
+  /* Meta, in its own try. Two vendors, two failures that must not touch each
+     other: a single try around both would let a throw from Reddit's call skip
+     Meta's entirely, which is the same mistake the browser half avoids by
+     calling redditLead and metaLead on separate lines. */
+  try {
+    metaConversion_(payload);
+  } catch (metaErr) {
+    console.error(metaErr);
   }
 
   // No mail from here, unlike a signup. The confirmation an applicant gets is

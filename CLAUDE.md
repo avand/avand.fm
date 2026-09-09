@@ -257,6 +257,45 @@ the gate: everyone who blocks scripts would be reported *because* they blocked
 scripts, ad click or not. If you ever paste Meta's snippet in fresh, drop that
 half again.
 
+**Meta has a server-side half too**, `metaConversion_` in `signup.gs`, posting
+to `graph.facebook.com/v26.0/<dataset>/events`. The dataset id is the same
+number as the browser pixel's — Meta renamed "pixel" to "dataset" and one id
+now names both — which is what lets `event_id` collapse the browser report and
+the server one into a single conversion. Token in Script Properties under
+`META_CAPI_TOKEN`; absent, it returns without sending.
+
+Three things differ from the Reddit half and each was checked against the API
+rather than assumed:
+
+- **`event_time` is in seconds.** Reddit's `event_at` is milliseconds. Sending
+  ms here puts the event fifty thousand years out and Meta rejects it as
+  outside the seven-day window, which reads as a range error, not a units one.
+- **Contact fields are hashed; `fbc` and `fbp` are not.** Meta's payload helper
+  says it outright: everything is SHA-256 "except for client IP address,
+  client user agent, click ID, and browser ID". Hashing a click id destroys
+  the only thing it is for.
+- **The phone is digits with the country code and no `+`.** The page
+  normalises to E.164 for Reddit; Meta's own example is `16505551234`. Hashing
+  the `+` in produces a digest of a different string that matches nobody and
+  looks perfectly fine.
+
+**A payload can be validated without recording anything.** An invalid
+`action_source` is rejected before storage, so a request carrying every real
+field plus a bad `action_source` tells you whether the token authenticates and
+whether any field name is wrong, and lands nowhere. That is how the shape above
+was confirmed. A `Missing Permission` on a plain GET of the dataset is not a
+broken token — reading dataset metadata is a different permission from posting
+events to it.
+
+**What is deliberately NOT built is Meta's Qualified Leads / CRM integration**,
+which uses the same endpoint with `action_source: "system_generated"`,
+`custom_data.event_source: "crm"` and a `lead_id`. That reports a lead moving
+between funnel stages and is built around the `lead_id` Meta mints for its own
+Instant Forms. The application is a form on this site, so there is no
+`lead_id`, and the only stage that fires automatically is the one the pixel
+already reports. It becomes worth having if Instant Forms ever run, and it is a
+second function beside `metaConversion_` rather than a change to it.
+
 None of it can be exercised locally: it is inside the same `avand.fm` gate as
 Fathom, and `crypto.subtle` (used to hash the email) does not exist over plain
 http anyway. Verifying means one real application on production.
