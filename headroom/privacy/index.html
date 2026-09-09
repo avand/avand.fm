@@ -87,11 +87,11 @@ subsection: Privacy
   <h2>If you arrived from an ad</h2>
 
   <p>
-    Headroom advertises inside ChatGPT and on Reddit, and each of those
-    companies has a measurement pixel that runs on these pages so an
-    application can be traced back to the ad that paid for it. They work the
-    same way as each other, and only the one belonging to the ad you clicked
-    ever runs. Taking OpenAI's as the example:
+    Headroom advertises inside ChatGPT, on Reddit, and on Facebook and
+    Instagram, and each of those companies has a measurement pixel that runs
+    on these pages so an application can be traced back to the ad that paid
+    for it. They work the same way as each other, and only the one belonging
+    to the ad you clicked ever runs. Taking OpenAI's as the example:
   </p>
 
   <ul>
@@ -130,22 +130,32 @@ subsection: Privacy
   </p>
 
   <p>
-    The difference is what they are sent. OpenAI receives your email
-    scrambled, because this site scrambles it first, and never your phone
-    number. <strong>Reddit receives your email address and your phone number
-    as they are.</strong> Their system has no way to take a scrambled one
-    &mdash; it would match nobody &mdash; so sending them at all means sending
-    them as they are, and the honest thing is to say so rather than describe
-    them as protected when they are not.
+    Meta's pixel &mdash; Facebook and Instagram are the same company &mdash;
+    works the same way as Reddit's. It runs only if you arrived from one of
+    their ads, which is what puts an <code>fbclid</code> reference code in the
+    web address; it stores that code as <code>_fbc</code> and a random number
+    identifying your browser to Meta as <code>_fbp</code>, both for ninety
+    days; and if you apply, it tells Meta that an application happened.
   </p>
 
   <p>
-    What Reddit does with them is match your application to the ad you
+    The difference is what they are sent. OpenAI receives your email
+    scrambled, because this site scrambles it first, and never your phone
+    number. <strong>Reddit and Meta receive your email address, your phone
+    number and your first name as they are.</strong> Neither system has a way
+    to take a scrambled one from us &mdash; it would match nobody &mdash; so
+    sending them at all means sending them as they are, and the honest thing
+    is to say so rather than describe them as protected when they are not.
+  </p>
+
+  <p>
+    What Reddit and Meta do with them is match your application to the ad you
     clicked, and build a picture of the kind of person these ads reach, which
-    is what decides who gets shown them next. If you would rather they did not
-    have your details, not clicking a Reddit ad is enough &mdash; the pixel
-    never runs for anyone else, and applying after arriving some other way
-    sends them nothing at all.
+    is what decides who gets shown them next. If you would rather one of them
+    did not have your details, not clicking their ads is enough &mdash; each
+    pixel runs only for people who arrived from that company's own ad, so
+    clicking a Reddit ad tells Meta nothing, and applying after arriving some
+    other way sends all of them nothing at all.
   </p>
 
   <p>
@@ -174,7 +184,7 @@ subsection: Privacy
 
   <p>
     The companies above — Google, which holds the signup spreadsheet; OpenAI;
-    Reddit; Fathom; GitHub; Cloudflare — are all based in the United States, so applying
+    Reddit; Meta; Fathom; GitHub; Cloudflare — are all based in the United States, so applying
     means your name, email and phone number are stored there. If you are in the UK, the
     EEA, or Switzerland, that is an international transfer, and it is covered by
     the standard contractual clauses those providers publish.

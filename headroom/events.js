@@ -101,6 +101,15 @@
      Reddit hands you. */
   var REDDIT = "a2_jkuzsl3m9hke";
 
+  /* The Meta pixel id, from Events Manager. Public on the same terms as the
+     two above: it names where a conversion goes, not who may send one.
+
+     Meta calls the conversion `Lead`, the same word Reddit uses, which is a
+     coincidence of vocabulary and not a shared anything -- the two are sent
+     by different scripts, matched on different fields, and counted in
+     different dashboards. */
+  var META = "1105029631861200";
+
   /* Fathom's snippet has no stub queue: window.fathom does not exist until the
      script has loaded, and anything fired before then is simply lost. Since
      this file loads it, that window is real. Events wait here instead.
@@ -408,6 +417,38 @@
   }
 
   /*
+   * Whether this visitor has anything to do with a Meta ad.
+   *
+   * `fbclid` is the click id Facebook and Instagram append to the landing
+   * page URL. Same question as the two above, same reason for asking it.
+   *
+   * THIS ONE TAKES A COOKIE FALLBACK AND fromReddit() DOES NOT, which is a
+   * deliberate difference rather than an inconsistency. Meta writes two
+   * cookies and only one of them is a fair thing to test:
+   *
+   *   `_fbc` is the CLICK reference -- written only when fbclid was in the
+   *   URL. Testing it asks "did this browser once arrive from a Meta ad",
+   *   which is the same question `__oppref` answers for OpenAI, and a fair
+   *   one to still answer yes to weeks later.
+   *
+   *   `_fbp` is a per-browser id written for everybody the pixel runs for.
+   *   Testing that would ask whether the pixel had already run, which is
+   *   circular -- the same trap `_rdt_uuid` sets, which is why fromReddit()
+   *   stays on the query string alone.
+   *
+   * The fallback only works because the first visit sets it up: fbclid is in
+   * the URL, so the pixel loads, so Meta's script writes `_fbc`. A visitor
+   * whose first click had the script blocked has no cookie and is not
+   * recognised later, which is the same limitation fromAd() carries.
+   */
+  function fromMeta() {
+    return (
+      /[?&]fbclid=/.test(location.search) ||
+      /(^|;\s*)_fbc=/.test(document.cookie)
+    );
+  }
+
+  /*
    * Reddit's pixel, loaded on the same terms as OpenAI's: only on the live
    * site, only for somebody who arrived from one of their ads.
    *
@@ -439,6 +480,47 @@
 
     window.rdt("init", REDDIT);
     window.rdt("track", "PageVisit");
+  }
+
+  /*
+   * Meta's pixel, on the same terms as the other two: live site only, and
+   * only for somebody who arrived from one of their ads.
+   *
+   * The loader is a transcription of the snippet Meta hands you, for the same
+   * reason Reddit's is -- an improvement on a vendor's loader is a thing to
+   * debug at the moment attribution breaks, and the snippet is what their
+   * support will ask you to compare against.
+   *
+   * NO <noscript> PIXEL, and its absence is the point. Meta's snippet ships
+   * with an <img> fallback that fires for every visitor without JavaScript,
+   * which would walk straight through the gate this function sits behind:
+   * everyone who blocks scripts would be reported to Meta precisely because
+   * they blocked scripts, ad click or not. The gate is the promise the
+   * privacy page makes, so the fallback goes.
+   *
+   * PageView is fired here rather than left to the loader, matching Reddit's
+   * PageVisit -- it is the half of the pair a Lead gets measured against.
+   */
+  function loadMeta() {
+    (function (f, b, e, v, n, t, s) {
+      if (f.fbq) return;
+      n = f.fbq = function () {
+        n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+      };
+      if (!f._fbq) f._fbq = n;
+      n.push = n;
+      n.loaded = !0;
+      n.version = "2.0";
+      n.queue = [];
+      t = b.createElement(e);
+      t.async = !0;
+      t.src = v;
+      s = b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t, s);
+    })(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
+
+    window.fbq("init", META);
+    window.fbq("track", "PageView");
   }
 
   function loadPixel() {
@@ -558,6 +640,7 @@
       if (window.console) {
         console.info("[track] openai lead_created " + id);
         console.info("[track] reddit Lead " + id);
+        console.info("[track] meta Lead " + id);
       }
       if (!LIVE) return;
     }
@@ -568,6 +651,7 @@
        of this that called redditLead() after `if (!window.oaiq) return` would
        have tied one vendor's delivery to the other's script loading. */
     redditLead(id, email, phone);
+    metaLead(id, email, phone, name);
 
     if (!window.oaiq) return;
 
@@ -609,13 +693,6 @@
    * rather than made here.
    *
    * THE SECOND init IS NOT A MISTAKE. Reddit's advanced matching goes in the
-   * init call, and at page load there is nobody to match -- the email only
-   * exists once somebody has applied. So the pixel is initialised bare on the
-   * way in and again here, with the identifier, immediately before the
-   * conversion it belongs to. Calls queue in order, so the matching is in
-   * place before the Lead is sent.
-   *
-   * THE SECOND init IS NOT A MISTAKE. Reddit's advanced matching goes in the
    * init call, and at page load there is nobody to match -- the address only
    * exists once somebody has applied. So the pixel is initialised bare on the
    * way in and again here, with the identifier, immediately before the
@@ -646,13 +723,66 @@
     window.rdt("track", "Lead", { conversionId: id });
   }
 
-  /* The vendors themselves, last: everything above is ready for them before
-     they exist. Both are live-site-only -- see LIVE at the top.
+  /*
+   * The Meta half of a lead.
+   *
+   * `Lead` is one of Meta's standard event names, so it goes as-is rather
+   * than as a custom event -- a standard name is what their optimiser can bid
+   * toward. It is the same word Reddit uses, which is a coincidence of
+   * vocabulary: different script, different fields, different dashboard.
+   *
+   * THE SECOND init IS NOT A MISTAKE, for the reason it is not one above.
+   * Meta's advanced matching is an argument to init, and at page load there
+   * is nobody to match -- the address only exists once somebody has applied.
+   * So the pixel is initialised bare on the way in and again here, carrying
+   * the identifiers, immediately before the conversion they belong to. Calls
+   * queue in order, so the matching is in place before the Lead goes.
+   *
+   * Raw, like the Reddit half and unlike the OpenAI one. Meta's pixel takes
+   * these plain; handing it a digest we made would give it something to hash
+   * a second time, which matches nobody while looking careful. What their
+   * script does between taking the address and sending it is theirs, and not
+   * something to describe in a privacy policy as though it were ours -- which
+   * is why the privacy page groups Meta with Reddit and says the address and
+   * the number are handed over as they are.
+   *
+   * `em`, `ph` and `fn` are Meta's field names, not ours. First name only,
+   * for the same reason the OpenAI half hashes a first name only: the field
+   * means the given name, and a full name in it matches nobody.
+   *
+   * eventID -- capital I, capital D, and deliberately not spelled like
+   * Reddit's conversionId or OpenAI's event_id. It is the deduplication key
+   * for the Conversions API: if the Apps Script ever reports this same
+   * application server-side, Meta collapses the pair only when both carry
+   * this id.
+   */
+  function metaLead(id, email, phone, name) {
+    if (!META || !window.fbq) return;
+    var match = {};
+    var addr = String(email || "").trim().toLowerCase();
+    if (addr) match.em = addr;
+    /* Already E.164 -- normalised once at submit and handed to every vendor
+       and to the endpoint as the same string. Empty when it could not be
+       normalised with certainty, and an absent identifier beats a confidently
+       wrong one. */
+    if (phone) match.ph = phone;
+    var first = String(name || "").trim().split(/\s+/)[0];
+    if (first) match.fn = first.toLowerCase();
+    if (match.em || match.ph || match.fn) window.fbq("init", META, match);
+    window.fbq("track", "Lead", {}, { eventID: id });
+  }
 
-     Fathom loads for everybody, because it is a cookieless counter. The pixel
-     loads only for people who arrived from an ad, on every page under
-     /headroom/ -- an ad may point at a glossary entry, and a page without the
-     pixel is a click that can never be attributed. See fromAd(). */
+  /* The vendors themselves, last: everything above is ready for them before
+     they exist. All of them are live-site-only -- see LIVE at the top.
+
+     Fathom loads for everybody, because it is a cookieless counter. Each
+     pixel loads only for people who arrived from that vendor's ad, on every
+     page under /headroom/ -- an ad may point at a glossary entry, and a page
+     without the pixel is a click that can never be attributed. See fromAd(),
+     fromReddit() and fromMeta().
+
+     Three vendors and three gates, deliberately: somebody who clicked a
+     Reddit ad is not reported to Meta, and the privacy page says so. */
   if (LIVE) {
     var s = document.createElement("script");
     s.src = "https://cdn.usefathom.com/script.js";
@@ -662,5 +792,6 @@
 
     if (PIXEL && fromAd()) loadPixel();
     if (REDDIT && fromReddit()) loadReddit();
+    if (META && fromMeta()) loadMeta();
   }
 })();

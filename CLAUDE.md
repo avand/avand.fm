@@ -239,6 +239,24 @@ running for anyone else: `init` sets `__obref`, a per-browser identifier with a
 docs do not mention and the minified SDK does. Verify claims about that pixel
 against the SDK, not the docs.
 
+**Meta's pixel is the third of the same animal**, gated on `fbclid` and firing
+`Lead` with an `eventID` — capital I, capital D, and not spelled like Reddit's
+`conversionId` or OpenAI's `event_id`, though all three carry the same value.
+
+`fromMeta()` takes a cookie fallback and `fromReddit()` does not, which is the
+one place the three gates genuinely differ. Meta writes two cookies and only
+one is fair to test: `_fbc` is the *click* reference, written only when
+`fbclid` was in the URL, so it asks the same question `__oppref` answers for
+OpenAI. `_fbp` is a per-browser id written for everybody the pixel runs for, so
+testing it would ask whether the pixel had already run — circular, the same
+trap `_rdt_uuid` sets.
+
+**The `<noscript>` half of Meta's snippet is deliberately not here.** It fires
+an `<img>` for every visitor without JavaScript, which walks straight through
+the gate: everyone who blocks scripts would be reported *because* they blocked
+scripts, ad click or not. If you ever paste Meta's snippet in fresh, drop that
+half again.
+
 None of it can be exercised locally: it is inside the same `avand.fm` gate as
 Fathom, and `crypto.subtle` (used to hash the email) does not exist over plain
 http anyway. Verifying means one real application on production.
