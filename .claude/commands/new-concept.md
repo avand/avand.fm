@@ -25,7 +25,7 @@ Create a new entry in the Headroom DJ glossary at `headroom/concepts/` and regis
    - `lead` paragraph = a one-sentence plain-English definition
    - Body content adapted from the source URL (if provided) per any adaptation instructions, or written from scratch (if no URL was provided). Either way, write in the Headroom voice: direct, technical but accessible, DJ-practitioner perspective. Cut studio-recording or live-sound-engineer content that isn't relevant to DJs. Use `<h2>` subheadings, `<p>`, `<ul>`, and `.callout` divs as appropriate.
    - Related terms links — only link to concept pages that actually exist yet (check `headroom/concepts/*/index.html`). Do not invent slugs for terms that haven't been written. If no existing entries are genuinely related, leave the `.related` section out of the new page entirely (it can be added later by step 6).
-   - Same `.final-cta` section ("Want to go deeper?"). Its background image comes from `headroom/headroom.css`, so the page names no image of its own
+   - Same `.final-cta` section ("Want to go deeper?"). Its background image comes from `headroom/css/headroom.css`, so the page names no image of its own
    - Do NOT include `<html>`, `<head>`, `<nav>`, `<footer>`, or the favicon script — the layout provides all of that
 
 5. Add the new term to `headroom/concepts/index.html`:

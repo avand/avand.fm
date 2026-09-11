@@ -22,30 +22,30 @@ rel=${file#"$repo"/}
 
 # asset -> the file holding its version, and the pattern that version lives in
 case "$rel" in
-  headroom/headroom.css)          holder="_layouts/headroom.html"; pattern='headroom\.css\?v=[0-9]+' ;;
-  headroom/index.css)             holder="_layouts/headroom.html"; pattern='index\.css\?v=[0-9]+' ;;
+  headroom/css/headroom.css)      holder="_layouts/headroom.html"; pattern='headroom\.css\?v=[0-9]+' ;;
+  headroom/css/index.css)         holder="_layouts/headroom.html"; pattern='index\.css\?v=[0-9]+' ;;
   headroom/concepts/concepts.css) holder="_layouts/headroom.html"; pattern='concepts\.css\?v=[0-9]+' ;;
-  video/dist/*/captions.vtt)      holder="headroom/player.js";     pattern='CAPTIONS_V = [0-9]+' ;;
-  headroom/hls.min.js)            exit 0 ;;  # vendored, loaded by name from player.js
+  video/dist/*/captions.vtt)      holder="headroom/js/player.js"; pattern='CAPTIONS_V = [0-9]+' ;;
+  headroom/js/hls.min.js)         exit 0 ;;  # vendored, loaded by name from player.js
   # events.js is the exception to the line below: it is loaded from the layout,
   # not from index.html, so that is where its version lives. Without this case
   # it falls through to headroom/*.js and gets checked against a number in
   # index.html that has nothing to do with it -- which warns even when the
   # layout was bumped correctly, and stays quiet when it was not.
-  headroom/events.js)             holder="_layouts/headroom.html"; pattern='events\.js\?v=[0-9]+' ;;
+  headroom/js/events.js)          holder="_layouts/headroom.html"; pattern='events\.js\?v=[0-9]+' ;;
   # The two stylesheets that arrived with the application, and the player's,
   # which was pulled out of index.css when a second page started rendering one.
   # Without these three they matched nothing and fell through to the catch-all,
   # which exits 0 -- so the one file in this repo whose whole job is to make a
   # forgotten bump loud was silent about them.
-  headroom/player.css)            holder="_layouts/headroom.html"; pattern='player\.css\?v=[0-9]+' ;;
+  headroom/css/player.css)        holder="_layouts/headroom.html"; pattern='player\.css\?v=[0-9]+' ;;
   headroom/apply/apply.css)       holder="_layouts/headroom.html"; pattern='apply\.css\?v=[0-9]+' ;;
   # And the application's script, for the same reason as events.js: `*` matches
   # `/` in a case glob, so this would otherwise fall through to the line below
   # and be checked against the landing page's five-script version, which has
   # nothing to do with it. Its own ?v= is in the page that loads it.
   headroom/apply/apply.js)        holder="headroom/apply/index.html"; pattern='apply\.js\?v=[0-9]+' ;;
-  headroom/*.js)                  holder="headroom/index.html";    pattern='\?v=[0-9]+' ;;
+  headroom/js/*.js)               holder="headroom/index.html";    pattern='\?v=[0-9]+' ;;
   *)                              exit 0 ;;
 esac
 

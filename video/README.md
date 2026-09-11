@@ -155,5 +155,5 @@ check its end time against the audio before suspecting the player.
 
 **Re-uploading a captions file needs a version bump.** They are cached for a
 year at a URL that never changes, so the player requests `captions.vtt?v=N`;
-`CAPTIONS_V` in `headroom/player.js` is that N. Change the file, bump the
+`CAPTIONS_V` in `headroom/js/player.js` is that N. Change the file, bump the
 number, or nobody sees the change -- including you.

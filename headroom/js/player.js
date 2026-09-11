@@ -40,7 +40,7 @@
      404 the moment /headroom/apply/done/ got one, on every browser that is not
      Safari. Safari plays HLS natively and never asks for this file, so the
      failure would have been invisible on the machine most likely to check. */
-  var HLS_LIB = "/headroom/hls.min.js";
+  var HLS_LIB = "/headroom/js/hls.min.js";
 
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 

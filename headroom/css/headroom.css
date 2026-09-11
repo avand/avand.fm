@@ -21,9 +21,10 @@
  * fifty-odd pages. With one page inlining was right. With fifty it is not.
  *
  * Relative url()s resolve against this file, not the page including it. This
- * file lives in /headroom/, so 'fonts/cairo-latin.woff2' and
- * 'images/final-cta-2560.webp' are correct from a concept page two directories down
- * as well as from the landing page. Nothing here needs an absolute path, and
+ * file lives in /headroom/css/, so '../fonts/cairo-latin.woff2' and
+ * '../images/final-cta-2560.webp' reach /headroom/fonts/ and /headroom/images/
+ * from a concept page two directories down as well as from the landing page.
+ * Nothing here needs an absolute path, and
  * making one absolute would be a claim about the deploy path that is not
  * otherwise made anywhere.
  *
@@ -46,7 +47,7 @@
   font-style: normal;
   font-weight: 400 900;
   font-display: swap;
-  src: url("fonts/cairo-latin.woff2") format("woff2");
+  src: url("../fonts/cairo-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
     U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
     U+2212, U+2215, U+FEFF, U+FFFD;
@@ -57,7 +58,7 @@
   font-style: normal;
   font-weight: 400 900;
   font-display: swap;
-  src: url("fonts/cairo-latin-ext.woff2") format("woff2");
+  src: url("../fonts/cairo-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
     U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
     U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
@@ -754,7 +755,7 @@ section.wide {
   position: relative;
   background:
     linear-gradient(to bottom, var(--bg) 0%, rgba(10, 10, 15, 0.5) 30%, rgba(10, 10, 15, 0.5) 70%, var(--bg) 100%),
-    url('images/final-cta-2200.webp') center bottom / cover no-repeat;
+    url('../images/final-cta-2200.webp') center bottom / cover no-repeat;
 }
 
 .final-cta::before {
@@ -1031,19 +1032,19 @@ section.wide {
    the block appears.
 
    The url()s are relative to this stylesheet, not to the page including
-   it -- headroom.css sits in /headroom/, so 'images/final-cta-2560.webp' resolves
-   to /headroom/images/final-cta-2560.webp from a concept page two directories
+   it -- headroom.css sits in /headroom/css/, so '../images/final-cta-2560.webp'
+   resolves to /headroom/images/final-cta-2560.webp from a concept page two directories
    down just as it does from the landing page. That is why nothing here
    needs an absolute path. */
 @media (min-width: 800px) {
   .final-cta {
-    background-image: linear-gradient(to bottom, var(--bg) 0%, rgba(10, 10, 15, 0.5) 30%, rgba(10, 10, 15, 0.5) 70%, var(--bg) 100%), url('images/final-cta-2560.webp');
+    background-image: linear-gradient(to bottom, var(--bg) 0%, rgba(10, 10, 15, 0.5) 30%, rgba(10, 10, 15, 0.5) 70%, var(--bg) 100%), url('../images/final-cta-2560.webp');
   }
 }
 
 /* Retina desktop: a 1512pt laptop at 2x is 3024 real pixels wide. */
 @media (min-width: 800px) and (min-resolution: 2dppx) {
   .final-cta {
-    background-image: linear-gradient(to bottom, var(--bg) 0%, rgba(10, 10, 15, 0.5) 30%, rgba(10, 10, 15, 0.5) 70%, var(--bg) 100%), url('images/final-cta-3200.webp');
+    background-image: linear-gradient(to bottom, var(--bg) 0%, rgba(10, 10, 15, 0.5) 30%, rgba(10, 10, 15, 0.5) 70%, var(--bg) 100%), url('../images/final-cta-3200.webp');
   }
 }

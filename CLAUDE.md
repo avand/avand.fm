@@ -41,9 +41,9 @@ Five stylesheets, split by audience, not by tidiness:
 
 | | |
 |---|---|
-| `headroom/headroom.css` | what every page under `/headroom/` presents **identically** — tokens, fonts, nav, footer, buttons, `.final-cta` (which all 50 concept pages render too) |
-| `headroom/index.css` | the landing page's own furniture — hero, curriculum, timeline, modal, the CTA's two extra lines |
-| `headroom/player.css` | the video player, at any size, wherever one appears |
+| `headroom/css/headroom.css` | what every page under `/headroom/` presents **identically** — tokens, fonts, nav, footer, buttons, `.final-cta` (which all 50 concept pages render too) |
+| `headroom/css/index.css` | the landing page's own furniture — hero, curriculum, timeline, modal, the CTA's two extra lines |
+| `headroom/css/player.css` | the video player, at any size, wherever one appears |
 | `headroom/concepts/concepts.css` | the glossary's own layout |
 | `headroom/apply/apply.css` | the application and its confirmation page |
 
@@ -64,7 +64,7 @@ overrides `headroom.css`.
 
 ## Analytics
 
-Two vendors, one file. `headroom/events.js` is the only place that knows either
+Two vendors, one file. `headroom/js/events.js` is the only place that knows either
 exists — it loads the Fathom script and the OpenAI ads conversion pixel itself,
 and only on `avand.fm`, so `bin/dev` and the tunnel report into neither the live
 site nor the ad account. Set `localStorage["track-debug"] = "1"` to see
@@ -368,12 +368,12 @@ simply reaches nobody, including you.
 
 | you changed | bump |
 |---|---|
-| `headroom/*.js` | `?v=` on the script tags in `headroom/index.html` (all five together) |
-| `headroom/player.js` | those five **and** the one in `headroom/apply/done/index.html` — two pages load it now |
-| `headroom/events.js` | its `?v=` in `_layouts/headroom.html` — it is loaded there, not from `index.html` |
+| `headroom/js/*.js` | `?v=` on the script tags in `headroom/index.html` (all five together) |
+| `headroom/js/player.js` | those five **and** the one in `headroom/apply/done/index.html` — two pages load it now |
+| `headroom/js/events.js` | its `?v=` in `_layouts/headroom.html` — it is loaded there, not from `index.html` |
 | `headroom/apply/apply.js` | its `?v=` in `headroom/apply/index.html` |
 | any `.css` under `headroom/` | that file's `?v=` in `_layouts/headroom.html` — all five are linked from there |
-| any `captions.vtt` re-uploaded to R2 | `CAPTIONS_V` in `headroom/player.js` |
+| any `captions.vtt` re-uploaded to R2 | `CAPTIONS_V` in `headroom/js/player.js` |
 
 Bump in the **same commit** as the change. A hook warns when you don't.
 

@@ -164,9 +164,9 @@
        Bump ?v= in the same commit as any change to these files. They are
        cached the way the scripts are, and an un-bumped edit reaches nobody for
        ten minutes. -->
-  <link rel="stylesheet" href="/headroom/headroom.css?v=13" />
-  {% if page.landing %}<link rel="stylesheet" href="/headroom/index.css?v=17" />{% endif %}
-  {% if page.landing or page.player %}<link rel="stylesheet" href="/headroom/player.css?v=3" />{% endif %}
+  <link rel="stylesheet" href="/headroom/css/headroom.css?v=14" />
+  {% if page.landing %}<link rel="stylesheet" href="/headroom/css/index.css?v=18" />{% endif %}
+  {% if page.landing or page.player %}<link rel="stylesheet" href="/headroom/css/player.css?v=3" />{% endif %}
   {% if page.subsection %}<link rel="stylesheet" href="/headroom/concepts/concepts.css?v=7" />{% endif %}
   {% if page.apply %}<link rel="stylesheet" href="/headroom/apply/apply.css?v=19" />{% endif %}
 
@@ -180,7 +180,7 @@
        order, so window.Track exists before player.js and the rest of the
        landing page's own scripts. Bump ?v= in the same commit as any change
        to it, the same as the stylesheets above. -->
-  <script src="/headroom/events.js?v=13" defer></script>
+  <script src="/headroom/js/events.js?v=13" defer></script>
 
 {% if page.landing %}
   <script>
