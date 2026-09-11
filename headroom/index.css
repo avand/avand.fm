@@ -56,7 +56,7 @@
      of the stylesheet restate the gradient to swap the file. */
   background:
     linear-gradient(to bottom, rgba(10, 10, 15, 0.55) 0%, rgba(10, 10, 15, 0.85) 80%, var(--bg) 100%),
-    url('hero-bg-1600.webp') center / cover no-repeat;
+    url('images/hero-bg-1600.webp') center / cover no-repeat;
 }
 
 /* The top of the photograph, resolved to a flat colour over 25px.
@@ -3052,20 +3052,20 @@ body.modal-open {
    tall crop. */
 @media (max-width: 799px) and (orientation: portrait) {
   .hero-bg {
-    background-image: linear-gradient(to bottom, rgba(10, 10, 15, 0.55) 0%, rgba(10, 10, 15, 0.85) 80%, var(--bg) 100%), url('hero-bg-portrait.webp');
+    background-image: linear-gradient(to bottom, rgba(10, 10, 15, 0.55) 0%, rgba(10, 10, 15, 0.85) 80%, var(--bg) 100%), url('images/hero-bg-portrait.webp');
   }
 }
 
 @media (min-width: 800px) {
   .hero-bg {
-    background-image: linear-gradient(to bottom, rgba(10, 10, 15, 0.55) 0%, rgba(10, 10, 15, 0.85) 80%, var(--bg) 100%), url('hero-bg-2560.webp');
+    background-image: linear-gradient(to bottom, rgba(10, 10, 15, 0.55) 0%, rgba(10, 10, 15, 0.85) 80%, var(--bg) 100%), url('images/hero-bg-2560.webp');
   }
 }
 
 /* Retina desktop: a 1512pt laptop at 2x is 3024 real pixels wide. */
 @media (min-width: 800px) and (min-resolution: 2dppx) {
   .hero-bg {
-    background-image: linear-gradient(to bottom, rgba(10, 10, 15, 0.55) 0%, rgba(10, 10, 15, 0.85) 80%, var(--bg) 100%), url('hero-bg-3200.webp');
+    background-image: linear-gradient(to bottom, rgba(10, 10, 15, 0.55) 0%, rgba(10, 10, 15, 0.85) 80%, var(--bg) 100%), url('images/hero-bg-3200.webp');
   }
 
   /* The instructor photograph is fitted to the band's height, not the
@@ -3073,7 +3073,7 @@ body.modal-open {
      about 1050 CSS px across on a desktop, which is 2100 real ones here.
      1780 is the whole crop; past that there is no more picture. */
   .instructor-band::before {
-    background-image: url('instructor-1780.webp');
+    background-image: url('images/instructor-1780.webp');
   }
 }
 
@@ -3081,6 +3081,6 @@ body.modal-open {
    after the layout rule that names the 760, so it replaces it. */
 @media (max-width: 640px) and (min-resolution: 2dppx) {
   .instructor-band::before {
-    background-image: url('instructor-tall-1400.webp');
+    background-image: url('images/instructor-tall-1400.webp');
   }
 }

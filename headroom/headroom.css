@@ -22,7 +22,7 @@
  *
  * Relative url()s resolve against this file, not the page including it. This
  * file lives in /headroom/, so 'fonts/cairo-latin.woff2' and
- * 'final-cta-2560.webp' are correct from a concept page two directories down
+ * 'images/final-cta-2560.webp' are correct from a concept page two directories down
  * as well as from the landing page. Nothing here needs an absolute path, and
  * making one absolute would be a claim about the deploy path that is not
  * otherwise made anywhere.
@@ -754,7 +754,7 @@ section.wide {
   position: relative;
   background:
     linear-gradient(to bottom, var(--bg) 0%, rgba(10, 10, 15, 0.5) 30%, rgba(10, 10, 15, 0.5) 70%, var(--bg) 100%),
-    url('final-cta-2200.webp') center bottom / cover no-repeat;
+    url('images/final-cta-2200.webp') center bottom / cover no-repeat;
 }
 
 .final-cta::before {
@@ -1031,19 +1031,19 @@ section.wide {
    the block appears.
 
    The url()s are relative to this stylesheet, not to the page including
-   it -- headroom.css sits in /headroom/, so 'final-cta-2560.webp' resolves
-   to /headroom/final-cta-2560.webp from a concept page two directories
+   it -- headroom.css sits in /headroom/, so 'images/final-cta-2560.webp' resolves
+   to /headroom/images/final-cta-2560.webp from a concept page two directories
    down just as it does from the landing page. That is why nothing here
    needs an absolute path. */
 @media (min-width: 800px) {
   .final-cta {
-    background-image: linear-gradient(to bottom, var(--bg) 0%, rgba(10, 10, 15, 0.5) 30%, rgba(10, 10, 15, 0.5) 70%, var(--bg) 100%), url('final-cta-2560.webp');
+    background-image: linear-gradient(to bottom, var(--bg) 0%, rgba(10, 10, 15, 0.5) 30%, rgba(10, 10, 15, 0.5) 70%, var(--bg) 100%), url('images/final-cta-2560.webp');
   }
 }
 
 /* Retina desktop: a 1512pt laptop at 2x is 3024 real pixels wide. */
 @media (min-width: 800px) and (min-resolution: 2dppx) {
   .final-cta {
-    background-image: linear-gradient(to bottom, var(--bg) 0%, rgba(10, 10, 15, 0.5) 30%, rgba(10, 10, 15, 0.5) 70%, var(--bg) 100%), url('final-cta-3200.webp');
+    background-image: linear-gradient(to bottom, var(--bg) 0%, rgba(10, 10, 15, 0.5) 30%, rgba(10, 10, 15, 0.5) 70%, var(--bg) 100%), url('images/final-cta-3200.webp');
   }
 }

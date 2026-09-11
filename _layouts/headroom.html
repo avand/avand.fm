@@ -5,7 +5,7 @@
 
   `landing: true` means the Headroom landing page, and it is the only thing
   that turns on the hero preloads, the locked viewport unit, the nav's call to
-  action, the video share card, index.css, and the footer credits.
+  action, the share card, index.css, and the footer credits.
 
   A single flag rather than one per feature because those are not independent
   choices -- they are all the same fact, asked six times. Adding a second
@@ -84,12 +84,12 @@
   <meta property="og:url" content="https://avand.fm/headroom/" />
   <meta property="og:title" content="Headroom — Advanced DJ Training for Aspiring Performers" />
   <meta property="og:description" content="Advanced DJ training for aspiring performers. An eight-week, end-to-end up-leveling of your entire stack so you can step into any booth and find your flow." />
-  <meta property="og:image" content="https://avand.fm/headroom/og-image.png" />
+  <meta property="og:image" content="https://avand.fm/headroom/images/og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:image:alt" content="The Headroom logo, an orange H beside the word Headroom, on black." />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:image" content="https://avand.fm/headroom/og-image.png" />
+  <meta name="twitter:image" content="https://avand.fm/headroom/images/og-image.png" />
 {% endif %}
 
   <!-- Warming the connection here shaves a round trip off the brand video,
@@ -115,13 +115,13 @@
        exactly and are mutually exclusive, so a device preloads the one file it
        is going to use and no others. If that matrix changes, these change with
        it -- they are the only copy of it that can go stale silently. -->
-  <link rel="preload" as="image" href="/headroom/hero-bg-portrait.webp" fetchpriority="high"
+  <link rel="preload" as="image" href="/headroom/images/hero-bg-portrait.webp" fetchpriority="high"
     media="(max-width: 799px) and (orientation: portrait)" />
-  <link rel="preload" as="image" href="/headroom/hero-bg-1600.webp" fetchpriority="high"
+  <link rel="preload" as="image" href="/headroom/images/hero-bg-1600.webp" fetchpriority="high"
     media="(max-width: 799px) and (orientation: landscape)" />
-  <link rel="preload" as="image" href="/headroom/hero-bg-2560.webp" fetchpriority="high"
+  <link rel="preload" as="image" href="/headroom/images/hero-bg-2560.webp" fetchpriority="high"
     media="(min-width: 800px) and (max-resolution: 1.99dppx)" />
-  <link rel="preload" as="image" href="/headroom/hero-bg-3200.webp" fetchpriority="high"
+  <link rel="preload" as="image" href="/headroom/images/hero-bg-3200.webp" fetchpriority="high"
     media="(min-width: 800px) and (min-resolution: 2dppx)" />
 {% endif %}
 
@@ -145,7 +145,7 @@
        crossorigin is required even same-origin: fonts are fetched in CORS mode,
        and a preload without it is a second, unused request rather than a hit. -->
   <link rel="preload" as="font" type="font/woff2" href="/headroom/fonts/cairo-latin.woff2" crossorigin />
-  <link rel="icon" type="image/png" href="/headroom/favicon.svg" id="favicon" />
+  <link rel="icon" type="image/png" href="/headroom/images/favicon.svg" id="favicon" />
 
   <!-- Five stylesheets, by audience. headroom.css is what every page type
        presents identically and is the one every page under /headroom/ loads --
@@ -164,8 +164,8 @@
        Bump ?v= in the same commit as any change to these files. They are
        cached the way the scripts are, and an un-bumped edit reaches nobody for
        ten minutes. -->
-  <link rel="stylesheet" href="/headroom/headroom.css?v=12" />
-  {% if page.landing %}<link rel="stylesheet" href="/headroom/index.css?v=16" />{% endif %}
+  <link rel="stylesheet" href="/headroom/headroom.css?v=13" />
+  {% if page.landing %}<link rel="stylesheet" href="/headroom/index.css?v=17" />{% endif %}
   {% if page.landing or page.player %}<link rel="stylesheet" href="/headroom/player.css?v=3" />{% endif %}
   {% if page.subsection %}<link rel="stylesheet" href="/headroom/concepts/concepts.css?v=7" />{% endif %}
   {% if page.apply %}<link rel="stylesheet" href="/headroom/apply/apply.css?v=19" />{% endif %}
