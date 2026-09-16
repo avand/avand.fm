@@ -24,19 +24,19 @@
      stripped by Gmail outright, and a CID attachment means teaching buildMime_
      multipart/related for one image.
 
-     THE BACKGROUND IS PART OF THE PICTURE, in both files, and that is the
-     whole trick. A dark-mode client that inverts a message leaves images
-     alone, so a lockup carrying its own ground looks the way it was drawn
-     everywhere -- where a transparent PNG of a #F2F2F2 wordmark would vanish
-     on white, and a black one would vanish on Gmail's inverted grey.
+     THE BACKGROUND IS PART OF THE PICTURE, and that is the whole trick. A
+     dark-mode client that inverts a message leaves images alone, so a lockup
+     carrying its own ground looks the way it was drawn everywhere -- where a
+     transparent PNG of a #F2F2F2 wordmark would vanish on white, and a black
+     one would vanish on Gmail's inverted grey.
 
-     The <picture> is the improvement on top, not the mechanism: Apple Mail,
-     iOS Mail, Outlook 2019+, Samsung Mail and Thunderbird read the media
-     query and take the dark file. Gmail (which has no dark mode on the web,
-     inverts in its apps, and strips <style> in some of them) and Outlook's
-     Word-based clients ignore <source> and fall through to the <img>. That
-     fallback is the light one, so the default everywhere uncertain is black
-     on white.
+     This was briefly a <picture>, light by default with the dark file behind
+     a prefers-color-scheme query, which is the technique every dark-mode
+     guide recommends. On an iPhone in dark mode it served the light one: the
+     swap only happens in clients that implement <source>, and Gmail ignores
+     it on every platform. So the choice was a logo that is right in some
+     clients and a white slab in the rest, or one image that is the same
+     everywhere. This is the second.
 
      Width and height are attributes, not CSS: Outlook ignores the stylesheet
      and would otherwise draw this at 720px and blow the layout out. The alt
@@ -48,13 +48,9 @@
      no label -- so a linked logo puts a bare URL on the first line of the
      plain-text message, above the greeting. -->
 <p>
-  <picture>
-    <source srcset="https://avand.fm/headroom/images/email-lockup-dark.png"
-            media="(prefers-color-scheme: dark)" />
-    <img src="https://avand.fm/headroom/images/email-lockup-light.png"
-         width="300" height="113" alt="Headroom"
-         style="display:block;border:0;max-width:100%;height:auto" />
-  </picture>
+  <img src="https://avand.fm/headroom/images/email-lockup-dark.png"
+       width="300" height="113" alt="Headroom"
+       style="display:block;border:0;max-width:100%;height:auto" />
 </p>
 
 <p><?= greeting ?></p>
