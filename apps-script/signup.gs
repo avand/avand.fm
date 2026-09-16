@@ -1275,14 +1275,17 @@ function json(obj) {
 // Plain ASCII with no comma, quote or parenthesis in it, so it needs no
 // quoting in the From header buildMime_ writes by hand. A name that ever
 // gains one does.
-var FROM_NAME = "Avand at Headroom";
+var FROM_NAME = "Headroom for DJs";
 var FROM_EMAIL = "headroom@avand.fm";
 
 /**
- * Replies go to the address a person actually reads, not to the sending
- * alias. A reply to this mail is the most interested anybody has been so far.
+ * Replies go to the Headroom address rather than a personal one: a reply to
+ * this mail is the most interested anybody has been so far, and it belongs in
+ * the inbox the course is run from. Sending as headroom@avand.fm and asking
+ * for replies at wave@avand.fm, as this used to, also made the two halves of
+ * the message disagree about who was writing.
  */
-var REPLY_TO = "wave@avand.fm";
+var REPLY_TO = "headroom@avand.fm";
 
 /**
  * Where the mail points. REGISTER_URL is a page on avand.fm that bounces to
