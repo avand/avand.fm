@@ -1854,3 +1854,250 @@ function esc_(value) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 }
+
+/* ========================================================================== */
+/* The October reminder, to the Main List                                     */
+/* ========================================================================== */
+
+/**
+ * A second mailing, to a second tab, with a second template.
+ *
+ * WHY IT IS NOT sendInvites_ WITH AN ARGUMENT
+ *
+ * The two differ in more than the copy. The sample-class batch reads a tab
+ * this file writes, whose columns it knows by position and refuses to run
+ * against if they have moved. "Main List" is made by hand: it is a merge of
+ * the website signups, the Meta Instant Form leads and the applications, its
+ * columns can be reordered by whoever is looking at it, and it carries no
+ * signup timestamp at all. Addressing it by position would be the exact
+ * failure assertInviteColumns_ exists to prevent, so this half reads the
+ * header row and finds its columns by name.
+ *
+ * WHAT STOPS A SECOND RUN MAILING EVERYBODY AGAIN
+ *
+ * There is no "Reminder sent at" column -- the Sheet has one date per person,
+ * "Last contacted", and that is what this updates. So a stamp cannot be told
+ * apart from the date of some earlier contact by looking at the cell alone.
+ *
+ * The rule is the date below: anybody whose "Last contacted" is on or after
+ * REMINDER_EPOCH has had this reminder, and everybody else has not. That
+ * makes a second run a no-op, and an interrupted run resumable, without a
+ * column that the Sheet's owner did not ask for.
+ *
+ * It follows that REMINDER_EPOCH must be later than every date already in the
+ * tab (the newest is 2026-09-15, the last Meta lead) and not later than the
+ * day the batch runs. If this mailing slips past the 24th, move it.
+ */
+var MAIN_LIST_NAME = "Main List";
+var REMINDER_SUBJECT = "There's still room to grow...";
+var REMINDER_EPOCH = new Date(2026, 8, 16); // 16 September 2026, months are 0-based
+
+/**
+ * The number in the call to action, twice: once for the link and once for the
+ * reader. The href is E.164 because that is what a phone dials without
+ * guessing at a country; the label is how a number is read in the US.
+ *
+ * sms: rather than tel:. The message says "text me", and a link that starts a
+ * phone call instead is a surprise at best.
+ */
+var TEXT_SMS_HREF = "sms:+12093479039";
+var TEXT_NUMBER = "209-347-9039";
+
+/* Entry points. No arguments, because the Run menu cannot pass any. */
+
+/** Logs who the reminder would go to, and mails nobody. Run this first. */
+function previewReminders() {
+  var result = sendReminders_({ dryRun: true });
+  console.log(
+    "Would mail " + result.sent + " of " + result.considered + " rows:\n" +
+      result.recipients.join("\n")
+  );
+  if (result.skipped_why.length) {
+    console.log("Skipping " + result.skipped + ":\n" + result.skipped_why.join("\n"));
+  }
+  return result;
+}
+
+/** Logs the message both ways, and sends nothing. The text part is derived. */
+function previewReminderText() {
+  var body = reminderBody_("Alexa", "alexa@example.com");
+  console.log("--- subject ---\n" + REMINDER_SUBJECT);
+  console.log("--- text ---\n" + body.text);
+  console.log("--- html ---\n" + body.html);
+}
+
+/** One copy to REPLY_TO. Touches no row. See sendTestInvite for what to read. */
+function sendTestReminder() {
+  sendOneReminder_("Avand", REPLY_TO);
+  console.log("Sent to " + REPLY_TO + ". Check the From line, the text link, and the footer.");
+}
+
+/** Mails the batch and stamps "Last contacted". Run previewReminders first. */
+function sendReminders() {
+  var result = sendReminders_({ dryRun: false });
+  console.log(
+    "Mailed " + result.sent + ", skipped " + result.skipped +
+      ", failed " + result.failed.length
+  );
+  if (result.skipped_why.length) console.log(result.skipped_why.join("\n"));
+  if (result.failed.length) console.warn(result.failed.join("\n"));
+  return result;
+}
+
+/* The batch */
+
+/**
+ * Reads Main List and mails everyone with an address who has not had this
+ * reminder and has not unsubscribed.
+ *
+ * Runs from the editor, under the owner's account, like sendInvites_ -- and
+ * for the same reason nothing in doPost may ever call it. See the note above
+ * sendInvites_.
+ *
+ * Stamping happens after a send succeeds, never before: a crash in the gap
+ * mails somebody twice on the next run, and the other order loses them
+ * silently.
+ */
+function sendReminders_(opts) {
+  opts = opts || {};
+  var sheet = targetSheet(MAIN_LIST_NAME);
+  var col = mainListColumns_(sheet);
+
+  var lastRow = sheet.getLastRow();
+  var result = {
+    considered: 0,
+    sent: 0,
+    skipped: 0,
+    failed: [],
+    recipients: [],
+    skipped_why: [],
+  };
+  if (lastRow < 2) return result;
+
+  var width = sheet.getLastColumn();
+  var rows = sheet.getRange(2, 1, lastRow - 1, width).getValues();
+  var unsubscribedSince = unsubscribedSince_();
+
+  // Addresses, not rows -- the same argument as in sendInvites_. This list is
+  // a merge of three sources, so a person appearing twice is likelier here
+  // than in a tab one form writes.
+  var mailed = {};
+
+  for (var i = 0; i < rows.length; i++) {
+    var row = rows[i];
+    var rowNumber = i + 2;
+    var email = String(row[col.email] || "").trim();
+    var name = String(row[col.name] || "").trim();
+    if (!email) continue;
+    result.considered++;
+
+    var key = email.toLowerCase();
+    var contacted = row[col.contacted];
+
+    var skip = null;
+    if (unsubscribedSince[key]) {
+      // Unlike the signup tab, there is no per-person signup date to compare
+      // an unsubscribe against, so any unsubscribe silences the row. The safe
+      // reading of an ambiguous request to stop is to stop.
+      skip = "unsubscribed";
+    } else if (contacted instanceof Date && contacted >= REMINDER_EPOCH) {
+      skip = "already reminded (" + Utilities.formatDate(
+        contacted, Session.getScriptTimeZone(), "yyyy-MM-dd") + ")";
+    } else if (mailed[key]) {
+      skip = "same address as a row already mailed in this run";
+    }
+    if (skip) {
+      result.skipped++;
+      result.skipped_why.push("row " + rowNumber + " " + email + ": " + skip);
+      continue;
+    }
+
+    if (opts.dryRun) {
+      result.sent++;
+      result.recipients.push(name ? name + " <" + email + ">" : email);
+      mailed[key] = true;
+      continue;
+    }
+
+    try {
+      sendOneReminder_(name, email);
+      result.sent++;
+      result.recipients.push(email);
+      mailed[key] = true;
+      sheet.getRange(rowNumber, col.contacted + 1).setValue(new Date());
+    } catch (err) {
+      result.failed.push("row " + rowNumber + " " + email + ": " + err);
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Finds the three columns this batch reads, by header text.
+ *
+ * By name rather than by position, because this tab is maintained by hand:
+ * a column dragged one place to the left would otherwise send the reminder to
+ * whatever is now in the email column and write send times over the phone
+ * numbers.
+ *
+ * Returns zero-based indexes, because that is how the values array is read.
+ * The one place a 1-based number is wanted -- setValue on the stamp -- adds
+ * the 1 itself, at the call site, where it is visible.
+ */
+function mainListColumns_(sheet) {
+  var header = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var find = function (title) {
+    for (var c = 0; c < header.length; c++) {
+      if (String(header[c] || "").trim().toLowerCase() === title.toLowerCase()) return c;
+    }
+    throw new Error(
+      'The "' + MAIN_LIST_NAME + '" tab has no "' + title + '" column. ' +
+        "Nothing sent. Its headers are: " + header.join(", ")
+    );
+  };
+  return { name: find("Name"), email: find("Email"), contacted: find("Last contacted") };
+}
+
+/* One message */
+
+/** Builds and sends the reminder to one person. */
+function sendOneReminder_(name, email) {
+  if (!MAILING_ADDRESS) throw new Error("MAILING_ADDRESS is empty -- nothing sent");
+  if (!TEXT_SMS_HREF) throw new Error("TEXT_SMS_HREF is empty -- nothing sent");
+
+  var body = reminderBody_(name, email);
+  var raw = buildMime_({
+    to: email,
+    subject: REMINDER_SUBJECT,
+    text: body.text,
+    html: body.html,
+    unsubscribeUrl: body.unsubscribeUrl,
+  });
+  Gmail.Users.Messages.send({ raw: raw }, "me");
+}
+
+/**
+ * The reminder, in both parts. The copy lives in reminder.html; the plain-text
+ * part is converted from it, so the two cannot drift.
+ *
+ * The greeting says "Hey" where the invite says "Hi", because that is how
+ * headroom/reminder.md was written.
+ */
+function reminderBody_(name, email) {
+  var unsubscribeUrl = UNSUBSCRIBE_URL + "?email=" + encodeURIComponent(email);
+  var greeting = name ? "Hey " + name + "," : "Hey,";
+
+  var values = {
+    greeting: greeting,
+    smsHref: TEXT_SMS_HREF,
+    phone: TEXT_NUMBER,
+    unsubscribeUrl: unsubscribeUrl,
+    address: MAILING_ADDRESS,
+    addressHtml: esc_(MAILING_ADDRESS).replace(/\n/g, "<br />"),
+  };
+
+  var html = render_("reminder", values);
+
+  return { text: htmlToText_(html), html: html, unsubscribeUrl: unsubscribeUrl };
+}
