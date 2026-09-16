@@ -18,6 +18,27 @@
 
      Run previewReminderText() after editing. It prints both parts and sends
      nothing. -->
+<!-- The lockup, served from the site rather than from here: an Apps Script
+     project holds .gs and .html files and cannot host a PNG, and the two ways
+     of carrying the picture inside the message are both worse. A data: URI is
+     stripped by Gmail outright, and a CID attachment means teaching buildMime_
+     multipart/related for one image.
+
+     So it is an absolute https URL, with the alt text doing the work for the
+     many clients that block remote images until a reader asks. Width and
+     height are attributes, not CSS, because Outlook ignores the stylesheet and
+     would otherwise draw it at 720px and blow the layout out.
+
+     Deliberately not a link. htmlToText_ builds the text part by replacing an
+     anchor with "label: url", and an anchor whose only content is an image has
+     no label -- so a linked logo puts a bare URL on the first line of the
+     plain-text message, above the greeting. -->
+<p>
+  <img src="https://avand.fm/headroom/images/email-lockup.png"
+       width="300" height="113" alt="Headroom"
+       style="display:block;border:0;max-width:100%;height:auto" />
+</p>
+
 <p><?= greeting ?></p>
 
 <p>It&rsquo;s time to take the next step in your DJ journey.</p>
