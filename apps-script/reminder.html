@@ -40,6 +40,14 @@
      So the trade is made on purpose, in this direction: seamless in a light
      client, where most mail is read, and a white card in a dark one.
 
+     THE FILENAME IS THE VERSION. Gmail does not fetch this URL from here --
+     it proxies it through googleusercontent.com and caches what it got the
+     first time, for far longer than the ten minutes Pages caches. Replacing
+     the art at a filename already mailed once served the OLD picture to every
+     new message: 300x112.5 in the inspector, the shape of a file that had
+     been deleted. Same rule as the logos in headroom/logo/ -- new art is a
+     new filename, never a new version of an old one.
+
      Width and height are attributes, not CSS: Outlook ignores the stylesheet
      and would otherwise draw this at 720px and blow the layout out. The alt
      text does the work for the many clients that block remote images until a
@@ -50,9 +58,9 @@
      no label -- so a linked logo puts a bare URL on the first line of the
      plain-text message, above the greeting. -->
 <p>
-  <img src="https://avand.fm/headroom/images/email-lockup-light.png"
+  <img src="https://avand.fm/headroom/images/email-lockup-ink-on-white.png"
        width="300" height="61" alt="Headroom"
-       style="display:block;border:0;max-width:100%;height:auto" />
+       style="display:block;border:0;max-width:100%" />
 </p>
 
 <p><?= greeting ?></p>
