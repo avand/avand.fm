@@ -151,11 +151,15 @@
 
 <hr />
 
-<!-- avand.fm/headroom is a written-out anchor, not bare text. Left plain, the
-     client autolinks it and paints it ITS blue -- which is exactly the colour
-     this file is not supposed to contain, and no rule of ours reaches a link
-     we did not write. So it is ours, styled, and tagged like the lockup with
-     its own utm_content so a footer click is telling apart from a logo click.
+<!-- The name is the link, not the address. "Headroom" is what a reader
+     remembers signing up for; a URL in the middle of a sentence is a thing to
+     decode. The href is the same either way.
+
+     Written out as an anchor rather than left as bare text, which is how this
+     line got its one splash of blue: a client autolinks a plain URL and
+     paints it ITS colour, and no rule written on our anchors reaches a link
+     we did not write. Tagged like the lockup, with its own utm_content, so a
+     footer click is telling apart from a logo click.
 
      No full stop after it, for the reason given below about the unsubscribe
      link: in the plain-text part the URL ends the line, and a trailing "." is
@@ -166,7 +170,7 @@
 <p>
   <small>
     You&rsquo;re getting this because you expressed interest in
-    <a href="<?= footerUrl ?>" style="color: #000000; text-decoration: underline">avand.fm/headroom</a>
+    <a href="<?= footerUrl ?>" style="color: #000000; text-decoration: underline">Headroom</a>
     <br /><br />
     <!-- No full stop after this link, for the reason given in invite.html:
          a trailing "." is swallowed by the autolinker in the plain-text part,
