@@ -1670,6 +1670,19 @@ function inviteBody_(name, email) {
  * <?= ?> escapes, <?!= ?> does not. Everything reaching the template is
  * escaped except addressHtml, which is escaped by hand in inviteBody_ before
  * its newlines are turned into <br>.
+ *
+ * HOUSE STYLE FOR LINKS, in this and every template added later: a text link
+ * is BLACK AND UNDERLINED, never the browser's blue.
+ *
+ *   style="color: #000000; text-decoration: underline"
+ *
+ * Written on each anchor, because a mail client gives us no stylesheet to put
+ * it in -- see the note at the top of reminder.html about <style> blocks. Two
+ * exceptions, both of which are still the same rule: an anchor wrapping an
+ * image carries text-decoration: none, since there is no text to underline
+ * and the line would draw under the picture; and a button sets its own colour
+ * on itself, because its label is not a link the reader picks out of a
+ * paragraph -- it is the shape of the thing.
  */
 function render_(fileName, values) {
   var template = HtmlService.createTemplateFromFile(fileName);

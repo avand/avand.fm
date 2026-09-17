@@ -86,7 +86,7 @@
 <div style="font-family: Cairo, 'Segoe UI', -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 17px; line-height: 1.6; color: #16161A">
 
 <p style="margin: 20px 0">
-  <a href="<?= siteUrl ?>"><img
+  <a href="<?= siteUrl ?>" style="text-decoration: none"><img
        src="https://avand.fm/headroom/images/email-lockup-ink-on-white.png"
        width="200" height="41" alt="Headroom"
        style="display:block;border:0;max-width:100%" /></a>
@@ -160,7 +160,7 @@
          a trailing "." is swallowed by the autolinker in the plain-text part,
          giving a dead unsubscribe link to the reader least willing to forgive
          one. -->
-    <a href="<?= unsubscribeUrl ?>">Unsubscribe</a>
+    <a href="<?= unsubscribeUrl ?>" style="color: #000000; text-decoration: underline">Unsubscribe</a>
     <br /><br />
     <?!= addressHtml ?>
   </small>
