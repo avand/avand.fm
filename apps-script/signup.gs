@@ -1944,6 +1944,17 @@ var REMINDER_SITE_URL =
   "?utm_source=email&utm_medium=email" +
   "&utm_campaign=oct-cohort-reminder&utm_content=logo";
 
+/**
+ * The same page from the footer's own line, which differs from the one above
+ * in utm_content alone. Two links to one page in one message: without the
+ * second name they arrive as one number and there is no telling whether a
+ * reader pressed the logo at the top or the small print at the bottom.
+ */
+var REMINDER_FOOTER_URL = REMINDER_SITE_URL.replace(
+  "utm_content=logo",
+  "utm_content=footer"
+);
+
 /* Entry points. No arguments, because the Run menu cannot pass any. */
 
 /** Logs who the reminder would go to, and mails nobody. Run this first. */
@@ -2134,6 +2145,7 @@ function reminderBody_(name, email) {
     smsHref: TEXT_SMS_HREF,
     phone: TEXT_NUMBER,
     siteUrl: REMINDER_SITE_URL,
+    footerUrl: REMINDER_FOOTER_URL,
     unsubscribeUrl: unsubscribeUrl,
     address: MAILING_ADDRESS,
     addressHtml: esc_(MAILING_ADDRESS).replace(/\n/g, "<br />"),

@@ -151,10 +151,22 @@
 
 <hr />
 
+<!-- avand.fm/headroom is a written-out anchor, not bare text. Left plain, the
+     client autolinks it and paints it ITS blue -- which is exactly the colour
+     this file is not supposed to contain, and no rule of ours reaches a link
+     we did not write. So it is ours, styled, and tagged like the lockup with
+     its own utm_content so a footer click is telling apart from a logo click.
+
+     No full stop after it, for the reason given below about the unsubscribe
+     link: in the plain-text part the URL ends the line, and a trailing "." is
+     swallowed by the autolinker.
+
+     The size is <small>'s and nothing else's: it renders around 14 against
+     the wrapper's 17, which is the hierarchy this needs. -->
 <p>
   <small>
     You&rsquo;re getting this because you expressed interest in
-    avand.fm/headroom.
+    <a href="<?= footerUrl ?>" style="color: #000000; text-decoration: underline">avand.fm/headroom</a>
     <br /><br />
     <!-- No full stop after this link, for the reason given in invite.html:
          a trailing "." is swallowed by the autolinker in the plain-text part,
