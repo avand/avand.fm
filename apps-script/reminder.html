@@ -51,17 +51,42 @@
      new filename, never a new version of an old one.
 
      Width and height are attributes, not CSS: Outlook ignores the stylesheet
-     and would otherwise draw this at 720px and blow the layout out. The alt
-     text does the work for the many clients that block remote images until a
-     reader asks.
+     and would otherwise draw this at its full 714px and blow the layout out.
+     41 is 145/714 of 200, and both numbers move together or the lockup
+     stretches. The alt text does the work for the many clients that block
+     remote images until a reader asks.
 
      Deliberately not a link. htmlToText_ builds the text part by replacing an
      anchor with "label: url", and an anchor whose only content is an image has
      no label -- so a linked logo puts a bare URL on the first line of the
-     plain-text message, above the greeting. -->
-<p>
+     plain-text message, above the greeting.
+
+     The gap under it is the paragraph's own bottom margin rather than a
+     spacer row, so there is one number to change and nothing to keep in step
+     with it. -->
+<!-- One wrapper carries the type for the whole message, because a mail client
+     has no stylesheet to put it in: a <style> block is moved or dropped
+     outright by Gmail depending on the platform, and this is a MIME part with
+     no <head> to hold one anyway. Inheritance from a div is what is left, and
+     it holds everywhere that matters here. Outlook's Word engine is the known
+     weak spot for inherited type, and it is also the client nobody on this
+     list is likely to be reading a phone-first ad funnel in.
+
+     "Cairo" leads the stack because it is what avand.fm sets, and a reader who
+     happens to have it installed should see the site's face. It will not
+     load: a webfont in email means @font-face in a stylesheet, which brings
+     back the problem above, and Gmail ignores it regardless. So the rest of
+     the stack is the real answer -- the system humanist sans on each platform,
+     which is the nearest thing to Cairo that is already on the machine.
+
+     17px against the browser's 16, and the site's own 1.6 line-height. Bigger
+     than a default mail body, which is the point, and short of the size that
+     reads as shouting. -->
+<div style="font-family: Cairo, 'Segoe UI', -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 17px; line-height: 1.6; color: #16161A">
+
+<p style="margin: 0 0 20px">
   <img src="https://avand.fm/headroom/images/email-lockup-ink-on-white.png"
-       width="300" height="61" alt="Headroom"
+       width="200" height="41" alt="Headroom"
        style="display:block;border:0;max-width:100%" />
 </p>
 
@@ -114,3 +139,5 @@
     <?!= addressHtml ?>
   </small>
 </p>
+
+</div>
