@@ -1704,6 +1704,14 @@ function htmlToText_(html) {
     function (match, href, label) {
       var clean = label.replace(/<[^>]+>/g, "").replace(/&rarr;|&#8594;/g, "");
       clean = clean.replace(/\s+/g, " ").trim();
+      // A linked image has no words in it, and stripping its markup leaves
+      // nothing -- which put a bare URL on the first line of the reminder,
+      // above the greeting, the moment the lockup became a link. The alt text
+      // is the label a picture carries, so it is the label here too.
+      if (!clean) {
+        var alt = /<img\b[^>]*\balt="([^"]*)"/i.exec(label);
+        if (alt) clean = alt[1].replace(/\s+/g, " ").trim();
+      }
       return clean ? clean + ": " + href : href;
     }
   );
@@ -1903,6 +1911,26 @@ var REMINDER_EPOCH = new Date(2026, 8, 16); // 16 September 2026, months are 0-b
 var TEXT_SMS_HREF = "sms:+12093479039";
 var TEXT_NUMBER = "209-347-9039";
 
+/**
+ * Where the lockup at the top of the reminder goes, tagged so the visit is
+ * telling apart from every other way somebody arrives.
+ *
+ * The scheme is the one the ads already use and the application already
+ * records: apply.js forwards location.search through the whole funnel, and
+ * the Applications tab stores the landing URL in its "Page" column. So a
+ * reader who clicks this logo, reads the page and applies arrives in the
+ * Sheet with these parameters still attached, and can be counted against this
+ * mailing rather than guessed at.
+ *
+ * utm_content names the place in the message, not the offer, for the reason
+ * the whole naming note in events.js gives: the button may say something
+ * different next month and a year of history should still line up.
+ */
+var REMINDER_SITE_URL =
+  "https://avand.fm/headroom/" +
+  "?utm_source=email&utm_medium=email" +
+  "&utm_campaign=oct-cohort-reminder&utm_content=logo";
+
 /* Entry points. No arguments, because the Run menu cannot pass any. */
 
 /** Logs who the reminder would go to, and mails nobody. Run this first. */
@@ -2092,6 +2120,7 @@ function reminderBody_(name, email) {
     greeting: greeting,
     smsHref: TEXT_SMS_HREF,
     phone: TEXT_NUMBER,
+    siteUrl: REMINDER_SITE_URL,
     unsubscribeUrl: unsubscribeUrl,
     address: MAILING_ADDRESS,
     addressHtml: esc_(MAILING_ADDRESS).replace(/\n/g, "<br />"),

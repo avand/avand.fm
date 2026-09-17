@@ -56,13 +56,14 @@
      stretches. The alt text does the work for the many clients that block
      remote images until a reader asks.
 
-     Deliberately not a link. htmlToText_ builds the text part by replacing an
-     anchor with "label: url", and an anchor whose only content is an image has
-     no label -- so a linked logo puts a bare URL on the first line of the
-     plain-text message, above the greeting.
+     It links to the site, tagged -- REMINDER_SITE_URL in signup.gs says what
+     the tags are for. An anchor holding only an image has no words to become
+     a label, which put a bare URL on the first line of the plain-text part,
+     above the greeting; htmlToText_ now falls back to the alt text, so that
+     line reads "Headroom: https://...".
 
-     The gap under it is the paragraph's own bottom margin rather than a
-     spacer row, so there is one number to change and nothing to keep in step
+     The gaps above and below are the paragraph's own margin rather than
+     spacer rows, so there is one number to change and nothing to keep in step
      with it. -->
 <!-- One wrapper carries the type for the whole message, because a mail client
      has no stylesheet to put it in: a <style> block is moved or dropped
@@ -84,10 +85,11 @@
      reads as shouting. -->
 <div style="font-family: Cairo, 'Segoe UI', -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 17px; line-height: 1.6; color: #16161A">
 
-<p style="margin: 0 0 20px">
-  <img src="https://avand.fm/headroom/images/email-lockup-ink-on-white.png"
+<p style="margin: 20px 0">
+  <a href="<?= siteUrl ?>"><img
+       src="https://avand.fm/headroom/images/email-lockup-ink-on-white.png"
        width="200" height="41" alt="Headroom"
-       style="display:block;border:0;max-width:100%" />
+       style="display:block;border:0;max-width:100%" /></a>
 </p>
 
 <p><?= greeting ?></p>
