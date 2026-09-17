@@ -115,7 +115,31 @@
 
 <p>Simply text me to take the next step:</p>
 
-<p><a href="<?= smsHref ?>">Text Avand @ <?= phone ?></a></p>
+<!-- A button, built as a one-cell table rather than a styled <a>.
+
+     Outlook's Word engine ignores padding on an inline element, so the
+     padded-anchor version of this arrives there as orange text with the
+     paint shrink-wrapped around the letters. The colour goes on the <td>,
+     where Word does honour it, and the anchor inside is display:inline-block
+     so the padding is its own. bgcolor as well as the CSS, for the same
+     reason.
+
+     border-radius is the one thing Word drops outright: those readers get the
+     same button with square corners, which is a rounding difference and not a
+     broken message.
+
+     The label still carries the number, because htmlToText_ turns an anchor
+     into "label: url" and "Text Avand @ 209-347-9039: sms:+12093479039" is a
+     line somebody can act on. A button labelled "Text me" would leave the
+     plain-text reader holding a URL and no number. -->
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 24px 0">
+  <tr>
+    <td bgcolor="#FF6116" style="background-color: #FF6116; border-radius: 6px">
+      <a href="<?= smsHref ?>"
+         style="display: inline-block; padding: 14px 26px; color: #FFFFFF; font-weight: 700; font-size: 17px; line-height: 1.2; text-decoration: none; font-family: Cairo, 'Segoe UI', -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif">Text Avand @ <?= phone ?></a>
+    </td>
+  </tr>
+</table>
 
 <p>I&rsquo;m really excited to share my 13+ years of hard-learned DJ lessons with you.</p>
 
